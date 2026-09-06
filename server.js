@@ -14,26 +14,26 @@ app.use(express.urlencoded({ extended: true }));
 // ─── HTTP STATUS CODE REGISTRY ───
 const HTTP_STATUS_MAP = {
   // 1xx Informational
-  100: { title: "100 Continue", icon: "ℹ️", desc: "The server has received the request headers and the client should proceed with the request." },
-  101: { title: "101 Switching Protocols", icon: "🔄", desc: "The requester has asked the server to switch protocols and the server agreed to do so." },
+  100: { title: "100 Continue", icon: "ℹ️", desc: "The server has received the request headers and the client should proceed." },
+  101: { title: "101 Switching Protocols", icon: "🔄", desc: "The requester asked the server to switch protocols and the server agreed." },
   102: { title: "102 Processing", icon: "⚙️", desc: "The server has received and is processing the request, but no response is available yet." },
-  103: { title: "103 Early Hints", icon: "💡", desc: "The server is returning headers to preload resources while the final response is prepared." },
+  103: { title: "103 Early Hints", icon: "💡", desc: "The server is returning headers to preload resources while final response prepares." },
 
   // 2xx Success
   200: { title: "200 OK", icon: "✅", desc: "The request has succeeded." },
   201: { title: "201 Created", icon: "✨", desc: "The request has been fulfilled and a new resource has been created." },
-  202: { title: "202 Accepted", icon: "📥", desc: "The request has been accepted for processing, but processing has not completed." },
+  202: { title: "202 Accepted", icon: "📥", desc: "The request has been accepted for processing, but processing is not finished." },
   203: { title: "203 Non-Authoritative Information", icon: "📋", desc: "The returned metadata was gathered from a local or third-party copy." },
-  204: { title: "204 No Content", icon: "📭", desc: "The server successfully processed the request and is not returning any content." },
-  205: { title: "205 Reset Content", icon: "🔄", desc: "The server successfully processed the request and requires the view to be reset." },
-  206: { title: "206 Partial Content", icon: "🧩", desc: "The server is delivering only part of the resource due to a Range header." },
+  204: { title: "204 No Content", icon: "📭", desc: "The server successfully processed the request with no content returned." },
+  205: { title: "205 Reset Content", icon: "🔄", desc: "The server successfully processed the request and requires the view to reset." },
+  206: { title: "206 Partial Content", icon: "🧩", desc: "The server is delivering only part of the resource per Range header." },
 
   // 3xx Redirection
   300: { title: "300 Multiple Choices", icon: "🔀", desc: "The requested resource corresponds to multiple choices available." },
   301: { title: "301 Moved Permanently", icon: "📦", desc: "The requested resource has been assigned a new permanent URI." },
   302: { title: "302 Found", icon: "📍", desc: "The requested resource resides temporarily under a different URI." },
-  303: { title: "303 See Other", icon: "👀", desc: "The response to the request can be found under another URI using GET." },
-  304: { title: "304 Not Modified", icon: "⚡", desc: "The resource has not been modified since the version specified in request." },
+  303: { title: "303 See Other", icon: "👀", desc: "The response can be found under another URI using GET." },
+  304: { title: "304 Not Modified", icon: "⚡", desc: "The cached resource has not been modified since the version specified." },
   305: { title: "305 Use Proxy", icon: "🛡️", desc: "The requested resource must be accessed through a designated proxy." },
   307: { title: "307 Temporary Redirect", icon: "↪️", desc: "The target resource resides temporarily under a different URI." },
   308: { title: "308 Permanent Redirect", icon: "🔁", desc: "The target resource has been permanently assigned to a new URI." },
@@ -44,22 +44,22 @@ const HTTP_STATUS_MAP = {
   402: { title: "402 Payment Required", icon: "💳", desc: "Reserved for digital payment protocols." },
   403: { title: "403 Forbidden", icon: "🔒", desc: "Access Denied. You do not have the required permissions to view this resource." },
   404: { title: "404 Not Found", icon: "🔍", desc: "URL Doesnt exist. Looking for something?" },
-  405: { title: "405 Method Not Allowed", icon: "🚫", desc: "The request method is known by the server but not supported for this resource." },
-  406: { title: "406 Not Acceptable", icon: "❌", desc: "The server cannot produce a response matching the Accept headers requested." },
+  405: { title: "405 Method Not Allowed", icon: "🚫", desc: "The request method is not supported for this resource." },
+  406: { title: "406 Not Acceptable", icon: "❌", desc: "The server cannot produce a response matching requested Accept headers." },
   407: { title: "407 Proxy Authentication Required", icon: "🛂", desc: "The client must first authenticate itself with the proxy." },
   408: { title: "408 Request Timeout", icon: "⏱️", desc: "The server timed out waiting for the complete request from the client." },
   409: { title: "409 Conflict", icon: "⚔️", desc: "The request conflicts with the current state of the target resource." },
   410: { title: "410 Gone", icon: "🗑️", desc: "The target resource has been permanently deleted from origin." },
   411: { title: "411 Length Required", icon: "📏", desc: "The server refuses the request without a defined Content-Length header." },
-  412: { title: "412 Precondition Failed", icon: "🛑", desc: "One or more conditions given in the request header fields evaluated to false." },
+  412: { title: "412 Precondition Failed", icon: "🛑", desc: "One or more conditions in the request headers evaluated to false." },
   413: { title: "413 Payload Too Large", icon: "📦", desc: "The request entity is larger than limits defined by the server." },
   414: { title: "414 URI Too Long", icon: "🔗", desc: "The URI provided was too long for the server to interpret." },
   415: { title: "415 Unsupported Media Type", icon: "📁", desc: "The payload format is in an unsupported media type." },
-  416: { title: "416 Range Not Satisfiable", icon: "📐", desc: "The client asked for a portion of the file that cannot be supplied." },
-  417: { title: "417 Expectation Failed", icon: "❓", desc: "The expectation given in the Expect request-header field could not be met." },
+  416: { title: "416 Range Not Satisfiable", icon: "📐", desc: "The requested portion of the file cannot be supplied." },
+  417: { title: "417 Expectation Failed", icon: "❓", desc: "The expectation given in the Expect request-header could not be met." },
   418: { title: "418 I'm a Teapot", icon: "🫖", desc: "The server refuses the attempt to brew coffee with a teapot." },
-  421: { title: "421 Misdirected Request", icon: "🧭", desc: "The request was directed at a server that is not able to produce a response." },
-  422: { title: "422 Unprocessable Entity", icon: "📝", desc: "The request was well-formed but could not be followed due to semantic errors." },
+  421: { title: "421 Misdirected Request", icon: "🧭", desc: "The request was directed at a server that cannot produce a response." },
+  422: { title: "422 Unprocessable Entity", icon: "📝", desc: "The request was well-formed but was unable to be followed due to semantic errors." },
   423: { title: "423 Locked", icon: "🔐", desc: "The resource that is being accessed is currently locked." },
   424: { title: "424 Failed Dependency", icon: "⛓️", desc: "The request failed because it depended on another request that failed." },
   425: { title: "425 Too Early", icon: "⚡", desc: "The server is unwilling to risk processing a request that might be replayed." },
@@ -83,86 +83,111 @@ const HTTP_STATUS_MAP = {
   511: { title: "511 Network Authentication Required", icon: "🛡️", desc: "The client needs to authenticate to gain network access." }
 };
 
+// ─── CRIMSONFLAME THEMED ERROR RENDERER ───
 function renderErrorHTML(statusCode, customTitle, customDesc, customIcon) {
   const info = HTTP_STATUS_MAP[statusCode] || {
-    title: `${statusCode} HTTP Status`,
+    title: `${statusCode}`,
     icon: "⚠️",
     desc: "An unexpected status response occurred."
   };
 
-  const title = customTitle || info.title;
-  const desc = customDesc || info.desc;
+  const codeDisplay = statusCode || 404;
+  const desc = customDesc || (statusCode === 404 ? "URL Doesnt exist. Looking for something?" : info.desc);
   const icon = customIcon || info.icon;
+  const showIcon = statusCode !== 404 && icon;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title} | CrimsonFlame</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>${codeDisplay} | CrimsonFlame</title>
+    <link rel="stylesheet" href="/style.css?v=9">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        .error-viewport {
+            min-height: calc(100vh - 120px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 90px 20px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .error-card {
+            background: rgba(20, 11, 16, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(220, 38, 38, 0.35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(220, 38, 38, 0.2);
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            padding: 46px 32px;
+            text-align: center;
+            position: relative;
+        }
+
+        .error-icon-indicator {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 12px;
+            display: ${showIcon ? 'block' : 'none'};
+            animation: cfPulse 2s infinite ease-in-out;
+        }
+
+        .error-code-badge {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: clamp(3.8rem, 12vw, 5.5rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ff4d6d 0%, #dc2626 50%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(220, 38, 38, 0.4);
+            letter-spacing: -2px;
+        }
+
+        .error-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .error-actions {
             display: flex;
             justify-content: center;
+        }
+
+        .btn-back {
+            display: inline-flex;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-        .container {
-            text-align: center;
-            padding: 42px 32px;
-            border: 1px solid rgba(220, 38, 38, 0.35);
-            border-radius: 16px;
-            background-color: #161b22;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.7), 0 0 30px rgba(220, 38, 38, 0.2);
-            max-width: 460px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .icon {
-            font-size: 58px;
-            margin-bottom: 18px;
-            line-height: 1;
-            display: inline-block;
-            animation: pulse 2s infinite ease-in-out;
-        }
-        h1 {
-            font-size: 28px;
-            margin: 0 0 12px 0;
-            color: #ff7b72;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }
-        p {
-            font-size: 15px;
-            color: #8b949e;
-            line-height: 1.6;
-            margin: 0 0 28px 0;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #dc2626;
-            color: #ffffff;
+            justify-content: center;
+            background: #dc2626;
+            color: #fff;
             text-decoration: none;
-            padding: 12px 28px;
-            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 0.95rem;
+            padding: 12px 36px;
+            border-radius: 12px;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+            box-shadow: 0 4px 18px rgba(220, 38, 38, 0.4);
         }
-        .btn:hover {
-            background-color: #ef4444;
+
+        .btn-back:hover {
+            background: #ef4444;
             transform: translateY(-2px);
-            box-shadow: 0 6px 22px rgba(220, 38, 38, 0.6);
+            box-shadow: 0 6px 24px rgba(220, 38, 38, 0.6);
+            color: #fff;
         }
-        @keyframes pulse {
+
+        @keyframes cfPulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.08); }
             100% { transform: scale(1); }
@@ -170,15 +195,123 @@ function renderErrorHTML(statusCode, customTitle, customDesc, customIcon) {
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">${icon}</div>
-        <h1>${title}</h1>
-        <p>${desc}</p>
-        <a href="/" class="btn">Return Home</a>
-    </div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    <div class="particles" id="particles"></div>
+
+    <nav class="pill-nav">
+        <a href="/index.html" class="pill-brand">
+            <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
+            <span class="pill-brand-text">CrimsonFlame</span>
+        </a>
+        <a href="/index.html" class="pill-link">Home</a>
+        <a href="/dashboard" class="pill-link">Dashboard</a>
+        <a href="/developer" class="pill-link">Developer</a>
+        <a href="/support" class="pill-link">Support</a>
+    </nav>
+
+    <main class="error-viewport">
+        <div class="error-card">
+            ${showIcon ? `<div class="error-icon-indicator">${icon}</div>` : ''}
+            <div class="error-code-badge">${codeDisplay}</div>
+            <p class="error-desc">${desc}</p>
+            <div class="error-actions">
+                <a href="/index.html" class="btn-back">Back</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>© 2026 <strong>CrimsonFlame</strong>. All rights reserved.</p>
+    </footer>
+
+    <script>
+        (function() {
+            var c = document.getElementById('particles');
+            if (!c) return;
+            for (var i = 0; i < 25; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                var s = Math.random() * 3 + 1;
+                p.style.width = s + 'px';
+                p.style.height = s + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+                p.style.animationDelay = (Math.random() * 8) + 's';
+                p.style.opacity = Math.random() * 0.4 + 0.1;
+                c.appendChild(p);
+            }
+        })();
+    </script>
 </body>
 </html>`;
 }
+
+// ─── ADMIN KILL SWITCH & DOWNTIME STATE ───
+let isServerStopped = false;
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "crimson-cf-2026";
+
+// ─── API: CHECK SERVER STATE ───
+app.get('/api/server/state', (req, res) => {
+  res.json({
+    online: !isServerStopped,
+    status: isServerStopped ? "STOPPED" : "RUNNING",
+    statusCode: isServerStopped ? 503 : 200,
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ─── API: SERVER CONTROL (STOP / START / CRASH) ───
+app.all('/api/server/control', (req, res) => {
+  const action = req.body?.action || req.query?.action;
+  const secret = req.body?.secret || req.query?.secret || req.headers['x-admin-secret'];
+
+  if (secret !== ADMIN_SECRET) {
+    return res.status(401).json({ error: "Unauthorized: Invalid secret key." });
+  }
+
+  if (action === 'stop') {
+    isServerStopped = true;
+    console.log('[CrimsonFlame Controller] Server set to STOPPED state (503 mode).');
+    return res.json({ success: true, status: "STOPPED", message: "Server stopped. All public visitors will now receive HTTP 503." });
+  }
+
+  if (action === 'start' || action === 'resume') {
+    isServerStopped = false;
+    console.log('[CrimsonFlame Controller] Server resumed to RUNNING state.');
+    return res.json({ success: true, status: "RUNNING", message: "Server resumed. Website is back online." });
+  }
+
+  if (action === 'crash') {
+    console.error('[CrimsonFlame Controller] Hard crash command received.');
+    res.json({ success: true, message: "Crashing server process now..." });
+    setTimeout(() => { process.exit(1); }, 200);
+    return;
+  }
+
+  res.status(400).json({ error: "Unknown action. Use 'stop', 'start', or 'crash'." });
+});
+
+// ─── GLOBAL DOWNTIME INTERCEPTOR ───
+app.use((req, res, next) => {
+  // Allow control API and static styles/assets needed for the error page to render cleanly
+  if (req.path.startsWith('/api/server') || req.path === '/style.css' || req.path.startsWith('/assets/')) {
+    return next();
+  }
+
+  if (isServerStopped) {
+    return res.status(503).send(renderErrorHTML(
+      503,
+      "503 Service Unavailable",
+      "The CrimsonFlame server has been stopped by the administrator for maintenance. Please check back shortly.",
+      "🛑"
+    ));
+  }
+
+  next();
+});
 
 // ─── 1. DYNAMIC TEST / TRIGGER ROUTES (Real HTTP Statuses) ───
 app.get(['/status/:code', '/error/:code'], (req, res) => {

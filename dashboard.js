@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -370,6 +370,137 @@ window.sendVerificationEmailAgain = async function() {
     }
 };
 
+// ── Change Email Flow ──
+window.toggleChangeEmailForm = function(forceState) {
+    const container = document.getElementById('change-email-container');
+    if (!container) return;
+    if (typeof forceState === 'boolean') {
+        container.style.display = forceState ? 'block' : 'none';
+    } else {
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    }
+    playSfx('click');
+};
+
+window.submitEmailChange = async function(e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    const newEmail = document.getElementById('new-email-input').value.trim();
+    const currentPwd = document.getElementById('change-email-password-input').value;
+    const btn = document.getElementById('btn-save-email');
+
+    if (!newEmail || newEmail.toLowerCase() === currentUser.email.toLowerCase()) {
+        playSfx('error');
+        window.showToast("Please provide a different, valid email address.", "error");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Dispatching Link...";
+
+    try {
+        if (currentUser.email) {
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+            await reauthenticateWithCredential(currentUser, credential);
+        }
+
+        // Firebase verifyBeforeUpdateEmail sends confirmation link to the new address
+        await verifyBeforeUpdateEmail(currentUser, newEmail);
+        await setDoc(doc(db, "users", currentUser.uid), { pendingEmail: newEmail }, { merge: true });
+
+        playSfx('success');
+        window.showToast(`Verification dispatched to ${newEmail}! Click the link inside to complete the change.`, "success");
+        e.target.reset();
+        window.toggleChangeEmailForm(false);
+    } catch(err) {
+        playSfx('error');
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+            window.showToast("Current password was incorrect.", "error");
+        } else if (err.code === 'auth/email-already-in-use') {
+            window.showToast("That email address is already taken by another account.", "error");
+        } else {
+            window.showToast("Failed to update email: " + err.message, "error");
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Send Confirmation Link";
+    }
+};
+
+// ── Mobile Phone & SMS Code Forwarding ──
+window.submitPhoneSettings = async function(e) {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const countryCode = document.getElementById('phone-country-code').value;
+    const rawNumber = document.getElementById('phone-number-input').value.trim();
+    const forwardCodes = document.getElementById('pref-forward-codes').checked;
+    const smsAlerts = document.getElementById('pref-sms-alerts').checked;
+    const btn = document.getElementById('btn-save-phone');
+
+    if (!rawNumber) {
+        playSfx('error');
+        window.showToast("Please enter your phone number or click 'Unlink' to clear.", "error");
+        return;
+    }
+
+    const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
+    if (cleanNumber.length < 7) {
+        playSfx('error');
+        window.showToast("Please enter a valid phone number.", "error");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Saving Phone...";
+
+    const fullPhoneNumber = `${countryCode} ${rawNumber}`;
+
+    try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+            phone: fullPhoneNumber,
+            phoneCountryCode: countryCode,
+            phoneNumberRaw: rawNumber,
+            forwardCodesToPhone: forwardCodes,
+            smsAlertsEnabled: smsAlerts,
+            phoneLinkedAt: serverTimestamp()
+        }, { merge: true });
+
+        playSfx('success');
+        window.showToast("Phone linked! Email verification codes will now be forwarded to your mobile.", "success");
+    } catch(err) {
+        playSfx('error');
+        window.showToast("Failed to save phone settings: " + err.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "💾 Save Phone Settings";
+    }
+};
+
+window.unlinkPhoneNumber = async function() {
+    if (!currentUser) return;
+    if (!confirm("Are you sure you want to remove your phone number? SMS code forwarding will be disabled.")) return;
+
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), {
+            phone: null,
+            phoneCountryCode: null,
+            phoneNumberRaw: null,
+            forwardCodesToPhone: false,
+            smsAlertsEnabled: false
+        });
+
+        document.getElementById('phone-number-input').value = "";
+        document.getElementById('btn-unlink-phone').style.display = 'none';
+        document.getElementById('phone-status-badge').innerText = "";
+        playSfx('click');
+        window.showToast("Phone number unlinked.", "info");
+    } catch(err) {
+        playSfx('error');
+        window.showToast("Failed to unlink phone: " + err.message, "error");
+    }
+};
+
 // ── Preferences Management ──
 window.savePreferences = async function() {
     if (!currentUser) return;
@@ -662,6 +793,24 @@ onAuthStateChanged(auth, user => {
                         const emailUpEl = document.getElementById('pref-email-updates');
                         if (emailUpEl) emailUpEl.checked = data.preferences.emailUpdates;
                     }
+                }
+
+                // Phone & SMS Forwarding Data
+                if (data.phone) {
+                    const phoneInput = document.getElementById('phone-number-input');
+                    const countrySelect = document.getElementById('phone-country-code');
+                    const unlinkBtn = document.getElementById('btn-unlink-phone');
+                    const badge = document.getElementById('phone-status-badge');
+
+                    if (phoneInput && data.phoneNumberRaw) phoneInput.value = data.phoneNumberRaw;
+                    if (countrySelect && data.phoneCountryCode) countrySelect.value = data.phoneCountryCode;
+                    if (unlinkBtn) unlinkBtn.style.display = 'inline-block';
+                    if (badge) badge.innerHTML = `<span style="color: #4ade80; font-weight: 700;">✓ Active (${data.forwardCodesToPhone ? 'Forwarding On' : 'Alerts Only'})</span>`;
+                    
+                    const fwdEl = document.getElementById('pref-forward-codes');
+                    if (fwdEl && data.forwardCodesToPhone !== undefined) fwdEl.checked = data.forwardCodesToPhone;
+                    const smsEl = document.getElementById('pref-sms-alerts');
+                    if (smsEl && data.smsAlertsEnabled !== undefined) smsEl.checked = data.smsAlertsEnabled;
                 }
 
                 // Role Verification (Assigned strictly in Firebase/Firestore: isStaff / isDev / role)

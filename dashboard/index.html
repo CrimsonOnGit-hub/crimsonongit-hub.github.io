@@ -278,22 +278,119 @@
                             </div>
                         </div>
 
-                        <!-- Email Status -->
+                        <!-- Email Management & Change Email -->
                         <div class="settings-section-block">
                             <div class="settings-section-title">
-                                <span>📧 Email Verification</span>
+                                <span>📧 Account Email</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
                                 <div>
-                                    <div style="font-weight: 700; color: #fff; font-size: 0.92rem;" id="security-email-display">user@example.com</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.95rem;" id="security-email-display">user@example.com</div>
                                     <div id="security-email-badge" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.76rem; color: #4ade80; margin-top: 4px;">
                                         ✓ Verified Account
                                     </div>
                                 </div>
-                                <button id="resend-verification-btn" type="button" class="btn-secondary" onclick="sendVerificationEmailAgain()" style="display: none; width: auto; padding: 7px 16px; font-size: 0.82rem;">
-                                    Resend Verification Link
-                                </button>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button id="resend-verification-btn" type="button" class="btn-secondary" onclick="sendVerificationEmailAgain()" style="display: none; width: auto; padding: 7px 14px; font-size: 0.82rem;">
+                                        Resend Verification
+                                    </button>
+                                    <button type="button" class="btn-secondary" onclick="toggleChangeEmailForm()" style="width: auto; padding: 7px 16px; font-size: 0.82rem; font-weight: 700;">
+                                        ✏️ Change Email
+                                    </button>
+                                </div>
                             </div>
+
+                            <!-- Expandable Change Email Form -->
+                            <div id="change-email-container" style="display: none; background: rgba(0,0,0,0.35); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 16px 18px; margin-top: 10px;">
+                                <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Update Primary Email Address</div>
+                                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 12px; line-height: 1.4;">
+                                    A verification link will be sent to your new email. Enter your current password to authorize this change.
+                                </p>
+                                <form onsubmit="submitEmailChange(event)">
+                                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 12px;">
+                                        <div>
+                                            <label class="form-label" style="font-size: 0.78rem;">New Email Address</label>
+                                            <input type="email" id="new-email-input" class="settings-input" placeholder="new-email@example.com" required>
+                                        </div>
+                                        <div>
+                                            <label class="form-label" style="font-size: 0.78rem;">Current Password (to confirm)</label>
+                                            <input type="password" id="change-email-password-input" class="settings-input" placeholder="••••••••" required autocomplete="current-password">
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="submit" id="btn-save-email" class="btn-primary" style="width: auto; padding: 8px 20px; font-size: 0.84rem; font-weight: 700;">
+                                            Send Confirmation Link
+                                        </button>
+                                        <button type="button" class="btn-secondary" onclick="toggleChangeEmailForm(false)" style="width: auto; padding: 8px 16px; font-size: 0.84rem;">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Optional Phone Number & SMS Code Forwarding -->
+                        <div class="settings-section-block">
+                            <div class="settings-section-title">
+                                <span>📱 Mobile Phone & Code Forwarding (Optional)</span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.84rem; margin-bottom: 14px; line-height: 1.5;">
+                                Link an optional mobile phone number. When enabled, verification codes, 2FA prompts, and security alerts sent to your email can automatically be forwarded to your phone via SMS.
+                            </p>
+                            <form onsubmit="submitPhoneSettings(event)">
+                                <div style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 14px;">
+                                    <div>
+                                        <label class="form-label" style="font-size: 0.78rem;">Country Code</label>
+                                        <select id="phone-country-code" class="settings-input" style="padding: 10px 8px; font-size: 0.85rem;">
+                                            <option value="+1">🇺🇸/🇨🇦 +1</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+61">🇦🇺 +61</option>
+                                            <option value="+49">🇩🇪 +49</option>
+                                            <option value="+33">🇫🇷 +33</option>
+                                            <option value="+81">🇯🇵 +81</option>
+                                            <option value="+353">🇮🇪 +353</option>
+                                            <option value="+31">🇳🇱 +31</option>
+                                            <option value="+46">🇸🇪 +46</option>
+                                            <option value="+55">🇧🇷 +55</option>
+                                            <option value="+91">🇮🇳 +91</option>
+                                            <option value="+63">🇵🇭 +63</option>
+                                            <option value="+52">🇲🇽 +52</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" style="font-size: 0.78rem;">Phone Number</label>
+                                        <input type="tel" id="phone-number-input" class="settings-input" placeholder="(555) 000-0000" autocomplete="tel">
+                                    </div>
+                                </div>
+
+                                <!-- Forwarding & Notification Toggles -->
+                                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; background: rgba(0,0,0,0.25); padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; margin: 0;">
+                                        <input type="checkbox" id="pref-forward-codes" checked style="width: 18px; height: 18px; margin-top: 2px; accent-color: #dc2626;">
+                                        <div>
+                                            <div style="font-size: 0.86rem; font-weight: 700; color: #fff;">Forward Email Verification Codes to SMS</div>
+                                            <div style="font-size: 0.76rem; color: var(--text-secondary);">Whenever a login or reset code is sent to your email, forward a backup copy directly via SMS.</div>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; margin: 0;">
+                                        <input type="checkbox" id="pref-sms-alerts" checked style="width: 18px; height: 18px; margin-top: 2px; accent-color: #dc2626;">
+                                        <div>
+                                            <div style="font-size: 0.86rem; font-weight: 700; color: #fff;">SMS Security Alerts for New Devices</div>
+                                            <div style="font-size: 0.76rem; color: var(--text-secondary);">Get an instant text alert if your CrimX account is signed into from a new browser or IP.</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <button type="submit" id="btn-save-phone" class="btn-primary" style="width: auto; padding: 9px 22px; font-weight: 700; font-size: 0.86rem;">
+                                        💾 Save Phone Settings
+                                    </button>
+                                    <button type="button" id="btn-unlink-phone" class="btn-secondary" onclick="unlinkPhoneNumber()" style="display: none; width: auto; padding: 9px 16px; font-size: 0.84rem; color: #f87171; border-color: rgba(248,113,113,0.3);">
+                                        Unlink Phone
+                                    </button>
+                                    <span id="phone-status-badge" style="font-size: 0.78rem; color: #8b949e;"></span>
+                                </div>
+                            </form>
                         </div>
 
                         <!-- Password Management -->

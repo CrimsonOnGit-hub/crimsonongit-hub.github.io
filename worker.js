@@ -68,7 +68,6 @@ const HTTP_STATUS_MAP = {
   506: { name: "Variant Also Negotiates", icon: "🔄", message: "Transparent content negotiation resulted in an internal circular reference." },
   507: { name: "Insufficient Storage", icon: "💾", message: "The server is unable to store the representation needed to complete the request." },
   508: { name: "Loop Detected", icon: "🔁", message: "The server detected an infinite loop while processing a request." },
-  510: { name: "Not Extended", icon: "🔌", message: "Further extensions to the request are required for the server to fulfill it." },
   511: { name: "Network Authentication Required", icon: "🛡️", message: "You need to authenticate to gain network access." }
 };
 
@@ -79,79 +78,102 @@ function renderStatusPage(statusCode, customMessage) {
     message: customMessage || "An unexpected HTTP status code was encountered."
   };
 
-  const name = info.name;
-  const icon = info.icon;
-  const message = customMessage || info.message;
+  const codeDisplay = statusCode || 404;
+  const desc = customMessage || (statusCode === 404 ? "URL Doesnt exist. Looking for something?" : (info.message || info.name));
+  const showIcon = statusCode !== 404 && info.icon;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${statusCode} - ${name} | CrimsonFlame</title>
+    <title>${codeDisplay} | CrimsonFlame</title>
+    <link rel="stylesheet" href="/style.css?v=9">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        .error-viewport {
+            min-height: calc(100vh - 120px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 90px 20px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .error-card {
+            background: rgba(20, 11, 16, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(220, 38, 38, 0.35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(220, 38, 38, 0.2);
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            padding: 46px 32px;
+            text-align: center;
+            position: relative;
+        }
+
+        .error-icon-indicator {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 12px;
+            display: ${showIcon ? 'block' : 'none'};
+            animation: cfPulse 2s infinite ease-in-out;
+        }
+
+        .error-code-badge {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: clamp(3.8rem, 12vw, 5.5rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ff4d6d 0%, #dc2626 50%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(220, 38, 38, 0.4);
+            letter-spacing: -2px;
+        }
+
+        .error-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .error-actions {
             display: flex;
             justify-content: center;
+        }
+
+        .btn-back {
+            display: inline-flex;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-        .container {
-            text-align: center;
-            padding: 40px 32px;
-            border: 1px solid #30363d;
-            border-radius: 14px;
-            background-color: #161b22;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
-            max-width: 460px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            line-height: 1;
-            animation: pulse 2s infinite ease-in-out;
-            display: inline-block;
-        }
-        h1 {
-            font-size: 26px;
-            margin: 0 0 12px 0;
-            color: #ff7b72;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-        p {
-            font-size: 15px;
-            color: #8b949e;
-            line-height: 1.6;
-            margin: 0 0 26px 0;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #21262d;
-            color: #c9d1d9;
-            text-decoration: none;
-            padding: 11px 24px;
-            border: 1px solid rgba(240, 246, 252, 0.12);
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-        .btn:hover {
-            background-color: #30363d;
-            border-color: #8b949e;
+            justify-content: center;
+            background: #dc2626;
             color: #fff;
-            transform: translateY(-1px);
+            text-decoration: none;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 12px 36px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 18px rgba(220, 38, 38, 0.4);
         }
-        @keyframes pulse {
+
+        .btn-back:hover {
+            background: #ef4444;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(220, 38, 38, 0.6);
+            color: #fff;
+        }
+
+        @keyframes cfPulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.08); }
             100% { transform: scale(1); }
@@ -159,12 +181,55 @@ function renderStatusPage(statusCode, customMessage) {
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">${icon}</div>
-        <h1>${statusCode} ${name}</h1>
-        <p>${message}</p>
-        <a href="/" class="btn">Return Home</a>
-    </div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    <div class="particles" id="particles"></div>
+
+    <nav class="pill-nav">
+        <a href="/index.html" class="pill-brand">
+            <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
+            <span class="pill-brand-text">CrimsonFlame</span>
+        </a>
+        <a href="/index.html" class="pill-link">Home</a>
+        <a href="/dashboard" class="pill-link">Dashboard</a>
+        <a href="/developer" class="pill-link">Developer</a>
+        <a href="/support" class="pill-link">Support</a>
+    </nav>
+
+    <main class="error-viewport">
+        <div class="error-card">
+            ${showIcon ? `<div class="error-icon-indicator">${info.icon}</div>` : ''}
+            <div class="error-code-badge">${codeDisplay}</div>
+            <p class="error-desc">${desc}</p>
+            <div class="error-actions">
+                <a href="/index.html" class="btn-back">Back</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>© 2026 <strong>CrimsonFlame</strong>. All rights reserved.</p>
+    </footer>
+
+    <script>
+        (function() {
+            var c = document.getElementById('particles');
+            if (!c) return;
+            for (var i = 0; i < 25; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                var s = Math.random() * 3 + 1;
+                p.style.width = s + 'px';
+                p.style.height = s + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+                p.style.animationDelay = (Math.random() * 8) + 's';
+                p.style.opacity = Math.random() * 0.4 + 0.1;
+                c.appendChild(p);
+            }
+        })();
+    </script>
 </body>
 </html>`;
 }
