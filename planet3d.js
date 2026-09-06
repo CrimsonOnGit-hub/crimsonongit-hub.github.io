@@ -27,7 +27,7 @@
             // 1. Scene, Camera, Renderer
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-            camera.position.set(0, 0, 440);
+            camera.position.set(0, 0, width < 360 ? 480 : 440);
 
             renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
             renderer.setSize(width, height);
@@ -39,6 +39,7 @@
             renderer.domElement.style.height = '100%';
             renderer.domElement.style.pointerEvents = 'auto';
             renderer.domElement.style.cursor = 'grab';
+            renderer.domElement.style.touchAction = 'pan-y';
 
             // Hide static CSS orb & CSS rings only after successful 3D WebGL renderer creation
             const staticElements = container.querySelectorAll('.orb, .orb-ring');

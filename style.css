@@ -997,62 +997,305 @@ body {
 
 
 
-/* ─── Responsive ─── */
+/* ─── Modern Mobile & Responsive Architecture ─── */
 
 @media (max-width: 900px) {
-
     .hero {
-
         flex-direction: column;
-
         text-align: center;
-
-        padding: 140px 24px 60px 24px;
-
-        gap: 40px;
-
+        padding: 100px 20px 48px;
+        gap: 32px;
         min-height: auto;
-
     }
 
-    .hero-left { max-width: 100%; }
+    .hero-left {
+        max-width: 100%;
+        min-height: auto;
+        display: flex;
+        justify-content: center;
+    }
 
-    .hero-title { font-size: 3rem; }
+    .hero-right {
+        max-width: 600px;
+        min-height: auto;
+        margin: 0 auto;
+        text-align: center;
+    }
 
-    .hero-actions { justify-content: center; }
+    .hero-title {
+        font-size: clamp(2.4rem, 8vw, 3.8rem);
+        margin-bottom: 16px;
+    }
 
-    .follow-row { justify-content: center; }
+    .hero-sub {
+        font-size: 0.98rem;
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 28px;
+    }
 
-    .hero-right { min-height: 320px; }
+    .hero-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
 
-    .orb-container { width: 340px; height: 340px; }
+    .follow-row {
+        justify-content: center;
+    }
 
-    .orb-ambient-glow { width: 260px; height: 260px; }
+    .orb-container {
+        width: 320px;
+        height: 320px;
+        touch-action: pan-y;
+    }
 
-    .orb-ring { width: 280px; height: 280px; margin-left: -140px; margin-top: -140px; }
+    .orb-ambient-glow {
+        width: 250px;
+        height: 250px;
+    }
 
-    .orb-ring-2 { width: 340px; height: 340px; margin-left: -170px; margin-top: -170px; }
+    .orb-ring {
+        width: 260px;
+        height: 260px;
+        margin-left: -130px;
+        margin-top: -130px;
+    }
 
-    .floating-badge { display: none; }
+    .orb-ring-2 {
+        width: 310px;
+        height: 310px;
+        margin-left: -155px;
+        margin-top: -155px;
+    }
 
-    .pill-nav { padding: 6px 6px 6px 14px; gap: 2px; }
+    .floating-badge {
+        display: none;
+    }
 
-    .pill-link { padding: 6px 10px; font-size: 0.8rem; }
+    .pill-nav {
+        top: 14px;
+        max-width: 92vw;
+        padding: 6px 12px;
+        gap: 3px;
+    }
 
+    .pill-brand {
+        font-size: 0.86rem;
+        gap: 6px;
+        margin-right: 6px;
+    }
+
+    .pill-link {
+        padding: 5px 9px;
+        font-size: 0.78rem;
+    }
+
+    .pill-cta {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
 }
 
+@media (max-width: 600px) {
+    .hero {
+        padding: 85px 16px 36px;
+        gap: 22px;
+    }
 
+    .hero-tag {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+        margin-bottom: 14px;
+    }
 
-@media (max-width: 500px) {
+    .hero-title {
+        font-size: clamp(2.1rem, 9vw, 2.9rem);
+        line-height: 1.08;
+        margin-bottom: 12px;
+    }
 
-    .pill-link { display: none; }
+    .hero-sub {
+        font-size: 0.9rem;
+        line-height: 1.55;
+        margin-bottom: 22px;
+        padding: 0 4px;
+    }
 
-    .hero-title { font-size: 2.4rem; }
+    .hero-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
 
-    .orb-container { width: 290px; height: 290px; }
+    .btn-explore,
+    .btn-outline {
+        flex: 1 1 135px;
+        max-width: 180px;
+        padding: 11px 16px;
+        font-size: 0.85rem;
+        text-align: center;
+    }
 
-    .orb-ambient-glow { width: 220px; height: 220px; }
+    .orb-container {
+        width: min(280px, 78vw);
+        height: min(280px, 78vw);
+    }
 
+    .orb-ambient-glow {
+        width: 200px;
+        height: 200px;
+    }
+
+    .pill-nav {
+        top: 10px;
+        width: calc(100% - 20px);
+        max-width: 440px;
+        padding: 5px 8px;
+        gap: 2px;
+        justify-content: space-between;
+    }
+
+    .pill-brand {
+        font-size: 0.78rem;
+        gap: 5px;
+        margin-right: 2px;
+    }
+
+    .pill-brand-logo {
+        width: 20px;
+        height: 20px;
+    }
+
+    .pill-link {
+        padding: 4px 6px;
+        font-size: 0.72rem;
+    }
+
+    .pill-cta {
+        padding: 5px 9px;
+        font-size: 0.72rem;
+        gap: 4px;
+    }
+
+    .pill-cta svg {
+        width: 13px;
+        height: 10px;
+    }
+
+    /* Feature Stack Cards on Mobile */
+    .feature-stack-section {
+        padding: 10px 14px 44px;
+    }
+
+    .feature-stack-container {
+        gap: 14px;
+    }
+
+    .feature-stack-card {
+        padding: 20px 18px 16px;
+        border-radius: 20px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .feature-card-header {
+        margin-bottom: 14px;
+    }
+
+    .feature-icon-badge {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+    }
+
+    .feature-geometric-emblem svg {
+        width: 34px;
+        height: 34px;
+    }
+
+    .feature-card-body {
+        margin-bottom: 16px;
+    }
+
+    .feature-card-title {
+        font-size: 1.25rem;
+    }
+
+    .feature-card-desc {
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .feature-charge-meter {
+        gap: 4px;
+    }
+
+    .charge-bar {
+        height: 5px;
+    }
+
+    /* Modal / Popups on Mobile */
+    .flappy-modal-overlay {
+        padding: 12px;
+    }
+
+    .flappy-cabinet {
+        width: 100%;
+        max-width: 360px;
+        border-radius: 16px;
+    }
+
+    .flappy-header {
+        padding: 10px 14px;
+    }
+
+    .flappy-title {
+        font-size: 1rem;
+    }
+
+    .flappy-hud-bottom {
+        padding: 8px 14px;
+        font-size: 0.75rem;
+    }
+
+    /* iOS Auto-Zoom Prevention */
+    input[type="email"],
+    input[type="password"],
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    .site-footer {
+        padding: 30px 16px 40px;
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .pill-brand-text {
+        display: none;
+    }
+    
+    .pill-nav {
+        padding: 4px 6px;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .orb-container {
+        width: 245px;
+        height: 245px;
+    }
 }
 
 

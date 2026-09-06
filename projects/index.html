@@ -184,6 +184,35 @@
             line-height: 1.6;
             margin-bottom: 16px;
         }
+
+        @media (max-width: 600px) {
+            .projects-hero {
+                padding: 90px 16px 24px;
+            }
+            .projects-title {
+                font-size: 2.2rem;
+            }
+            .projects-subtitle {
+                font-size: 0.95rem;
+            }
+            .featured-card {
+                margin: 24px 0 40px;
+                border-radius: 18px;
+            }
+            .featured-banner {
+                height: 220px;
+            }
+            .featured-content {
+                padding: 22px 18px;
+            }
+            .featured-title {
+                font-size: 1.6rem;
+            }
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -217,7 +246,7 @@
     <nav class="pill-nav">
         <a href="/index.html" class="pill-brand">
             <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
-            CrimsonFlame
+            <span class="pill-brand-text">CrimsonFlame</span>
         </a>
         <a href="/index.html" class="pill-link">Home</a>
         <a href="/projects" class="pill-link" style="color: #fff; font-weight: 700;">Projects</a>

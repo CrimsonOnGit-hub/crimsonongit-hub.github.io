@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Lost in the Crimson Void | CrimsonFlame</title>
+    <title>404 | CrimsonFlame</title>
     <link rel="stylesheet" href="/style.css?v=8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,9 +26,9 @@
             border: 1px solid rgba(220, 38, 38, 0.35);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(220, 38, 38, 0.2);
             border-radius: 24px;
-            max-width: 520px;
+            max-width: 480px;
             width: 100%;
-            padding: 46px 36px;
+            padding: 46px 32px;
             text-align: center;
             position: relative;
         }
@@ -38,7 +38,7 @@
             font-size: 5.5rem;
             font-weight: 900;
             line-height: 1;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
             background: linear-gradient(135deg, #ff4d6d 0%, #dc2626 50%, #f97316 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -46,39 +46,38 @@
             letter-spacing: -2px;
         }
 
-        .error-icon-wrap {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, rgba(220, 38, 38, 0.25) 0%, rgba(251, 146, 60, 0.2) 100%);
-            border: 1px solid rgba(220, 38, 38, 0.4);
-            border-radius: 18px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
-        }
-
-        .error-title {
-            font-family: var(--font-heading);
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-
         .error-desc {
             color: var(--text-secondary);
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             line-height: 1.6;
             margin-bottom: 28px;
         }
 
         .error-actions {
             display: flex;
-            gap: 12px;
             justify-content: center;
-            flex-wrap: wrap;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--crimson);
+            color: #fff;
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 12px 36px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 18px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn-back:hover {
+            opacity: 0.92;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(220, 38, 38, 0.6);
         }
     </style>
 </head>
@@ -111,7 +110,7 @@
     <nav class="pill-nav">
         <a href="/index.html" class="pill-brand">
             <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
-            CrimsonFlame
+            <span class="pill-brand-text">CrimsonFlame</span>
         </a>
         <a href="/index.html" class="pill-link">Home</a>
         <a href="/dashboard" class="pill-link">Dashboard</a>
@@ -121,24 +120,58 @@
 
     <main class="error-viewport">
         <div class="error-card">
-            <div class="error-icon-wrap">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="#f87171"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-            </div>
-            <div class="error-code-badge">404</div>
-            <h1 class="error-title">Lost in the Crimson Void</h1>
-            <p class="error-desc">
-                The coordinates you entered don't correspond to an active destination in the CrimsonFlame ecosystem.
-            </p>
+            <div class="error-icon-indicator" id="error-icon" style="display: none; font-size: 52px; line-height: 1; margin-bottom: 14px;"></div>
+            <div class="error-code-badge" id="error-code">404</div>
+            <p class="error-desc" id="error-desc">URL Doesnt exist. Looking for something?</p>
             <div class="error-actions">
-                <a href="/index.html" class="btn-primary" style="padding: 12px 24px; text-decoration: none; font-weight: 800; font-size: 0.92rem;">
-                    ← Return Home
-                </a>
-                <a href="/dashboard" class="btn-secondary" style="padding: 12px 24px; text-decoration: none; font-weight: 700; font-size: 0.92rem; border-color: rgba(255,255,255,0.2);">
-                    CrimX Dashboard
-                </a>
+                <a href="/index.html" class="btn-back">Back</a>
             </div>
         </div>
     </main>
+
+    <script>
+        (function() {
+            const statusMap = {
+                100: { title: "100", icon: "ℹ️", desc: "Continue: Server received initial request headers." },
+                101: { title: "101", icon: "🔄", desc: "Switching Protocols." },
+                204: { title: "204", icon: "📭", desc: "No Content: Processed successfully with no content." },
+                301: { title: "301", icon: "📦", desc: "Moved Permanently: This resource has moved to a new URL." },
+                302: { title: "302", icon: "📍", desc: "Found: Temporarily moved to another location." },
+                400: { title: "400", icon: "⚠️", desc: "Bad Request: Malformed request syntax or invalid parameters." },
+                401: { title: "401", icon: "🔑", desc: "Unauthorized: Authentication is required to access this resource." },
+                403: { title: "403", icon: "🔒", desc: "Access Denied. You do not have the required permissions to view this resource." },
+                405: { title: "405", icon: "🚫", desc: "Method Not Allowed: The HTTP method is not supported." },
+                408: { title: "408", icon: "⏱️", desc: "Request Timeout: Server timed out waiting for the request." },
+                429: { title: "429", icon: "🚦", desc: "Too Many Requests: Rate limit exceeded. Please slow down." },
+                500: { title: "500", icon: "💥", desc: "Internal Server Error: Something unexpected went wrong." },
+                502: { title: "502", icon: "🌐", desc: "Bad Gateway: Upstream origin server failed to respond." },
+                503: { title: "503", icon: "🚧", desc: "Service Unavailable: Server is temporarily down for maintenance." },
+                504: { title: "504", icon: "⏳", desc: "Gateway Timeout: Upstream server timed out." }
+            };
+
+            const path = window.location.pathname.toLowerCase();
+            const params = new URLSearchParams(window.location.search);
+            const pathMatch = path.match(/\/(1\d\d|2\d\d|3\d\d|4\d\d|5\d\d)/);
+            const rawCode = params.get('code') || params.get('status') || params.get('error') || (pathMatch ? pathMatch[1] : null);
+            const isProtected = path.includes('secret-folder') || path.includes('private') || path.includes('protected');
+
+            const activeCode = isProtected ? 403 : (rawCode ? parseInt(rawCode, 10) : null);
+
+            if (activeCode && activeCode !== 404 && statusMap[activeCode]) {
+                const info = statusMap[activeCode];
+                document.title = `${info.title} | CrimsonFlame`;
+                const codeEl = document.getElementById('error-code');
+                const descEl = document.getElementById('error-desc');
+                const iconEl = document.getElementById('error-icon');
+                if (codeEl) codeEl.textContent = info.title;
+                if (descEl) descEl.textContent = info.desc;
+                if (iconEl) {
+                    iconEl.textContent = info.icon;
+                    iconEl.style.display = 'block';
+                }
+            }
+        })();
+    </script>
 
     <footer class="site-footer">
         <p>© 2026 <strong>CrimsonFlame</strong>. All rights reserved.</p>
