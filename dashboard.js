@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, linkWithPhoneNumber, unlink } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -473,15 +473,51 @@ window.sendPhoneVerificationCode = async function() {
     btn.innerText = "Dispatching SMS Code...";
 
     try {
-        const res = await fetch('/api/sms/send-code', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: fullPhoneNumber, uid: currentUser.uid })
-        });
-        const data = await res.json();
+        let usedProvider = 'firebase';
+        let confirmationResult = null;
 
-        if (!data.success) {
-            throw new Error(data.error || "Failed to send verification SMS.");
+        // Ensure invisible reCAPTCHA verifier for Firebase live SMS
+        try {
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'invisible',
+                    'callback': () => {}
+                });
+            }
+
+            // Attempt to dispatch real SMS via Google Firebase Phone Auth carrier
+            confirmationResult = await linkWithPhoneNumber(currentUser, fullPhoneNumber, window.recaptchaVerifier);
+            window.phoneConfirmationResult = confirmationResult;
+            window.lastDemoHint = null;
+        } catch (firebaseErr) {
+            console.warn("Firebase Phone Auth dispatch note:", firebaseErr);
+            if (window.recaptchaVerifier) {
+                try { window.recaptchaVerifier.clear(); } catch(e) {}
+                window.recaptchaVerifier = null;
+            }
+
+            if (firebaseErr.code === 'auth/credential-already-in-use') {
+                throw new Error("This phone number is already linked to another CrimX account.");
+            } else if (firebaseErr.code === 'auth/invalid-phone-number') {
+                throw new Error("Invalid phone number format. Please check your country code and digits.");
+            } else if (firebaseErr.code === 'auth/quota-exceeded') {
+                throw new Error("Daily SMS quota exceeded. Please try again later.");
+            }
+
+            // If Phone Auth is not enabled in Firebase Console, fallback to backend SMS service
+            const res = await fetch('/api/sms/send-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: fullPhoneNumber, uid: currentUser.uid })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.error || "Failed to dispatch SMS verification code.");
+            }
+
+            usedProvider = 'backend';
+            window.phoneConfirmationResult = null;
+            window.lastDemoHint = data.demoHint;
         }
 
         pendingPhoneData = {
@@ -489,6 +525,7 @@ window.sendPhoneVerificationCode = async function() {
             displayPhone: displayPhone,
             countryCode: countryCode,
             rawNumber: rawNumber,
+            usedProvider: usedProvider,
             forwardCodes: document.getElementById('pref-forward-codes').checked,
             smsAlerts: document.getElementById('pref-sms-alerts').checked
         };
@@ -499,17 +536,25 @@ window.sendPhoneVerificationCode = async function() {
         step2.style.display = 'block';
 
         const desc = document.getElementById('phone-step-2-desc');
-        if (desc) desc.innerText = `We dispatched a 6-digit SMS verification code to ${displayPhone}. Enter the code below:`;
+        if (desc) {
+            if (usedProvider === 'firebase') {
+                desc.innerText = `A real SMS text message with a 6-digit verification code was dispatched to ${displayPhone} via cellular network. Enter the code below:`;
+            } else {
+                desc.innerText = `We dispatched a 6-digit SMS verification code to ${displayPhone}. Enter the code below:`;
+            }
+        }
 
         const codeInput = document.getElementById('phone-verify-code-input');
         codeInput.value = "";
         codeInput.focus();
 
         playSfx('success');
-        if (data.demoHint) {
-            window.showToast(`SMS Code sent! (Test Hint: ${data.demoHint})`, "info");
+        if (usedProvider === 'firebase') {
+            window.showToast(`Real SMS code dispatched to ${displayPhone}! Check your text messages.`, "success");
+        } else if (window.lastDemoHint) {
+            window.showToast(`SMS Code dispatched! (For live carrier SMS, enable Phone in Firebase Console. Hint: ${window.lastDemoHint})`, "info");
         } else {
-            window.showToast(`Verification code sent to ${displayPhone}!`, "success");
+            window.showToast(`Verification code dispatched to ${displayPhone}!`, "success");
         }
     } catch(err) {
         playSfx('error');
@@ -536,15 +581,21 @@ window.confirmPhoneVerificationCode = async function() {
     btn.innerText = "Verifying Code...";
 
     try {
-        const res = await fetch('/api/sms/verify-code', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: pendingPhoneData.fullNumber, code: code, uid: currentUser.uid })
-        });
-        const data = await res.json();
+        if (pendingPhoneData.usedProvider === 'firebase' && window.phoneConfirmationResult) {
+            // Confirm real code via Firebase Phone Auth
+            await window.phoneConfirmationResult.confirm(code);
+        } else {
+            // Confirm code via backend
+            const res = await fetch('/api/sms/verify-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: pendingPhoneData.fullNumber, code: code, uid: currentUser.uid })
+            });
+            const data = await res.json();
 
-        if (!data.success || !data.verified) {
-            throw new Error(data.error || "Incorrect verification code.");
+            if (!data.success || !data.verified) {
+                throw new Error(data.error || "Incorrect verification code.");
+            }
         }
 
         // Save officially verified phone number to Firestore
@@ -567,6 +618,7 @@ window.confirmPhoneVerificationCode = async function() {
         playSfx('success');
         window.showToast("Phone verified and linked successfully! SMS code forwarding is now active.", "success");
         pendingPhoneData = null;
+        window.phoneConfirmationResult = null;
     } catch(err) {
         playSfx('error');
         window.showToast(err.message, "error");
@@ -578,6 +630,7 @@ window.confirmPhoneVerificationCode = async function() {
 
 window.cancelPhoneVerification = function() {
     pendingPhoneData = null;
+    window.phoneConfirmationResult = null;
     document.getElementById('phone-step-2').style.display = 'none';
     document.getElementById('phone-step-1').style.display = 'block';
     playSfx('click');
@@ -588,6 +641,14 @@ window.unlinkPhoneNumber = async function() {
     if (!confirm("Are you sure you want to remove your phone number? SMS code forwarding will be disabled.")) return;
 
     try {
+        if (currentUser.providerData && currentUser.providerData.some(p => p.providerId === 'phone')) {
+            try {
+                await unlink(currentUser, 'phone');
+            } catch(e) {
+                console.warn("Firebase phone unlink warning:", e.message);
+            }
+        }
+
         await updateDoc(doc(db, "users", currentUser.uid), {
             phone: null,
             phoneE164: null,
