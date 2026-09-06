@@ -329,15 +329,37 @@
                             </div>
                         </div>
 
-                        <!-- Optional Phone Number & SMS Code Forwarding -->
+                        <!-- Optional Phone Number & Real SMS Verification -->
                         <div class="settings-section-block">
                             <div class="settings-section-title">
-                                <span>📱 Mobile Phone & Code Forwarding (Optional)</span>
+                                <span>📱 Mobile Phone & SMS Code Forwarding (Optional)</span>
                             </div>
                             <p style="color: var(--text-secondary); font-size: 0.84rem; margin-bottom: 14px; line-height: 1.5;">
-                                Link an optional mobile phone number. When enabled, verification codes, 2FA prompts, and security alerts sent to your email can automatically be forwarded to your phone via SMS.
+                                Link an optional mobile phone number. To prove the connection works, we send an SMS verification code that you must confirm before linking.
                             </p>
-                            <form onsubmit="submitPhoneSettings(event)">
+
+                            <!-- State A: Phone Already Verified & Linked -->
+                            <div id="phone-linked-box" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid rgba(74,222,128,0.25); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                    <div>
+                                        <div style="font-weight: 800; color: #fff; font-size: 1.05rem;" id="linked-phone-number-display">+1 (555) 000-0000</div>
+                                        <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.76rem; color: #4ade80; margin-top: 4px;">
+                                            ✓ Verified Phone · SMS Code Forwarding Active
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn-secondary" onclick="toggleEditPhone(true)" style="width: auto; padding: 7px 14px; font-size: 0.82rem;">
+                                            Change Number
+                                        </button>
+                                        <button type="button" class="btn-secondary" onclick="unlinkPhoneNumber()" style="width: auto; padding: 7px 14px; font-size: 0.82rem; color: #f87171; border-color: rgba(248,113,113,0.3);">
+                                            Unlink Phone
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- State B: Step 1 - Enter Phone & Request Code -->
+                            <div id="phone-step-1">
                                 <div style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 14px;">
                                     <div>
                                         <label class="form-label" style="font-size: 0.78rem;">Country Code</label>
@@ -358,7 +380,7 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="form-label" style="font-size: 0.78rem;">Phone Number</label>
+                                        <label class="form-label" style="font-size: 0.78rem;">Mobile Number</label>
                                         <input type="tel" id="phone-number-input" class="settings-input" placeholder="(555) 000-0000" autocomplete="tel">
                                     </div>
                                 </div>
@@ -382,15 +404,33 @@
                                 </div>
 
                                 <div style="display: flex; gap: 10px; align-items: center;">
-                                    <button type="submit" id="btn-save-phone" class="btn-primary" style="width: auto; padding: 9px 22px; font-weight: 700; font-size: 0.86rem;">
-                                        💾 Save Phone Settings
+                                    <button type="button" id="btn-send-phone-code" class="btn-primary" onclick="sendPhoneVerificationCode()" style="width: auto; padding: 10px 24px; font-weight: 700; font-size: 0.88rem;">
+                                        📲 Send Verification Code
                                     </button>
-                                    <button type="button" id="btn-unlink-phone" class="btn-secondary" onclick="unlinkPhoneNumber()" style="display: none; width: auto; padding: 9px 16px; font-size: 0.84rem; color: #f87171; border-color: rgba(248,113,113,0.3);">
-                                        Unlink Phone
-                                    </button>
-                                    <span id="phone-status-badge" style="font-size: 0.78rem; color: #8b949e;"></span>
                                 </div>
-                            </form>
+                            </div>
+
+                            <!-- State C: Step 2 - Enter 6-digit Code to Confirm -->
+                            <div id="phone-step-2" style="display: none; background: rgba(0,0,0,0.35); border: 1px solid rgba(220,38,38,0.3); border-radius: 12px; padding: 20px; margin-top: 10px;">
+                                <div style="font-weight: 800; color: #fff; font-size: 1rem; margin-bottom: 4px;">Confirm Your Phone Number</div>
+                                <p id="phone-step-2-desc" style="color: var(--text-secondary); font-size: 0.84rem; margin-bottom: 16px; line-height: 1.5;">
+                                    We dispatched a 6-digit SMS verification code to your phone. Enter the code below to prove it works:
+                                </p>
+                                <div style="max-width: 260px; margin-bottom: 16px;">
+                                    <input type="text" id="phone-verify-code-input" class="settings-input" placeholder="000000" maxlength="6" style="text-align: center; font-size: 1.5rem; font-family: monospace; letter-spacing: 8px; font-weight: 800; color: #fff; padding: 10px;">
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                    <button type="button" id="btn-confirm-phone-code" class="btn-primary" onclick="confirmPhoneVerificationCode()" style="width: auto; padding: 10px 24px; font-weight: 700; font-size: 0.88rem;">
+                                        ✓ Verify & Link Phone
+                                    </button>
+                                    <button type="button" class="btn-secondary" onclick="sendPhoneVerificationCode()" style="width: auto; padding: 9px 16px; font-size: 0.82rem;">
+                                        Resend Code
+                                    </button>
+                                    <button type="button" class="btn-secondary" onclick="cancelPhoneVerification()" style="width: auto; padding: 9px 16px; font-size: 0.82rem;">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Password Management -->

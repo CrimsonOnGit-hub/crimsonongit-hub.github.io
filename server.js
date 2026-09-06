@@ -294,10 +294,84 @@ app.all('/api/server/control', (req, res) => {
   res.status(400).json({ error: "Unknown action. Use 'stop', 'start', or 'crash'." });
 });
 
+// ─── REAL SMS VERIFICATION ENGINE & CODE STORE ───
+const smsCodeStore = new Map();
+
+app.post('/api/sms/send-code', (req, res) => {
+  const phone = (req.body?.phone || '').trim();
+  if (!phone || phone.length < 7) {
+    return res.status(400).json({ success: false, error: "Invalid phone number provided." });
+  }
+
+  // Generate real 6-digit verification code
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  smsCodeStore.set(phone, { code, expires });
+  console.log(`[CrimsonFlame SMS] Verification code generated for ${phone}: [${code}]`);
+
+  // If Twilio credentials are configured in Cloud Run, dispatch live SMS
+  const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+  const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioFrom = process.env.TWILIO_PHONE_NUMBER;
+
+  if (twilioSid && twilioToken && twilioFrom) {
+    try {
+      const twilio = require('twilio')(twilioSid, twilioToken);
+      twilio.messages.create({
+        body: `Your CrimsonFlame verification code is: ${code}. Do not share this code.`,
+        from: twilioFrom,
+        to: phone
+      }).then(msg => {
+        console.log(`[CrimsonFlame SMS] Live SMS sent via Twilio to ${phone}: SID ${msg.sid}`);
+      }).catch(err => {
+        console.error('[CrimsonFlame SMS] Twilio delivery error:', err.message);
+      });
+    } catch (e) {
+      console.warn('[CrimsonFlame SMS] Twilio package not available or error:', e.message);
+    }
+  }
+
+  res.json({
+    success: true,
+    message: `Verification code dispatched to ${phone}!`,
+    // If Twilio is not yet set up with paid credits, include hint for instant verification
+    demoHint: !twilioSid ? code : undefined
+  });
+});
+
+app.post('/api/sms/verify-code', (req, res) => {
+  const phone = (req.body?.phone || '').trim();
+  const code = (req.body?.code || '').trim();
+
+  if (!phone || !code) {
+    return res.status(400).json({ success: false, error: "Phone number and 6-digit code are required." });
+  }
+
+  const stored = smsCodeStore.get(phone);
+  if (!stored) {
+    return res.status(400).json({ success: false, error: "No verification code was requested for this phone number." });
+  }
+
+  if (Date.now() > stored.expires) {
+    smsCodeStore.delete(phone);
+    return res.status(400).json({ success: false, error: "Verification code has expired. Please request a new one." });
+  }
+
+  if (stored.code !== code) {
+    return res.status(400).json({ success: false, error: "Incorrect verification code. Please check your messages and try again." });
+  }
+
+  // Verified! Delete so code cannot be reused
+  smsCodeStore.delete(phone);
+  console.log(`[CrimsonFlame SMS] Phone verified successfully: ${phone}`);
+  res.json({ success: true, verified: true, message: "Phone number confirmed and verified!" });
+});
+
 // ─── GLOBAL DOWNTIME INTERCEPTOR ───
 app.use((req, res, next) => {
-  // Allow control API and static styles/assets needed for the error page to render cleanly
-  if (req.path.startsWith('/api/server') || req.path === '/style.css' || req.path.startsWith('/assets/')) {
+  // Allow control API, SMS verification API, and static styles/assets needed for the error page to render cleanly
+  if (req.path.startsWith('/api/server') || req.path.startsWith('/api/sms') || req.path === '/style.css' || req.path.startsWith('/assets/')) {
     return next();
   }
 

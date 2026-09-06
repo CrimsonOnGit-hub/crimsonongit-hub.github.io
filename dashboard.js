@@ -427,20 +427,35 @@ window.submitEmailChange = async function(e) {
     }
 };
 
-// ── Mobile Phone & SMS Code Forwarding ──
-window.submitPhoneSettings = async function(e) {
-    e.preventDefault();
+// ── Mobile Phone & Real SMS Code Verification Flow ──
+let pendingPhoneData = null;
+
+window.toggleEditPhone = function(showEdit) {
+    const linkedBox = document.getElementById('phone-linked-box');
+    const step1 = document.getElementById('phone-step-1');
+    const step2 = document.getElementById('phone-step-2');
+    if (showEdit) {
+        if (linkedBox) linkedBox.style.display = 'none';
+        if (step1) step1.style.display = 'block';
+        if (step2) step2.style.display = 'none';
+    } else {
+        if (linkedBox) linkedBox.style.display = 'block';
+        if (step1) step1.style.display = 'none';
+        if (step2) step2.style.display = 'none';
+    }
+    playSfx('click');
+};
+
+window.sendPhoneVerificationCode = async function() {
     if (!currentUser) return;
 
     const countryCode = document.getElementById('phone-country-code').value;
     const rawNumber = document.getElementById('phone-number-input').value.trim();
-    const forwardCodes = document.getElementById('pref-forward-codes').checked;
-    const smsAlerts = document.getElementById('pref-sms-alerts').checked;
-    const btn = document.getElementById('btn-save-phone');
+    const btn = document.getElementById('btn-send-phone-code');
 
     if (!rawNumber) {
         playSfx('error');
-        window.showToast("Please enter your phone number or click 'Unlink' to clear.", "error");
+        window.showToast("Please enter a mobile phone number.", "error");
         return;
     }
 
@@ -451,30 +466,121 @@ window.submitPhoneSettings = async function(e) {
         return;
     }
 
-    btn.disabled = true;
-    btn.innerText = "Saving Phone...";
+    const fullPhoneNumber = `${countryCode}${cleanNumber}`;
+    const displayPhone = `${countryCode} ${rawNumber}`;
 
-    const fullPhoneNumber = `${countryCode} ${rawNumber}`;
+    btn.disabled = true;
+    btn.innerText = "Dispatching SMS Code...";
 
     try {
+        const res = await fetch('/api/sms/send-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: fullPhoneNumber, uid: currentUser.uid })
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+            throw new Error(data.error || "Failed to send verification SMS.");
+        }
+
+        pendingPhoneData = {
+            fullNumber: fullPhoneNumber,
+            displayPhone: displayPhone,
+            countryCode: countryCode,
+            rawNumber: rawNumber,
+            forwardCodes: document.getElementById('pref-forward-codes').checked,
+            smsAlerts: document.getElementById('pref-sms-alerts').checked
+        };
+
+        // Transition to Step 2 (Code Entry)
+        document.getElementById('phone-step-1').style.display = 'none';
+        const step2 = document.getElementById('phone-step-2');
+        step2.style.display = 'block';
+
+        const desc = document.getElementById('phone-step-2-desc');
+        if (desc) desc.innerText = `We dispatched a 6-digit SMS verification code to ${displayPhone}. Enter the code below:`;
+
+        const codeInput = document.getElementById('phone-verify-code-input');
+        codeInput.value = "";
+        codeInput.focus();
+
+        playSfx('success');
+        if (data.demoHint) {
+            window.showToast(`SMS Code sent! (Test Hint: ${data.demoHint})`, "info");
+        } else {
+            window.showToast(`Verification code sent to ${displayPhone}!`, "success");
+        }
+    } catch(err) {
+        playSfx('error');
+        window.showToast(err.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "📲 Send Verification Code";
+    }
+};
+
+window.confirmPhoneVerificationCode = async function() {
+    if (!currentUser || !pendingPhoneData) return;
+
+    const code = document.getElementById('phone-verify-code-input').value.trim();
+    const btn = document.getElementById('btn-confirm-phone-code');
+
+    if (!code || code.length !== 6) {
+        playSfx('error');
+        window.showToast("Please enter the complete 6-digit verification code.", "error");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Verifying Code...";
+
+    try {
+        const res = await fetch('/api/sms/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: pendingPhoneData.fullNumber, code: code, uid: currentUser.uid })
+        });
+        const data = await res.json();
+
+        if (!data.success || !data.verified) {
+            throw new Error(data.error || "Incorrect verification code.");
+        }
+
+        // Save officially verified phone number to Firestore
         await setDoc(doc(db, "users", currentUser.uid), {
-            phone: fullPhoneNumber,
-            phoneCountryCode: countryCode,
-            phoneNumberRaw: rawNumber,
-            forwardCodesToPhone: forwardCodes,
-            smsAlertsEnabled: smsAlerts,
+            phone: pendingPhoneData.displayPhone,
+            phoneE164: pendingPhoneData.fullNumber,
+            phoneCountryCode: pendingPhoneData.countryCode,
+            phoneNumberRaw: pendingPhoneData.rawNumber,
+            phoneVerified: true,
+            forwardCodesToPhone: pendingPhoneData.forwardCodes,
+            smsAlertsEnabled: pendingPhoneData.smsAlerts,
             phoneLinkedAt: serverTimestamp()
         }, { merge: true });
 
+        // Update UI
+        document.getElementById('phone-step-2').style.display = 'none';
+        document.getElementById('phone-linked-box').style.display = 'block';
+        document.getElementById('linked-phone-number-display').innerText = pendingPhoneData.displayPhone;
+
         playSfx('success');
-        window.showToast("Phone linked! Email verification codes will now be forwarded to your mobile.", "success");
+        window.showToast("Phone verified and linked successfully! SMS code forwarding is now active.", "success");
+        pendingPhoneData = null;
     } catch(err) {
         playSfx('error');
-        window.showToast("Failed to save phone settings: " + err.message, "error");
+        window.showToast(err.message, "error");
     } finally {
         btn.disabled = false;
-        btn.innerText = "💾 Save Phone Settings";
+        btn.innerText = "✓ Verify & Link Phone";
     }
+};
+
+window.cancelPhoneVerification = function() {
+    pendingPhoneData = null;
+    document.getElementById('phone-step-2').style.display = 'none';
+    document.getElementById('phone-step-1').style.display = 'block';
+    playSfx('click');
 };
 
 window.unlinkPhoneNumber = async function() {
@@ -484,15 +590,18 @@ window.unlinkPhoneNumber = async function() {
     try {
         await updateDoc(doc(db, "users", currentUser.uid), {
             phone: null,
+            phoneE164: null,
             phoneCountryCode: null,
             phoneNumberRaw: null,
+            phoneVerified: false,
             forwardCodesToPhone: false,
             smsAlertsEnabled: false
         });
 
         document.getElementById('phone-number-input').value = "";
-        document.getElementById('btn-unlink-phone').style.display = 'none';
-        document.getElementById('phone-status-badge').innerText = "";
+        document.getElementById('phone-linked-box').style.display = 'none';
+        document.getElementById('phone-step-1').style.display = 'block';
+        document.getElementById('phone-step-2').style.display = 'none';
         playSfx('click');
         window.showToast("Phone number unlinked.", "info");
     } catch(err) {
@@ -796,16 +905,27 @@ onAuthStateChanged(auth, user => {
                 }
 
                 // Phone & SMS Forwarding Data
+                const phoneLinkedBox = document.getElementById('phone-linked-box');
+                const phoneStep1 = document.getElementById('phone-step-1');
+                const phoneStep2 = document.getElementById('phone-step-2');
+                const linkedPhoneDisplay = document.getElementById('linked-phone-number-display');
+
+                if (data.phone && data.phoneVerified !== false) {
+                    if (phoneLinkedBox) phoneLinkedBox.style.display = 'block';
+                    if (phoneStep1) phoneStep1.style.display = 'none';
+                    if (phoneStep2) phoneStep2.style.display = 'none';
+                    if (linkedPhoneDisplay) linkedPhoneDisplay.innerText = data.phone;
+                } else {
+                    if (phoneLinkedBox) phoneLinkedBox.style.display = 'none';
+                    if (phoneStep1) phoneStep1.style.display = 'block';
+                    if (phoneStep2) phoneStep2.style.display = 'none';
+                }
+
                 if (data.phone) {
                     const phoneInput = document.getElementById('phone-number-input');
                     const countrySelect = document.getElementById('phone-country-code');
-                    const unlinkBtn = document.getElementById('btn-unlink-phone');
-                    const badge = document.getElementById('phone-status-badge');
-
                     if (phoneInput && data.phoneNumberRaw) phoneInput.value = data.phoneNumberRaw;
                     if (countrySelect && data.phoneCountryCode) countrySelect.value = data.phoneCountryCode;
-                    if (unlinkBtn) unlinkBtn.style.display = 'inline-block';
-                    if (badge) badge.innerHTML = `<span style="color: #4ade80; font-weight: 700;">✓ Active (${data.forwardCodesToPhone ? 'Forwarding On' : 'Alerts Only'})</span>`;
                     
                     const fwdEl = document.getElementById('pref-forward-codes');
                     if (fwdEl && data.forwardCodesToPhone !== undefined) fwdEl.checked = data.forwardCodesToPhone;
