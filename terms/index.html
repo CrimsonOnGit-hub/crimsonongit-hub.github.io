@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service & EULA | CrimsonFlame</title>
+    <link rel="stylesheet" href="/style.css?v=11">
+    <script src="/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .legal-wrapper {
+            max-width: 960px;
+            margin: 120px auto 80px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .legal-card {
+            background: rgba(18, 10, 14, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 48px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 40px var(--crimson-glow);
+        }
+
+        .legal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 28px;
+            margin-bottom: 34px;
+        }
+
+        .legal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(220, 38, 38, 0.35);
+            color: var(--crimson-light);
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 16px;
+        }
+
+        .legal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+            margin-bottom: 14px;
+        }
+
+        .legal-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .legal-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legal-callout-warning {
+            background: rgba(220, 38, 38, 0.1);
+            border-left: 4px solid var(--crimson);
+            padding: 18px 20px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 34px;
+            color: #fca5a5;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .legal-toc {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 40px;
+        }
+
+        .legal-toc-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legal-toc-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 8px 16px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .legal-toc-link {
+            color: #c4b9be;
+            text-decoration: none;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .legal-toc-link:hover {
+            color: var(--crimson-light);
+            transform: translateX(4px);
+        }
+
+        .legal-content h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #fff;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legal-content h2:first-of-type {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .legal-content p {
+            color: #c9bfc4;
+            line-height: 1.7;
+            font-size: 0.96rem;
+            margin-bottom: 18px;
+        }
+
+        .legal-content ul, .legal-content ol {
+            color: #c9bfc4;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin-bottom: 22px;
+            padding-left: 24px;
+        }
+
+        .legal-content li {
+            margin-bottom: 10px;
+        }
+
+        .legal-content strong {
+            color: #fff;
+        }
+
+        .legal-highlight-box {
+            background: rgba(249, 115, 22, 0.08);
+            border: 1px solid rgba(249, 115, 22, 0.25);
+            border-radius: 14px;
+            padding: 20px;
+            margin: 22px 0;
+        }
+
+        .legal-quick-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .legal-card {
+                padding: 26px 18px;
+                border-radius: 18px;
+            }
+            .legal-wrapper {
+                margin: 90px auto 50px;
+            }
+            .legal-toc-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Global Custom Crimson Loading Animation -->
+    <div id="page-loader">
+        <img src="/assets/loading.gif" alt="Loading..." class="loader-video">
+        <div class="loader-title">CrimsonFlame</div>
+    </div>
+    <script>
+        function hidePageLoader() {
+            var l = document.getElementById('page-loader');
+            if (l) {
+                l.classList.add('fade-out');
+                setTimeout(function() { l.style.display = 'none'; }, 400);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', hidePageLoader);
+        window.addEventListener('load', hidePageLoader);
+        setTimeout(hidePageLoader, 1500);
+    </script>
+
+    <!-- Ambient Glows & Particles -->
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Floating Pill Nav -->
+    <nav class="pill-nav">
+        <a href="/index.html" class="pill-brand">
+            <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
+            <span class="pill-brand-text">CrimsonFlame</span>
+        </a>
+        <a href="/projects" class="pill-link">Projects</a>
+        <a href="/crimx" class="pill-link">CrimX</a>
+        <a href="https://discord.gg/tNK8z9gYGQ" class="pill-cta" target="_blank">
+            <svg width="18" height="14" viewBox="0 0 24 18" fill="currentColor"><path d="M20.317 1.492a19.7 19.7 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.7 19.7 0 0 0 3.677 1.492a.07.07 0 0 0-.032.027C.533 6.093-.32 10.555.099 14.961a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03z"/></svg>
+            <span>Discord</span>
+        </a>
+    </nav>
+
+    <!-- Main Legal Document -->
+    <main class="legal-wrapper">
+        <article class="legal-card">
+            
+            <header class="legal-header">
+                <div class="legal-badge">
+                    <span>⚖️ Binding Legal Covenant</span>
+                </div>
+                <h1 class="legal-title">Terms of Service and End User License Agreement</h1>
+                <div class="legal-meta">
+                    <div class="legal-meta-item">
+                        <span>📅 Effective Date:</span>
+                        <strong>September 6, 2026</strong>
+                    </div>
+                    <div class="legal-meta-item">
+                        <span>🏢 Governing Entity:</span>
+                        <strong>CrimsonFlame LLC</strong>
+                    </div>
+                    <div class="legal-meta-item">
+                        <span>📍 Venue:</span>
+                        <strong>Cobb County, Georgia, USA</strong>
+                    </div>
+                </div>
+
+                <div class="legal-quick-actions">
+                    <button type="button" class="btn-secondary" onclick="window.print()" style="font-size: 0.82rem; padding: 8px 16px; font-weight: 700;">
+                        🖨️ Print / Save PDF
+                    </button>
+                    <a href="/privacy" class="btn-secondary" style="font-size: 0.82rem; padding: 8px 16px; font-weight: 700; text-decoration: none;">
+                        🛡️ View Privacy Policy
+                    </a>
+                </div>
+            </header>
+
+            <div class="legal-callout-warning">
+                <strong>IMPORTANT LEGAL NOTICE:</strong> PLEASE READ THIS AGREEMENT CAREFULLY. IT CONTAINS A MANDATORY ARBITRATION PROVISION AND CLASS ACTION WAIVER THAT AFFECTS YOUR LEGAL RIGHTS. BY UTILIZING THE SERVICES, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND UNEQUIVOCALLY ASSENT TO BE BOUND BY THESE TERMS.
+            </div>
+
+            <!-- Table of Contents -->
+            <nav class="legal-toc">
+                <div class="legal-toc-title">
+                    <span>📑 Table of Contents</span>
+                </div>
+                <ol class="legal-toc-list">
+                    <li><a href="#sec-1" class="legal-toc-link">1. Binding Agreement & Acceptance</a></li>
+                    <li><a href="#sec-2" class="legal-toc-link">2. Scope & Age Limitations</a></li>
+                    <li><a href="#sec-3" class="legal-toc-link">3. User Representations & Warranties</a></li>
+                    <li><a href="#sec-4" class="legal-toc-link">4. Authentication & Zero-Tolerance Policy</a></li>
+                    <li><a href="#sec-5" class="legal-toc-link">5. Software License & Integrations</a></li>
+                    <li><a href="#sec-6" class="legal-toc-link">6. Exhaustive Prohibited Conduct</a></li>
+                    <li><a href="#sec-7" class="legal-toc-link">7. Data Privacy & Cross-Border Transfers</a></li>
+                    <li><a href="#sec-8" class="legal-toc-link">8. Term, Survivability & Termination</a></li>
+                    <li><a href="#sec-9" class="legal-toc-link">9. Dual-Owner Consensus Governance</a></li>
+                    <li><a href="#sec-10" class="legal-toc-link">10. Governing Law & Accountability</a></li>
+                    <li><a href="#sec-11" class="legal-toc-link">11. Official Notices & Contact</a></li>
+                </ol>
+            </nav>
+
+            <div class="legal-content">
+                
+                <h2 id="sec-1">1. Binding Agreement and Acceptance of Terms</h2>
+                <p>
+                    This Terms of Service and End User License Agreement (hereinafter referred to collectively as the "Agreement") constitutes a legally binding and fully enforceable covenant made between you, whether personally or acting under the color of authority on behalf of a corporate entity, partnership, or other legal construct (hereinafter "User", "You", or "Your"), and <strong>CrimsonFlame LLC</strong>, doing business as CrimsonFlame, its subsidiaries, affiliates, successors, and assigns (hereinafter "Company," "we," "us," or "our"). This Agreement governs your access to, use of, and interaction with the Crimson Protocol mobile and web applications, the CrimX Identity & Developer Platform, APIs, SDKs, backend infrastructure, and any related digital interfaces or ancillary services (collectively, the "Services").
+                </p>
+                <p>
+                    Your affirmative act of downloading, installing, accessing, creating an account on, or otherwise interacting with the Services constitutes your irrefutable acknowledgment and acceptance of the stipulations contained herein. <strong>IF YOU DO NOT MANIFEST UNCONDITIONAL ASSENT TO THE ENTIRETY OF THESE PROVISIONS, YOU ARE EXPRESSLY BARRED FROM ACCESSING THE SERVICES AND MUST IMMEDIATELY CEASE AND DESIST ALL USE, UNINSTALL THE APPLICATION, AND PURGE ANY ASSOCIATED DATA FROM YOUR DEVICES.</strong>
+                </p>
+
+                <h2 id="sec-2">2. Scope of Services and Age Limitations</h2>
+                <p>
+                    The Services provided encompass the proprietary Crimson Protocol digital ecosystem, the CrimX Identity Platform, developer applications, and all correlative updates, patches, and electronic communications. The Services are strictly formulated and intended for utilization by individuals who have attained the minimum chronological age of <strong>thirteen (13) years</strong>.
+                </p>
+                <p>
+                    Any User situated between the ages of thirteen (13) and the age of majority in their respective legal jurisdiction (typically eighteen (18) years of age) hereby warrants that they possess the explicit, verifiable consent of a parent or legal guardian who has concurrently read and assented to this Agreement, thereby indemnifying the Company against any claims arising from the minor's usage of the Services.
+                </p>
+
+                <h2 id="sec-3">3. User Representations, Warranties, and Covenants</h2>
+                <p>By initiating access to the Services, you hereby represent, warrant, and covenant on a continuous basis that:</p>
+                <ul>
+                    <li><strong>A.</strong> All data, credentials, and demographic information submitted during the registration protocol are wholly factual, precise, contemporaneous, and comprehensive.</li>
+                    <li><strong>B.</strong> You bear the affirmative obligation to unilaterally maintain the veracity of said data, executing prompt amendments within the Services as materially necessary.</li>
+                    <li><strong>C.</strong> You possess the requisite legal capacity, competency, and authority to enter into this Agreement and are not statutorily barred from receiving the Services under the laws of the United States or other applicable jurisdictions.</li>
+                    <li><strong>D.</strong> You shall not deploy, authorize, or facilitate any automated or non-human protocols (including, without limitation, spiders, robots, scrapers, or offline readers) to access, parse, or interact with the Services without prior written authorization.</li>
+                    <li><strong>E.</strong> Your utilization of the Services shall not be directed toward any illicit, tortious, or unauthorized endeavor, nor shall it contravene any applicable local, state, national, or international statutes, regulations, or ordinances.</li>
+                </ul>
+
+                <h2 id="sec-4">4. Account Authentication, Security, and Zero Tolerance for Illegal Activities</h2>
+                <p>
+                    Utilization of specialized features within the Services mandates the creation of a distinct User account via CrimX. Authentication may be effectuated via direct cryptographic credential establishment or federated single sign-on.
+                </p>
+                <ul>
+                    <li><strong>Fiduciary Security Obligation:</strong> You maintain exclusive, non-delegable responsibility for the safeguarding of your authentication credentials and all corollary activities transpiring under your account nexus. The Company disclaims all liability for unauthorized access resulting from your negligent credential hygiene.</li>
+                    <li><strong>Immediate Deletion for Illegal Activities:</strong> CRIMSONFLAME ENFORCES A STRICT ZERO-TOLERANCE POLICY REGARDING UNLAWFUL CONDUCT. If any User account, API key, application integration, or interactive profile is determined by the Company—or reported by competent authorities—to have participated in, facilitated, or attempted any illegal activity (including, without limitation, financial fraud, unauthorized intrusion or hacking, identity theft, cyberstalking, harassment, hate speech, distribution of malicious payloads, child sexual exploitation material, money laundering, or any violation of federal, state, or municipal penal codes), the Company reserves the unconditional, immediate right to terminate and permanently delete the User's account, revoke all developer client keys, ban all associated IP addresses, and provide complete activity logs, forensic dumps, and identifiers to state or federal law enforcement agencies.</li>
+                    <li><strong>Account Revocation:</strong> The Company reserves the unilateral prerogative to suspend, terminate, alter, or reclaim any User account or associated public-facing nomenclature (e.g., username) should we, in our sole discretion, determine the nomenclature to be obscene, violative of third-party intellectual property rights, or otherwise deleterious to the Company's brand equity.</li>
+                </ul>
+
+                <h2 id="sec-5">5. Limited Software License Grant and Device Integration</h2>
+                <p>
+                    <strong>Revocable License:</strong> Conditional upon your strict adherence to this Agreement, the Company hereby grants you a circumscribed, personal, revocable, non-exclusive, non-transferable, non-sublicensable limited license to execute a single instance of the Crimson Protocol software and CrimX integrations upon a compatible electronic device over which you exercise lawful ownership or control. You shall not decompile, reverse engineer, disassemble, attempt to derive the source code of, decrypt, or create derivative works based upon the Services.
+                </p>
+                <p>
+                    <strong>Hardware Interoperability:</strong> Operation of the Services may necessitate explicit operating system-level permissions to interface with proprietary hardware subsystems (including, but not limited to, local solid-state storage, biometric sensors, and telephonic/microphone arrays). Continued usage of the Services constitutes ongoing, informed consent to such hardware integrations, subject to revocation via the host operating system's configuration matrices.
+                </p>
+
+                <h2 id="sec-6">6. Exhaustive Prohibited Conduct</h2>
+                <p>The license granted herein is explicitly conditioned upon your abstention from the following prohibited activities. You shall not:</p>
+                <ul>
+                    <li>Circumvent, disable, digitally obfuscate, or otherwise interfere with security-related components of the Services, including features that enforce limitations on the use of the Services.</li>
+                    <li>Engage in fraudulent schemes, phishing, social engineering, or the deployment of misleading subterfuge against the Company or fellow Users.</li>
+                    <li>Transmit or upload any material that contains software viruses, trojan horses, worms, time bombs, cancelbots, or any other computer code designed to interrupt, destroy, or limit the functionality of the Services.</li>
+                    <li>Systematically retrieve data or other content from the Services to compile or populate, directly or indirectly, a localized database or directory without explicit written waiver from the Company.</li>
+                    <li>Engage in conduct that disparages, tarnishes, or otherwise aggressively intimidates, harasses, or physically threatens the Company, its executive officers, employees, or contracted agents.</li>
+                </ul>
+
+                <h2 id="sec-7">7. Data Privacy and International Transfer Compliance</h2>
+                <p>
+                    The collection, processing, and fiduciary safeguarding of your personally identifiable information (PII) are governed by our <a href="/privacy" style="color: var(--crimson-light); font-weight: 700;">Privacy Policy</a> (last updated September 6, 2026), which is incorporated herein by this reference as if fully set forth. By utilizing the Services, you acknowledge that the digital infrastructure hosting the Services is physically domiciled within the territorial boundaries of the United States. Users accessing the Services from the European Union, Asia, or any other region with comprehensive data protection frameworks inherently acknowledge and explicitly consent to the cross-border transfer, processing, and localized storage of their data within the United States, subject to its distinct statutory jurisdictions.
+                </p>
+
+                <h2 id="sec-8">8. Term, Survivability, and Termination Efficacy</h2>
+                <p>
+                    This Agreement shall remain in perpetual effect for the duration of your interaction with the Services. 
+                </p>
+                <p>
+                    WITHOUT PREJUDICE TO ANY OTHER REMEDIES OR RESERVATIONS OF RIGHTS CONTAINED HEREIN, THE COMPANY RETAINS THE ABSOLUTE RIGHT TO DENY ACCESS TO THE SERVICES (INCLUDING IP ADDRESS BLOCKING) TO ANY INDIVIDUAL OR ENTITY, AT ANY TIME, FOR ANY REASON OR NO REASON, WITHOUT PRIOR NOTICE OR SUBSEQUENT LIABILITY, AND TO PERMANENTLY DELETE ACCOUNTS ENGAGED IN ILLEGAL CONDUCT AS SPECIFIED IN SECTION 4.
+                </p>
+                <p>
+                    Upon termination, all licenses granted to you shall instantly terminate, and you must destroy all copies of the software in your possession. Provisions of this Agreement which by their intrinsic nature should survive termination (including, but not limited to, indemnifications, limitations of liability, and jurisdictional covenants) shall persist indefinitely. Furthermore, the Company retains the right to preserve archival data of terminated accounts for a period not exceeding thirty-six (36) months to ensure compliance with latent law enforcement subpoenas or ongoing civil litigation.
+                </p>
+
+                <h2 id="sec-9">9. Exclusive Modification Contingency and Corporate Governance</h2>
+                <div class="legal-highlight-box">
+                    <p style="margin-bottom: 0;">
+                        User explicitly acknowledges and agrees that the Services—encompassing the entirety of the codebase, feature implementations, graphical user interfaces, backend logic, and the textual contents of this Agreement—are subject to iterative modification, amendment, or deprecation. However, such modifications are strictly and exclusively contingent upon the documented, explicit, and unanimous ratifying consensus of both the primary Chief Executive/Owner and the designated Co-Owner of CrimsonFlame LLC (hereinafter collectively referred to as the "Principal Equity Holders"). Any purported update, patch, policy shift, or architectural alteration lacking the mutual, verified ratification of both Principal Equity Holders shall be deemed <em>ultra vires</em>, null, void <em>ab initio</em>, and legally non-binding upon the Company and its Users.
+                    </p>
+                </div>
+
+                <h2 id="sec-10">10. Governing Law, Forum Selection, and Legal Accountability</h2>
+                <p>
+                    This Agreement, and any non-contractual obligations arising out of or in connection with it, shall be governed by, construed, and interpreted strictly in accordance with the substantive laws of the State of Georgia and the overarching federal statutes of the United States of America, expressly excluding any application of conflict of law principles or the United Nations Convention on Contracts for the International Sale of Goods. You and CrimsonFlame LLC hereby irrevocably stipulate and consent that the state and federal courts physically situated in Cobb County, Georgia, shall retain exclusive venue and jurisdictional authority over any and all actions, disputes, or proceedings arising from this Agreement.
+                </p>
+                <div class="legal-highlight-box" style="border-color: rgba(220, 38, 38, 0.35); background: rgba(30, 10, 15, 0.5);">
+                    <strong style="color: #fff; display: block; margin-bottom: 8px;">Rejection of Third-World Legal Loopholes & Commitment to Accountability:</strong>
+                    <p style="margin-bottom: 0;">
+                        CrimsonFlame LLC is an established, transparent enterprise proudly governed by the rule of law of the United States. The Company expressly disavows and rejects the practice of incorporating in, routing digital assets through, or hiding behind offshore secrecy havens, shell companies, or third-world legal loopholes designed to evade legal accountability or consumer protection. CrimsonFlame operates under standard American corporate jurisprudence and recognizes that it may be held legally accountable, answerable to lawful process, and subject to civil action in competent courts of law under applicable governing law.
+                    </p>
+                </div>
+
+                <h2 id="sec-11">11. Official Communications and Notices</h2>
+                <p>
+                    For the formal resolution of disputes, the filing of grievances, or the acquisition of supplementary documentation regarding the operational scope of the Services, all written notices must be directed to the duly appointed corporate liaison at:
+                </p>
+                <p>
+                    <strong>Official Electronic Mail Transmission:</strong> <a href="mailto:allaboutwaterdiamond@gmail.com" style="color: var(--crimson-light); font-weight: 700;">allaboutwaterdiamond@gmail.com</a>
+                </p>
+
+            </div>
+        </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>© 2026 <strong>CrimsonFlame LLC</strong>. All rights reserved. |
+            <a href="/terms" style="color: var(--text-secondary); text-decoration: none; margin: 0 8px;">Terms</a> |
+            <a href="/privacy" style="color: var(--text-secondary); text-decoration: none; margin: 0 8px;">Privacy</a> |
+            <a href="https://youtube.com/@crimsonflameofficial" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin-left: 8px;">YouTube</a>
+        </p>
+    </footer>
+
+    <script>
+    // Floating particles generator
+    (function() {
+        const c = document.getElementById('particles');
+        if (!c) return;
+        for (let i = 0; i < 25; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const s = Math.random() * 3 + 1;
+            p.style.width = s + 'px';
+            p.style.height = s + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+            p.style.animationDelay = (Math.random() * 8) + 's';
+            p.style.opacity = Math.random() * 0.4 + 0.1;
+            c.appendChild(p);
+        }
+    })();
+    </script>
+</body>
+</html>

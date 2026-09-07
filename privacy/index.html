@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | CrimsonFlame</title>
+    <link rel="stylesheet" href="/style.css?v=11">
+    <script src="/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .legal-wrapper {
+            max-width: 980px;
+            margin: 120px auto 80px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .legal-card {
+            background: rgba(18, 10, 14, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 48px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 40px var(--crimson-glow);
+        }
+
+        .legal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 28px;
+            margin-bottom: 34px;
+        }
+
+        .legal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            color: #86efac;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 16px;
+        }
+
+        .legal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+            margin-bottom: 14px;
+        }
+
+        .legal-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .legal-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legal-quick-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        .legal-summary-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 34px;
+        }
+
+        .legal-summary-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legal-summary-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .legal-summary-list li {
+            font-size: 0.92rem;
+            color: #d1c7cc;
+            line-height: 1.6;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .legal-summary-list li::before {
+            content: '•';
+            position: absolute;
+            left: 4px;
+            color: var(--crimson-light);
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .legal-toc {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 40px;
+        }
+
+        .legal-toc-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 14px;
+        }
+
+        .legal-toc-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 8px 16px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .legal-toc-link {
+            color: #c4b9be;
+            text-decoration: none;
+            font-size: 0.86rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .legal-toc-link:hover {
+            color: var(--crimson-light);
+            transform: translateX(4px);
+        }
+
+        .legal-content h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #fff;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legal-content h2:first-of-type {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .legal-content h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #ede8ea;
+            margin-top: 22px;
+            margin-bottom: 10px;
+        }
+
+        .legal-content p {
+            color: #c9bfc4;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+        .legal-content ul, .legal-content ol {
+            color: #c9bfc4;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin-bottom: 22px;
+            padding-left: 24px;
+        }
+
+        .legal-content li {
+            margin-bottom: 10px;
+        }
+
+        .legal-content strong {
+            color: #fff;
+        }
+
+        .legal-in-short {
+            background: rgba(220, 38, 38, 0.1);
+            border-left: 4px solid var(--crimson);
+            padding: 12px 18px;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 16px;
+            font-size: 0.92rem;
+            color: #fca5a5;
+            font-weight: 600;
+        }
+
+        /* Responsive Data Table */
+        .legal-table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            margin: 22px 0 28px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .legal-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        .legal-table th {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            padding: 14px 18px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .legal-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #c9bfc4;
+            line-height: 1.5;
+        }
+
+        .legal-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .legal-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge-collected-yes {
+            display: inline-block;
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .badge-collected-no {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.06);
+            color: #a39ca0;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .legal-highlight-box {
+            background: rgba(249, 115, 22, 0.08);
+            border: 1px solid rgba(249, 115, 22, 0.25);
+            border-radius: 14px;
+            padding: 20px;
+            margin: 22px 0;
+        }
+
+        @media (max-width: 768px) {
+            .legal-card {
+                padding: 26px 18px;
+                border-radius: 18px;
+            }
+            .legal-wrapper {
+                margin: 90px auto 50px;
+            }
+            .legal-toc-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Global Custom Crimson Loading Animation -->
+    <div id="page-loader">
+        <img src="/assets/loading.gif" alt="Loading..." class="loader-video">
+        <div class="loader-title">CrimsonFlame</div>
+    </div>
+    <script>
+        function hidePageLoader() {
+            var l = document.getElementById('page-loader');
+            if (l) {
+                l.classList.add('fade-out');
+                setTimeout(function() { l.style.display = 'none'; }, 400);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', hidePageLoader);
+        window.addEventListener('load', hidePageLoader);
+        setTimeout(hidePageLoader, 1500);
+    </script>
+
+    <!-- Ambient Glows & Particles -->
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Floating Pill Nav -->
+    <nav class="pill-nav">
+        <a href="/index.html" class="pill-brand">
+            <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
+            <span class="pill-brand-text">CrimsonFlame</span>
+        </a>
+        <a href="/projects" class="pill-link">Projects</a>
+        <a href="/crimx" class="pill-link">CrimX</a>
+        <a href="https://discord.gg/tNK8z9gYGQ" class="pill-cta" target="_blank">
+            <svg width="18" height="14" viewBox="0 0 24 18" fill="currentColor"><path d="M20.317 1.492a19.7 19.7 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.7 19.7 0 0 0 3.677 1.492a.07.07 0 0 0-.032.027C.533 6.093-.32 10.555.099 14.961a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03z"/></svg>
+            <span>Discord</span>
+        </a>
+    </nav>
+
+    <!-- Main Legal Document -->
+    <main class="legal-wrapper">
+        <article class="legal-card">
+            
+            <header class="legal-header">
+                <div class="legal-badge">
+                    <span>🛡️ Global Privacy Policy</span>
+                </div>
+                <h1 class="legal-title">CrimsonFlame Privacy Notice</h1>
+                <div class="legal-meta">
+                    <div class="legal-meta-item">
+                        <span>📅 Last Updated:</span>
+                        <strong>September 6, 2026</strong>
+                    </div>
+                    <div class="legal-meta-item">
+                        <span>🏢 Operating Entity:</span>
+                        <strong>CrimsonFlame LLC</strong>
+                    </div>
+                    <div class="legal-meta-item">
+                        <span>⚖️ Governing Jurisdiction:</span>
+                        <strong>United States of America</strong>
+                    </div>
+                </div>
+
+                <div class="legal-quick-actions">
+                    <button type="button" class="btn-secondary" onclick="window.print()" style="font-size: 0.82rem; padding: 8px 16px; font-weight: 700;">
+                        🖨️ Print / Save PDF
+                    </button>
+                    <a href="/terms" class="btn-secondary" style="font-size: 0.82rem; padding: 8px 16px; font-weight: 700; text-decoration: none;">
+                        ⚖️ View Terms of Service
+                    </a>
+                </div>
+            </header>
+
+            <p style="font-size: 1rem; color: #ede8ea; line-height: 1.7; margin-bottom: 28px;">
+                This Privacy Notice for <strong>CrimsonFlame LLC</strong> (doing business as CrimsonFlame) ("we," "us," or "our"), describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you download and use our mobile application (Crimson Protocol), our web applications, the CrimX Identity & Developer Platform, access our online websites (including crimsonflame.net), dashboard, APIs, and gaming ecosystems.
+            </p>
+
+            <!-- Summary of Key Points -->
+            <div class="legal-summary-card">
+                <div class="legal-summary-title">
+                    <span>⚡ Summary of Key Points</span>
+                </div>
+                <ul class="legal-summary-list">
+                    <li><strong>Personal Information We Process:</strong> Usernames, contact authentication credentials, profile banners, handles, and basic device diagnostics needed for gameplay sync.</li>
+                    <li><strong>Sensitive Data:</strong> We do NOT process sensitive biometric, racial, ethnic, sexual, or religious personal information.</li>
+                    <li><strong>Third-Party Selling:</strong> We do NOT sell or rent your personal data to data brokers or third parties. Zero commercial monetization of player identities.</li>
+                    <li><strong>Security & Safety:</strong> Protected by cryptographic token authentication, Google Cloud infrastructure, and strict operational access controls.</li>
+                    <li><strong>Your Global Rights:</strong> Support for GDPR (EU/UK), CCPA/CPRA (California), US State privacy statutes, and global data export/deletion requests.</li>
+                    <li><strong>No Offshore Loopholes:</strong> CrimsonFlame is a legitimate United States entity committed to legal transparency and accountability under US law; we do not operate through offshore havens or third-world legal loopholes.</li>
+                </ul>
+            </div>
+
+            <!-- Table of Contents -->
+            <nav class="legal-toc">
+                <div class="legal-toc-title">
+                    <span>📑 Table of Contents</span>
+                </div>
+                <ol class="legal-toc-list">
+                    <li><a href="#sec-1" class="legal-toc-link">1. What Information Do We Collect?</a></li>
+                    <li><a href="#sec-2" class="legal-toc-link">2. How Do We Process Your Information?</a></li>
+                    <li><a href="#sec-3" class="legal-toc-link">3. Legal Bases (GDPR & International)</a></li>
+                    <li><a href="#sec-4" class="legal-toc-link">4. Sharing Personal Information</a></li>
+                    <li><a href="#sec-5" class="legal-toc-link">5. Social Logins Handling</a></li>
+                    <li><a href="#sec-6" class="legal-toc-link">6. Data Retention Period</a></li>
+                    <li><a href="#sec-7" class="legal-toc-link">7. How We Keep Information Safe</a></li>
+                    <li><a href="#sec-8" class="legal-toc-link">8. What Are Your Privacy Rights?</a></li>
+                    <li><a href="#sec-9" class="legal-toc-link">9. Do-Not-Track (DNT) Controls</a></li>
+                    <li><a href="#sec-10" class="legal-toc-link">10. United States Residents Rights</a></li>
+                    <li><a href="#sec-11" class="legal-toc-link">11. Other International Regions</a></li>
+                    <li><a href="#sec-12" class="legal-toc-link">12. Updates to This Notice</a></li>
+                    <li><a href="#sec-13" class="legal-toc-link">13. How to Contact Us</a></li>
+                    <li><a href="#sec-14" class="legal-toc-link">14. Data Access, Correction & Deletion</a></li>
+                </ol>
+            </nav>
+
+            <div class="legal-content">
+                
+                <h2 id="sec-1">1. What Information Do We Collect?</h2>
+                <div class="legal-in-short">
+                    In Short: We collect personal information that you provide to us directly during registration and service usage.
+                </div>
+                <p>
+                    We collect personal information that you voluntarily provide to us when you register on the Services, express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services, or otherwise when you contact us.
+                </p>
+                <p><strong>Personal Information Provided by You:</strong></p>
+                <ul>
+                    <li>Usernames and public player handles (e.g., <code>@username</code>)</li>
+                    <li>Contact or authentication credentials (email address and encrypted credentials)</li>
+                    <li>Profile customization assets (avatar URL, custom bio, profile banner)</li>
+                    <li>Full names (if voluntarily submitted for support or verification)</li>
+                </ul>
+                <p>
+                    <strong>Sensitive Information:</strong> We do not process sensitive personal information.
+                </p>
+                <p>
+                    <strong>Application Data:</strong> If you use our application(s), we may request access or permissions to certain features from your mobile or VR hardware, including device storage and microphone for voice chat functionality. You can manage or revoke these permissions at any time within your device's native operating system settings.
+                </p>
+
+                <h2 id="sec-2">2. How Do We Process Your Information?</h2>
+                <div class="legal-in-short">
+                    In Short: We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law.
+                </div>
+                <p>We process your personal information for a variety of reasons, depending on how you interact with our Services, including:</p>
+                <ul>
+                    <li><strong>Account Administration:</strong> Facilitate account creation, single sign-on authentication via CrimX, and manage active player sessions.</li>
+                    <li><strong>Service Delivery:</strong> Synchronize VR avatars, multiplayer lobbies, friends lists, and cloud game saves.</li>
+                    <li><strong>Security & Abuse Prevention:</strong> Keep our platform safe through fraud monitoring, automated bot defense, and zero-tolerance policy enforcement against illicit activities.</li>
+                    <li><strong>User Communications:</strong> Send transaction receipts, security alerts on new sign-ins, and respond to support inquiries.</li>
+                </ul>
+
+                <h2 id="sec-3">3. What Legal Bases Do We Rely On?</h2>
+                <div class="legal-in-short">
+                    In Short: We only process your information when we have a valid legal reason under GDPR, UK GDPR, and international data frameworks.
+                </div>
+                <ul>
+                    <li><strong>Consent:</strong> Where you have granted explicit permission for a specific purpose (which you may withdraw at any time).</li>
+                    <li><strong>Contractual Performance:</strong> Necessary to fulfill our obligations under our Terms of Service.</li>
+                    <li><strong>Legitimate Interests:</strong> Protecting platform integrity, diagnosing system failures, and improving game experience.</li>
+                    <li><strong>Legal Obligations:</strong> Compliance with lawful court orders, subpoenas, and statutory preservation requirements.</li>
+                </ul>
+
+                <h2 id="sec-4">4. When and With Whom Do We Share Your Information?</h2>
+                <div class="legal-in-short">
+                    In Short: We do not sell your personal data. We only share information in specific situations like business transfers or legal compliance.
+                </div>
+                <p>
+                    We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company. We may also share information with authorized law enforcement agencies under lawful judicial process pursuant to our zero-tolerance policy on illegal conduct.
+                </p>
+
+                <h2 id="sec-5">5. How Do We Handle Social Logins?</h2>
+                <p>
+                    Our Services offer you the ability to register and log in using third-party social media providers (such as Google or Discord). Where you choose to do this, we receive identity tokens, your verified email address, public profile name, and avatar image. We do not store or have access to your third-party account passwords.
+                </p>
+
+                <h2 id="sec-6">6. How Long Do We Keep Your Information?</h2>
+                <p>
+                    We will only keep your personal information for as long as it is necessary for the purposes set out in this Privacy Notice, unless a longer retention period is required or permitted by law. In no event will personal information be retained longer than <strong>thirty-six (36) months</strong> past the termination of the user's account. Upon permanent account termination, active profiles are scrubbed, and residual archival logs are isolated from active production.
+                </p>
+
+                <h2 id="sec-7">7. How Do We Keep Your Information Safe?</h2>
+                <p>
+                    We have implemented comprehensive technical and organizational security measures, including HTTPS encryption in transit, cryptographic token verification, firewalls, and least-privilege administrative access. However, no internet transmission is 100% impenetrable. While we continually update our safeguards, you access the Services within your personal discretion and should maintain strong credential hygiene.
+                </p>
+
+                <h2 id="sec-8">8. What Are Your Privacy Rights?</h2>
+                <div class="legal-in-short">
+                    In Short: You have rights allowing access to, correction, portability, and deletion of your personal data.
+                </div>
+                <p>
+                    Depending on your location (such as the EEA, UK, Switzerland, and various US states), you may have the right to request access to your data, request rectification of inaccuracies, demand deletion, restrict processing, or request data portability. You can exercise these rights directly within your CrimX Dashboard settings or by emailing our corporate compliance team at <a href="mailto:allaboutwaterdiamond@gmail.com" style="color: var(--crimson-light); font-weight: 700;">allaboutwaterdiamond@gmail.com</a>.
+                </p>
+
+                <h2 id="sec-9">9. Controls for Do-Not-Track Features</h2>
+                <p>
+                    Most web browsers include a Do-Not-Track ("DNT") signal. Because no uniform technology standard for recognizing DNT signals has been formally finalized by international consortiums, our systems do not currently alter behavior upon receiving DNT browser headers.
+                </p>
+
+                <h2 id="sec-10">10. Do United States Residents Have Specific Rights?</h2>
+                <p>
+                    Residents of California (CCPA/CPRA), Colorado, Connecticut, Delaware, Florida, Indiana, Iowa, Kentucky, Maryland, Minnesota, Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah, and Virginia are entitled to specific statutory disclosures:
+                </p>
+
+                <div class="legal-table-responsive">
+                    <table class="legal-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description / Examples</th>
+                                <th>Collected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>A. Identifiers</strong></td>
+                                <td>Account username, email address, IP address, device fingerprints, unique player UID</td>
+                                <td><span class="badge-collected-yes">YES</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>B. Personal Info (Cal. Civ. Code § 1798.80)</strong></td>
+                                <td>Name, financial details, credit card numbers, educational history</td>
+                                <td><span class="badge-collected-no">NO</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>C. Protected Classifications</strong></td>
+                                <td>Race, ethnicity, sexual orientation, religious affiliations, gender identity</td>
+                                <td><span class="badge-collected-no">NO</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>D. Commercial Records</strong></td>
+                                <td>Commercial purchases, transaction history outside of game licenses</td>
+                                <td><span class="badge-collected-no">NO</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>E. Biometric Data</strong></td>
+                                <td>Fingerprints, facial geometry, retina scans</td>
+                                <td><span class="badge-collected-no">NO</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>F. Internet / Network Activity</strong></td>
+                                <td>Telemetry, game session duration, connection stability, client logs</td>
+                                <td><span class="badge-collected-yes">YES</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>G. Geolocation Data</strong></td>
+                                <td>Precise GPS coordinates</td>
+                                <td><span class="badge-collected-no">NO</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>H. Sensitive Personal Info</strong></td>
+                                <td>Social security numbers, driver's licenses, biometric identifiers</td>
+                                <td><span class="badge-collected-no">NO</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>
+                    <strong>No Sale of Data:</strong> CrimsonFlame has not sold, rented, or shared consumer personal information for commercial consideration in the preceding twelve (12) months, nor will we do so in the future.
+                </p>
+
+                <h2 id="sec-11">11. Do Other Regions Have Specific Privacy Rights?</h2>
+                <p>
+                    <strong>Australia & New Zealand:</strong> We process data in full compliance with the Australian Privacy Act 1988 and New Zealand Privacy Act 2020. Inquiries may be escalated to the Office of the Australian Information Commissioner (OAIC).
+                </p>
+                <p>
+                    <strong>Republic of South Africa:</strong> Processed in accordance with the Protection of Personal Information Act (POPIA). Formal complaints may be directed to the South African Information Regulator.
+                </p>
+
+                <h2 id="sec-12">12. Do We Make Updates to This Notice?</h2>
+                <p>
+                    Yes, we update this Privacy Notice periodically to reflect modifications in our software, platform features, and legal requirements. The updated iteration will be denoted by an amended "Last Updated" timestamp at the top of this document.
+                </p>
+
+                <h2 id="sec-13">13. How Can You Contact Us About This Notice?</h2>
+                <div class="legal-highlight-box">
+                    <strong style="color: #fff; display: block; margin-bottom: 6px;">CrimsonFlame LLC Corporate Liaison:</strong>
+                    <p style="margin-bottom: 8px;">
+                        <strong>Physical Legal Domicile:</strong> 2012 Ferry Dr, Marietta, GA 30066-6253, United States
+                    </p>
+                    <p style="margin-bottom: 0;">
+                        <strong>Direct Inquiries:</strong> <a href="mailto:allaboutwaterdiamond@gmail.com" style="color: var(--crimson-light); font-weight: 700;">allaboutwaterdiamond@gmail.com</a>
+                    </p>
+                </div>
+
+                <h2 id="sec-14">14. How Can You Review, Update, or Delete Data?</h2>
+                <p>
+                    Based on the applicable laws of your jurisdiction, you may request access to, correction of, or permanent deletion of your personal information. To submit a verifiable data subject access request, simply log into your <strong>CrimX Dashboard</strong> or email us at <a href="mailto:allaboutwaterdiamond@gmail.com" style="color: var(--crimson-light); font-weight: 700;">allaboutwaterdiamond@gmail.com</a>.
+                </p>
+
+            </div>
+        </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>© 2026 <strong>CrimsonFlame LLC</strong>. All rights reserved. |
+            <a href="/terms" style="color: var(--text-secondary); text-decoration: none; margin: 0 8px;">Terms</a> |
+            <a href="/privacy" style="color: var(--text-secondary); text-decoration: none; margin: 0 8px;">Privacy</a> |
+            <a href="https://youtube.com/@crimsonflameofficial" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin-left: 8px;">YouTube</a>
+        </p>
+    </footer>
+
+    <script>
+    // Floating particles generator
+    (function() {
+        const c = document.getElementById('particles');
+        if (!c) return;
+        for (let i = 0; i < 25; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const s = Math.random() * 3 + 1;
+            p.style.width = s + 'px';
+            p.style.height = s + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+            p.style.animationDelay = (Math.random() * 8) + 's';
+            p.style.opacity = Math.random() * 0.4 + 0.1;
+            c.appendChild(p);
+        }
+    })();
+    </script>
+</body>
+</html>

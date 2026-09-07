@@ -488,11 +488,11 @@ app.get('/reset-password', (req, res) => {
 });
 
 app.get(['/terms', '/tos'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'terms.md'));
+  res.sendFile(path.join(__dirname, 'terms', 'index.html'));
 });
 
 app.get('/privacy', (req, res) => {
-  res.sendFile(path.join(__dirname, 'privacy.md'));
+  res.sendFile(path.join(__dirname, 'privacy', 'index.html'));
 });
 
 // ─── 6. REAL HTTP 404 NOT FOUND HANDLER ───
