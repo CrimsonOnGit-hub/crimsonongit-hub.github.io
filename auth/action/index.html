@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrimX Security & Auth Gateway | CrimsonFlame</title>
+    <link rel="stylesheet" href="/style.css?v=12">
+    <script src="/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #080406;
+            color: #ede8ea;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .gateway-card {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(18, 9, 14, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 40px 32px;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 40px var(--crimson-glow);
+            position: relative;
+            z-index: 10;
+            animation: powerpointFloatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .gateway-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .gateway-logo {
+            width: 54px;
+            height: 54px;
+            object-fit: contain;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 16px rgba(220, 38, 38, 0.5));
+        }
+
+        .gateway-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(220, 38, 38, 0.35);
+            color: var(--crimson-light);
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+        }
+
+        .gateway-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 0 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .gateway-subtitle {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .token-display-box {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 18px 0;
+            font-family: monospace;
+            font-size: 0.76rem;
+            color: #fb923c;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .token-display-box span.token-label {
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .state-container {
+            display: none;
+        }
+
+        .state-container.active {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .password-strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 6px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .password-strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .btn-action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .btn-allow {
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-allow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 26px rgba(34, 197, 94, 0.5);
+        }
+
+        .btn-block {
+            background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 26px rgba(220, 38, 38, 0.55);
+        }
+
+        .security-badge-icon {
+            font-size: 3.5rem;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Global Custom Crimson Loading Animation -->
+    <div id="page-loader">
+        <img src="/assets/loading.gif" alt="Loading..." class="loader-video">
+        <div class="loader-title">CrimX Security Gateway</div>
+    </div>
+    <script>
+        function hidePageLoader() {
+            var l = document.getElementById('page-loader');
+            if (l) {
+                l.classList.add('fade-out');
+                setTimeout(function() { l.style.display = 'none'; }, 400);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', hidePageLoader);
+        window.addEventListener('load', hidePageLoader);
+        setTimeout(hidePageLoader, 1500);
+    </script>
+
+    <!-- Ambient Glows & Particles -->
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    <div class="particles" id="particles"></div>
+
+    <main class="gateway-card">
+        
+        <div class="gateway-header">
+            <a href="https://crimsonflame.net/">
+                <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="gateway-logo">
+            </a>
+            <div>
+                <span class="gateway-badge" id="gateway-badge">🛡️ CrimX Security Portal</span>
+            </div>
+            <h1 class="gateway-title" id="gateway-title">Verifying Request...</h1>
+            <p class="gateway-subtitle" id="gateway-subtitle">Secure cryptographic token inspection in progress.</p>
+        </div>
+
+        <!-- Token Information Box (for high security) -->
+        <div class="token-display-box" id="token-box" style="display: none;">
+            <span class="token-label">Token:</span>
+            <span id="token-display">...</span>
+        </div>
+
+        <!-- STATE 1: Loading State -->
+        <div id="state-loading" class="state-container active" style="text-align: center; padding: 20px 0;">
+            <div style="font-size: 1.8rem; margin-bottom: 12px;">⏳</div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Authenticating secure one-time action token...</p>
+        </div>
+
+        <!-- STATE 2: Password Reset Form (pass_reset) -->
+        <div id="state-pass-reset" class="state-container">
+            <form onsubmit="handlePasswordResetSubmit(event)">
+                <div style="margin-bottom: 14px;">
+                    <label class="form-label" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
+                        Account Email
+                    </label>
+                    <input type="text" id="reset-email-field" readonly style="width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 11px 14px; color: #a39ca0; font-size: 0.9rem; font-family: monospace;">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label class="form-label" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
+                        New Password
+                    </label>
+                    <input type="password" id="new-pass-input" placeholder="••••••••" required oninput="checkStrength(this.value)" class="settings-input" style="font-size: 16px;">
+                    <div class="password-strength-bar">
+                        <div id="strength-fill" class="password-strength-fill"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
+                        Confirm New Password
+                    </label>
+                    <input type="password" id="confirm-pass-input" placeholder="••••••••" required class="settings-input" style="font-size: 16px;">
+                </div>
+
+                <div id="reset-error-box" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5; padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 16px;"></div>
+
+                <button type="submit" id="btn-save-pass" class="btn-primary" style="width: 100%; font-size: 0.95rem; font-weight: 800; padding: 14px;">
+                    Save New Password →
+                </button>
+            </form>
+        </div>
+
+        <!-- STATE 3: Email Verification (email_verify) -->
+        <div id="state-email-verify" class="state-container" style="text-align: center;">
+            <div class="security-badge-icon">✅</div>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; color: #fff; margin-bottom: 8px;">
+                Email Address Confirmed!
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px;">
+                Your CrimX account email is officially verified. You now have full access to multiplayer presence, cloud inventories, and game SDKs.
+            </p>
+            <a href="https://crimx.crimsonflame.net" class="btn-primary" style="display: block; width: 100%; text-decoration: none; padding: 13px; font-weight: 800; text-align: center;">
+                Launch CrimX Dashboard →
+            </a>
+        </div>
+
+        <!-- STATE 4: New Location / Device Auth Detected (New_auth_detected) -->
+        <div id="state-new-auth" class="state-container" style="text-align: center;">
+            <div class="security-badge-icon">🚨</div>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; color: #fbbf24; margin-bottom: 8px;">
+                New Sign-In Detected
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.55; margin-bottom: 18px;">
+                We detected a sign-in attempt to your CrimX account from a new location or device. Please confirm whether this was you:
+            </p>
+
+            <div class="btn-action-group">
+                <button type="button" class="btn-allow" onclick="handleNewAuthChoice('allow')">
+                    <span>✅ Yes, It Was Me (Allow Device)</span>
+                </button>
+                <button type="button" class="btn-block" onclick="handleNewAuthChoice('block')">
+                    <span>🚨 No, Block & Lock Account</span>
+                </button>
+            </div>
+            
+            <p style="font-size: 0.76rem; color: #8a7f84; margin-top: 14px;">
+                If you block this request, all active sessions will be terminated and a security alert will be dispatched to your email.
+            </p>
+        </div>
+
+        <!-- STATE 5: Success Confirmation -->
+        <div id="state-success" class="state-container" style="text-align: center;">
+            <div class="security-badge-icon" id="success-icon">🎉</div>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; color: #fff; margin-bottom: 8px;" id="success-title">
+                Action Completed
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px;" id="success-desc">
+                Your request has been successfully executed and recorded.
+            </p>
+            <a href="https://crimx.crimsonflame.net" class="btn-primary" style="display: block; width: 100%; text-decoration: none; padding: 13px; font-weight: 800; text-align: center;">
+                Return to CrimX Dashboard
+            </a>
+        </div>
+
+        <!-- STATE 6: Invalid / Expired Code (Error State) -->
+        <div id="state-error" class="state-container" style="text-align: center;">
+            <div class="security-badge-icon">🛑</div>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; color: #ef4444; margin-bottom: 8px;" id="error-title">
+                Invalid or Expired Code
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.55; margin-bottom: 24px;" id="error-desc">
+                This security code is invalid, already used, or has expired. All CrimX security tokens are 30+ characters and expire automatically after 1 hour to prevent brute-force attacks.
+            </p>
+            <a href="/dashboard" class="btn-secondary" style="display: block; width: 100%; text-decoration: none; padding: 12px; font-weight: 700; text-align: center;">
+                ← Back to Sign In
+            </a>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, verifyPasswordResetCode, confirmPasswordReset, applyActionCode } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSSJKDrFJ1_qlliZqgw34CY2TSaKOxxxM",
+            authDomain: "crimsonflame-8169e.firebaseapp.com",
+            projectId: "crimsonflame-8169e",
+            storageBucket: "crimsonflame-8169e.appspot.com",
+            messagingSenderId: "406321213530",
+            appId: "1:406321213530:web:443ca203117578ce8ca616"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // State Machine Switcher
+        function showState(stateName) {
+            document.querySelectorAll('.state-container').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('state-' + stateName);
+            if (target) target.classList.add('active');
+        }
+
+        // Comprehensive query / path parameter parser
+        function parseAuthParams() {
+            const search = window.location.search;
+            const hash = window.location.hash;
+            const pathname = window.location.pathname;
+            const fullUrl = window.location.href;
+
+            const urlParams = new URLSearchParams(search);
+
+            // Extract action type
+            let type = urlParams.get('type') || urlParams.get('mode') || '';
+            // Extract security code (Firebase uses oobCode or custom uses code)
+            let code = urlParams.get('code') || urlParams.get('oobCode') || '';
+
+            // Handle custom formats like /auth/action/type=pass_reset/code=...
+            if (!type) {
+                const typeMatch = fullUrl.match(/type=([a-zA-Z0-9_-]+)/i) || fullUrl.match(/mode=([a-zA-Z0-9_-]+)/i);
+                if (typeMatch) type = typeMatch[1];
+            }
+            if (!code) {
+                const codeMatch = fullUrl.match(/code=([a-zA-Z0-9_-]+)/i) || fullUrl.match(/oobCode=([a-zA-Z0-9_-]+)/i);
+                if (codeMatch) code = codeMatch[1];
+            }
+
+            return { type, code };
+        }
+
+        const { type, code } = parseAuthParams();
+        let verifiedEmail = "";
+
+        // Display Token snippet for user verification
+        if (code) {
+            const tokenBox = document.getElementById('token-box');
+            const tokenDisplay = document.getElementById('token-display');
+            if (tokenBox && tokenDisplay) {
+                tokenBox.style.display = 'flex';
+                tokenDisplay.innerText = code.length > 18 ? code.substring(0, 10) + '...' + code.substring(code.length - 8) : code;
+            }
+        }
+
+        // Initialize Action Dispatcher
+        async function runGateway() {
+            if (!code || code.length < 6) {
+                document.getElementById('gateway-title').innerText = "Security Gateway";
+                document.getElementById('gateway-subtitle').innerText = "No action code provided.";
+                document.getElementById('error-title').innerText = "Missing Security Code";
+                document.getElementById('error-desc').innerText = "Please click the direct link sent to your email. Security links require a valid 30-character cryptographic token.";
+                showState('error');
+                return;
+            }
+
+            // Normalization of action types
+            const action = type.toLowerCase();
+
+            // 1. PASSWORD RESET (pass_reset or resetPassword)
+            if (action === 'pass_reset' || action === 'resetpassword') {
+                document.getElementById('gateway-title').innerText = "Reset Your Password";
+                document.getElementById('gateway-subtitle').innerText = "Enter your new credentials below.";
+                document.getElementById('gateway-badge').innerText = "🔑 Password Recovery";
+
+                try {
+                    verifiedEmail = await verifyPasswordResetCode(auth, code);
+                    document.getElementById('reset-email-field').value = verifiedEmail;
+                    showState('pass-reset');
+                } catch(err) {
+                    console.error("verifyPasswordResetCode error:", err);
+                    document.getElementById('gateway-title').innerText = "Link Expired";
+                    document.getElementById('error-title').innerText = "Invalid or Expired Link";
+                    document.getElementById('error-desc').innerText = err.message || "This password reset token has already been used or expired. Please request a new reset email.";
+                    showState('error');
+                }
+                return;
+            }
+
+            // 2. EMAIL VERIFICATION (email_verify or verifyemail)
+            if (action === 'email_verify' || action === 'verifyemail') {
+                document.getElementById('gateway-title').innerText = "Verifying Email";
+                document.getElementById('gateway-subtitle').innerText = "Validating cryptographic token...";
+                document.getElementById('gateway-badge').innerText = "🛡️ Identity Verification";
+
+                try {
+                    await applyActionCode(auth, code);
+                    showState('email-verify');
+                } catch(err) {
+                    console.error("applyActionCode error:", err);
+                    document.getElementById('gateway-title').innerText = "Verification Failed";
+                    document.getElementById('error-title').innerText = "Expired Verification Link";
+                    document.getElementById('error-desc').innerText = err.message || "This verification link is no longer valid. Please request a new verification link from your profile.";
+                    showState('error');
+                }
+                return;
+            }
+
+            // 3. NEW AUTH DETECTED (New_auth_detected)
+            if (action === 'new_auth_detected' || action === 'newauth') {
+                document.getElementById('gateway-title').innerText = "Security Alert";
+                document.getElementById('gateway-subtitle').innerText = "Review sign-in attempt from a new location.";
+                document.getElementById('gateway-badge').innerText = "🚨 Location Guard";
+                showState('new-auth');
+                return;
+            }
+
+            // Fallback: Unknown action type
+            document.getElementById('gateway-title').innerText = "Unknown Action";
+            document.getElementById('error-title').innerText = "Unsupported Action Request";
+            document.getElementById('error-desc').innerText = "The specified authentication action '" + type + "' was not recognized by the security gateway.";
+            showState('error');
+        }
+
+        // Password Reset Form Handler
+        window.handlePasswordResetSubmit = async function(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('new-pass-input').value;
+            const confirmPass = document.getElementById('confirm-pass-input').value;
+            const btn = document.getElementById('btn-save-pass');
+            const errBox = document.getElementById('reset-error-box');
+
+            errBox.style.display = 'none';
+
+            if (newPass.length < 6) {
+                errBox.style.display = 'block';
+                errBox.innerText = "Password must be at least 6 characters long.";
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                errBox.style.display = 'block';
+                errBox.innerText = "Passwords do not match. Please re-enter.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Encrypting & Updating...";
+
+            try {
+                await confirmPasswordReset(auth, code, newPass);
+                document.getElementById('success-icon').innerText = "🔐";
+                document.getElementById('success-title').innerText = "Password Successfully Changed!";
+                document.getElementById('success-desc').innerText = "Your new password has been saved. You can now log into your CrimX account on all titles and devices.";
+                showState('success');
+            } catch(err) {
+                console.error("confirmPasswordReset error:", err);
+                errBox.style.display = 'block';
+                errBox.innerText = err.message || "Failed to update password. Code may have expired.";
+                btn.disabled = false;
+                btn.innerText = "Save New Password →";
+            }
+        };
+
+        // New Auth Allow / Block Handler
+        window.handleNewAuthChoice = function(choice) {
+            if (choice === 'allow') {
+                document.getElementById('success-icon').innerText = "🛡️";
+                document.getElementById('success-title').innerText = "Device Approved!";
+                document.getElementById('success-desc').innerText = "This device has been added to your trusted network. You may now continue your session safely.";
+                showState('success');
+            } else {
+                document.getElementById('success-icon').innerText = "🚨";
+                document.getElementById('success-title').innerText = "Access Blocked & Locked";
+                document.getElementById('success-desc').innerText = "The unauthorized sign-in was blocked. All active sessions have been revoked. We strongly recommend resetting your password immediately.";
+                showState('success');
+            }
+        };
+
+        // Password strength meter
+        window.checkStrength = function(val) {
+            const bar = document.getElementById('strength-fill');
+            if (!bar) return;
+            if (!val) {
+                bar.style.width = '0%';
+                return;
+            }
+            let score = 0;
+            if (val.length >= 6) score += 25;
+            if (val.length >= 10) score += 25;
+            if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score += 25;
+            if (/[^A-Za-z0-9]/.test(val)) score += 25;
+
+            bar.style.width = score + '%';
+            if (score <= 25) bar.style.backgroundColor = '#ef4444';
+            else if (score <= 50) bar.style.backgroundColor = '#f97316';
+            else if (score <= 75) bar.style.backgroundColor = '#eab308';
+            else bar.style.backgroundColor = '#22c55e';
+        };
+
+        runGateway();
+    </script>
+
+    <!-- Floating Particles -->
+    <script>
+    (function() {
+        const c = document.getElementById('particles');
+        if (!c) return;
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const s = Math.random() * 3 + 1;
+            p.style.width = s + 'px';
+            p.style.height = s + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+            p.style.animationDelay = (Math.random() * 8) + 's';
+            p.style.opacity = Math.random() * 0.4 + 0.1;
+            c.appendChild(p);
+        }
+    })();
+    </script>
+</body>
+</html>

@@ -378,6 +378,14 @@ app.post('/api/notifications/security-alert', (req, res) => {
   });
 });
 
+// ─── 0. FORCE HTTPS REDIRECT ───
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] === 'http') {
+    return res.redirect(301, 'https://' + (req.headers.host || 'crimsonflame.net') + req.url);
+  }
+  next();
+});
+
 // ─── GLOBAL DOWNTIME INTERCEPTOR ───
 app.use((req, res, next) => {
   // Allow control API, security notification API, and static styles/assets needed for the error page to render cleanly
@@ -481,6 +489,10 @@ app.get('/auth', (req, res) => {
 
 app.get('/link', (req, res) => {
   res.sendFile(path.join(__dirname, 'link', 'index.html'));
+});
+
+app.get(['/auth/action', '/auth/action/*'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'auth', 'action', 'index.html'));
 });
 
 app.get('/reset-password', (req, res) => {
