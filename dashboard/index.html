@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | CrimsonFlame</title>
-    <link rel="stylesheet" href="/style.css?v=7">
+    <link rel="stylesheet" href="/style.css?v=8">
+    <script src="/theme.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -40,17 +41,7 @@
     <div class="bg-glow-2"></div>
     <div class="particles" id="particles"></div>
 
-    <nav class="pill-nav">
-        <a href="/index.html" class="pill-brand">
-            <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
-            <span class="pill-brand-text">CrimsonFlame</span>
-        </a>
-        <a href="/index.html" class="pill-link">Home</a>
-        <a href="/projects" class="pill-link">Projects</a>
-        <a href="/support" class="pill-link">Support</a>
-    </nav>
-
-    <main class="dash-main" style="max-width: 1120px; margin: 0 auto; padding: 100px 20px 60px;">
+    <main class="dash-main" style="max-width: 1120px; margin: 0 auto; padding: 40px 20px 60px;">
         
         <!-- Login View -->
         <div id="login-container" class="dash-card" style="max-width: 460px; margin: 40px auto;">
@@ -95,26 +86,123 @@
             </div>
         </div>
 
-        <!-- Settings Studio Overhaul Container -->
-        <div id="dashboard-container" class="settings-shell" style="display: none;">
+        <!-- Settings Studio & Dashboard Hub Container -->
+        <div id="dashboard-container" style="display: none;">
             
-            <!-- Settings Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                <h1 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: #fff; margin: 0; text-align: left;">
-                    CrimX Settings
-                </h1>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <a href="/developer" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: 0.85rem; font-weight: 700; text-decoration: none; border-color: rgba(255,255,255,0.15);">
-                        🛠️ Developer Portal
-                    </a>
-                    <button class="btn-danger" onclick="logOutUser()" style="width: auto; padding: 9px 18px; font-size: 0.85rem; font-weight: 700;">
-                        Sign Out
-                    </button>
-                </div>
+            <!-- Top Left Back Button (Exits crimx.crimsonflame.net back to main site) -->
+            <div class="crimx-top-bar">
+                <a href="https://crimsonflame.net/" id="crimx-exit-btn" class="crimx-back-btn" onclick="exitCrimX(event)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Back</span>
+                </a>
             </div>
 
-            <!-- Settings 3-Column Layout: Navigation | Active Panel | Live Preview -->
-            <div class="settings-layout">
+            <!-- 4-Block CrimX Dashboard Layout -->
+            <div class="dash-4block-grid">
+                
+                <!-- BLOCK 1 (Top Left, Tall): CrimX Friends List -->
+                <div class="dash-block-friends">
+                    <div class="dash-friends-header">
+                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">
+                                👥 Friends
+                            </h3>
+                            <span id="friends-count-badge" class="friends-count-badge">0 Friends</span>
+                        </div>
+                        <!-- Search bar -->
+                        <form onsubmit="sendFriendRequestByUsername(event)" class="friends-search-form">
+                            <input type="text" id="friend-search-input" placeholder="Search by @username..." required autocomplete="off" class="friends-search-input">
+                            <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; width: auto; border-radius: 9999px; white-space: nowrap;">
+                                + Add
+                            </button>
+                        </form>
+                    </div>
+                    <div id="friend-action-feedback" style="display: none; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.82rem;"></div>
+
+                    <!-- Incoming Pending Requests -->
+                    <div id="pending-requests-box" style="display: none; margin-bottom: 16px;">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: #fb923c; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            ⏳ Incoming Requests (<span id="pending-count">0</span>)
+                        </div>
+                        <div id="pending-requests-list" class="pending-requests-grid"></div>
+                    </div>
+
+                    <!-- Active Friends Feed -->
+                    <div id="active-friends-list" class="active-friends-grid">
+                        <div class="friends-empty-state">
+                            <div style="font-size: 2rem; margin-bottom: 6px;">🎮</div>
+                            <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 4px;">No friends connected yet</div>
+                            <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4;">
+                                Search any player's @username above to send a request!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOCK 2: Profile Banner Card with Little Gear Button on Bottom Right -->
+                <div class="dash-block-profile">
+                    <div class="profile-banner-showcase-card" style="margin-bottom: 0;">
+                        <div id="showcase-banner-bg" class="profile-banner-showcase-bg"></div>
+                        <div class="profile-banner-showcase-content">
+                            <div class="profile-banner-avatar-wrap">
+                                <img id="showcase-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
+                                <div class="profile-banner-status-dot" title="Online"></div>
+                            </div>
+                            <div class="profile-banner-meta">
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <h2 id="showcase-display-name" class="profile-banner-name">Player Name</h2>
+                                    <span id="showcase-handle" class="profile-banner-handle">@username</span>
+                                </div>
+                                <div id="showcase-badges" class="profile-banner-badges">
+                                    <span id="showcase-staff-badge" class="badge-staff" style="display: none;">🛡️ Staff</span>
+                                    <span id="showcase-dev-badge" class="badge-dev" style="display: none;">🛠️ Developer</span>
+                                    <span id="showcase-member-badge" class="badge-member">🔥 Member</span>
+                                </div>
+                                <div id="showcase-status-text" class="profile-banner-status">Exploring CrimsonFlame</div>
+                                <div id="showcase-bio" class="profile-banner-bio">Welcome to my CrimX profile!</div>
+                            </div>
+                        </div>
+                        <!-- Little Gear Button on Bottom Right Corner to Open Settings -->
+                        <button type="button" class="profile-banner-gear-btn" onclick="toggleSettingsStudio(true)" title="Open Settings">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BLOCK 3 (Bottom Left): Coming soon! -->
+                <div class="dash-coming-soon-card dash-block-coming-1">
+                    <h3 class="coming-soon-title">Coming soon!</h3>
+                </div>
+
+                <!-- BLOCK 4 (Bottom Right): Coming soon! -->
+                <div class="dash-coming-soon-card dash-block-coming-2">
+                    <h3 class="coming-soon-title">Coming soon!</h3>
+                </div>
+
+            </div>
+
+            <!-- Settings Studio Modal Overlay -->
+            <div id="settings-studio-modal" class="settings-studio-modal">
+                <div class="settings-studio-inner">
+                    <!-- Settings Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                        <h1 style="font-family: 'Outfit', sans-serif; font-size: 1.85rem; font-weight: 800; color: #fff; margin: 0; text-align: left;">
+                            CrimX Settings
+                        </h1>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" class="btn-secondary" onclick="toggleSettingsStudio(false)" style="width: auto; padding: 8px 18px; font-size: 0.85rem; font-weight: 700;">
+                                ✕ Close
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Settings 3-Column Layout: Navigation | Active Panel | Live Preview -->
+                    <div class="settings-layout">
                 
                 <!-- Col 1: Sidebar Navigation -->
                 <aside class="settings-sidebar">
@@ -186,6 +274,12 @@
                                         <span>Click to upload custom banner</span>
                                     </div>
                                     <input type="file" id="banner-file-input" accept="image/*" style="display:none;" onchange="handleUpload(event.target.files[0], 'banner')">
+                                </div>
+                                
+                                <div style="display: flex; gap: 8px; margin: 12px 0 8px; flex-wrap: wrap;">
+                                    <input type="url" id="banner-url-input" class="settings-input" placeholder="Or paste direct image URL (https://...)" style="flex: 1; min-width: 200px; font-size: 0.85rem;">
+                                    <button type="button" class="btn-secondary" onclick="applyBannerUrl()" style="width: auto; padding: 8px 16px; font-size: 0.82rem; font-weight: 700;">Apply URL</button>
+                                    <button type="button" class="btn-secondary" onclick="resetBannerToDefault()" style="width: auto; padding: 8px 14px; font-size: 0.82rem; color: var(--crimson-light);">Reset to Default</button>
                                 </div>
                                 
                                 <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 6px;">Or choose a CrimsonFlame preset theme:</div>
@@ -433,11 +527,56 @@
                         </div>
                     </div>
 
-                    <!-- TAB 5: Preferences & Audio -->
+                    <!-- TAB 5: Preferences & Themes -->
                     <div id="tab-preferences" class="settings-tab-pane">
                         <div class="settings-tab-header">
-                            <h2>Preferences & Audio</h2>
-                            <p>Customize your sound effects, beta testing access, and notification settings.</p>
+                            <h2>Preferences & Themes</h2>
+                            <p>Customize your visual ambiance, sound effects, beta testing access, and notification settings.</p>
+                        </div>
+
+                        <!-- Site Themes Engine Selector -->
+                        <div class="settings-section-block">
+                            <div class="settings-section-title">
+                                <span>🎨 Site Glow Themes</span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px;">Select your signature ambient glow theme across all CrimsonFlame web experiences.</p>
+                            <div class="theme-picker-grid">
+                                <div class="theme-card-option" data-theme-val="crimson" onclick="window.setCrimXTheme('crimson')">
+                                    <div class="theme-preview-swatch" style="background: linear-gradient(135deg, #dc2626, #f97316);"></div>
+                                    <div class="theme-option-info">
+                                        <div class="theme-option-name">Crimson Flame</div>
+                                        <div class="theme-option-desc">Official studio signature</div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-option" data-theme-val="emerald" onclick="window.setCrimXTheme('emerald')">
+                                    <div class="theme-preview-swatch" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
+                                    <div class="theme-option-info">
+                                        <div class="theme-option-name">Cyber Emerald</div>
+                                        <div class="theme-option-desc">Vibrant neon matrix</div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-option" data-theme-val="void" onclick="window.setCrimXTheme('void')">
+                                    <div class="theme-preview-swatch" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6);"></div>
+                                    <div class="theme-option-info">
+                                        <div class="theme-option-name">Abyssal Void</div>
+                                        <div class="theme-option-desc">Deep ultraviolet cosmic</div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-option" data-theme-val="solar" onclick="window.setCrimXTheme('solar')">
+                                    <div class="theme-preview-swatch" style="background: linear-gradient(135deg, #f59e0b, #ea580c);"></div>
+                                    <div class="theme-option-info">
+                                        <div class="theme-option-name">Solar Flare</div>
+                                        <div class="theme-option-desc">Blazing gold & amber</div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-option" data-theme-val="glacier" onclick="window.setCrimXTheme('glacier')">
+                                    <div class="theme-preview-swatch" style="background: linear-gradient(135deg, #06b6d4, #38bdf8);"></div>
+                                    <div class="theme-option-info">
+                                        <div class="theme-option-name">Glacier Cyan</div>
+                                        <div class="theme-option-desc">Sub-zero arctic frost</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="settings-section-block">
@@ -561,6 +700,9 @@
                     </div>
                 </aside>
 
+                    </div>
+
+                </div>
             </div>
 
         </div>
@@ -608,6 +750,17 @@
             c.appendChild(p);
         }
     })();
+
+    // Exit CrimX Subdomain handler
+    window.exitCrimX = function(event) {
+        if (event) event.preventDefault();
+        if (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')) {
+            const port = window.location.port ? ':' + window.location.port : '';
+            window.location.href = window.location.protocol + '//localhost' + port + '/';
+        } else {
+            window.location.href = 'https://crimsonflame.net/';
+        }
+    };
     </script>
 
     <script type="module" src="/dashboard.js"></script>

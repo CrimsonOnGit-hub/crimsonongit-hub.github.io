@@ -1,10 +1,10 @@
 # CRIMSONFLAME PRIVACY POLICY 
-**Last updated March 3, 2026** This Privacy Notice for CrimsonFlame LLC (doing business as CrimsonFlame) ("we," "us," or "our"), describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you: 
-* Download and use our mobile application (Crimson Protocol), or any other application of ours that links to this Privacy Notice 
-* Use Crimson Protocol. 
-* Engage with us in other related ways, including any marketing or events 
+**Last updated September 6, 2026** This Privacy Notice for CrimsonFlame LLC (doing business as CrimsonFlame) ("we," "us," or "our"), describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you: 
+* Download and use our mobile application (Crimson Protocol), our web applications, or the CrimX Identity & Developer Platform
+* Access our online websites (including crimsonflame.net), dashboard, APIs, and gaming ecosystems
+* Engage with us in other related ways, including developer app integrations, communications, or events 
 
-Questions or concerns? Reading this Privacy Notice will help you understand your privacy rights and choices. We are responsible for making decisions about how your personal information is processed. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at allaboutwaterdiamond@gmail.com. 
+Questions or concerns? Reading this Privacy Notice will help you understand your privacy rights and choices. CrimsonFlame is a legitimate United States entity committed to legal transparency and accountability under United States law; we do not operate through offshore havens or third-world legal loopholes. We are responsible for making decisions about how your personal information is processed. If you do not agree with our policies and practices, please do not use our Services. If you have questions, contact us at allaboutwaterdiamond@gmail.com. 
 
 ---
 
@@ -132,10 +132,9 @@ If you are located in Switzerland, you may contact the Federal Data Protection a
 
 However, please note that this will not affect the lawfulness of the processing before its withdrawal nor, when applicable law allows, will it affect the processing of your personal information conducted in reliance on lawful processing grounds other than consent. 
 
-**Account Information** If you would at any time like to review or change the information in your account or terminate your account, you can: 
-* Delete the game 
+**Account Information** If you would at any time like to review or change the information in your account or terminate your account, you can do so in the CrimX Dashboard settings or contact us. 
 
-Upon your request to terminate your account, we will deactivate or delete your account and information from our active databases. However, we may retain some information in our files to prevent fraud, troubleshoot problems, assist with any investigations, enforce our legal terms and/or comply with applicable legal requirements. 
+Upon your voluntary request to terminate your account, or upon involuntary termination and immediate permanent account deletion by CrimsonFlame due to illegal activities, fraud, network attacks, or violations of law, your active account profile is removed from public view and active directories. However, we may retain security logs, timestamps, IP footprints, and transaction history in secure archival storage to prevent fraud, protect infrastructure integrity, assist with law enforcement investigations, enforce our Terms of Service, and comply with state and federal statutory requirements. CrimsonFlame does not evade legal process through third-world legal shields and cooperates fully with lawful judicial mandates. 
 
 If you have questions or comments about your privacy rights, you may email us at allaboutwaterdiamond@gmail.com. 
 

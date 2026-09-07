@@ -114,8 +114,84 @@ function showResponseText(element, type, text) {
     setTimeout(() => statusDiv.remove(), 4000); 
 }
 
+// ── Helper: Apply Banner Style Cleanly without CSS Property Conflicts ──
+function applyBannerStyle(element, bannerVal) {
+    if (!element) return;
+    if (!bannerVal) {
+        element.style.backgroundImage = "none";
+        element.style.background = "linear-gradient(135deg, #2b0d18 0%, #dc2626 50%, #15090f 100%)";
+        return;
+    }
+    if (bannerVal.startsWith('http') || bannerVal.startsWith('data:image')) {
+        element.style.background = "#12090e";
+        element.style.backgroundImage = `url('${bannerVal}')`;
+        element.style.backgroundSize = "cover";
+        element.style.backgroundPosition = "center";
+        element.style.backgroundRepeat = "no-repeat";
+    } else {
+        element.style.backgroundImage = "none";
+        element.style.background = bannerVal;
+    }
+}
+
+// ── Client-Side Base64 Image Compression Fallback ──
+function compressImageFile(file, maxWidth = 1200, maxHeight = 600, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (readerEvent) => {
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = Math.round((width * maxHeight) / height);
+                    height = maxHeight;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(dataUrl);
+            };
+            img.onerror = () => reject(new Error("Image decode failed"));
+            img.src = readerEvent.target.result;
+        };
+        reader.onerror = () => reject(new Error("File read failed"));
+        reader.readAsDataURL(file);
+    });
+}
+
+// ── Settings Studio Modal Controller ──
+window.toggleSettingsStudio = function(show) {
+    const modal = document.getElementById('settings-studio-modal');
+    if (!modal) return;
+    if (show) {
+        modal.classList.add('open');
+        playSfx('click');
+    } else {
+        modal.classList.remove('open');
+        playSfx('click');
+    }
+};
+
 // ── Tab Switching ──
 window.switchSettingsTab = function(tabName, btn) {
+    if (tabName === 'friends') {
+        window.toggleSettingsStudio(false);
+        const friendsEl = document.querySelector('.dash-friends-section');
+        if (friendsEl) friendsEl.scrollIntoView({ behavior: 'smooth' });
+        playSfx('click');
+        return;
+    }
+
+    window.toggleSettingsStudio(true);
+
     document.querySelectorAll('.settings-tab-pane').forEach(p => p.classList.remove('active'));
     const target = document.getElementById(`tab-${tabName}`);
     if (target) target.classList.add('active');
@@ -132,6 +208,11 @@ window.updateLivePreview = function() {
     const statusVal = document.getElementById('status-text-input')?.value.trim() || "";
     const bioVal = document.getElementById('bio-input')?.value.trim() || "";
 
+    const finalName = displayNameVal || (currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : "Player Name");
+    const finalHandle = usernameVal ? `@${usernameVal}` : "@username";
+    const finalStatus = statusVal || "Exploring CrimsonFlame";
+    const finalBio = bioVal || "Welcome to my CrimsonFlame player profile!";
+
     // Update character counters
     const nameCount = document.getElementById('display-name-count');
     if (nameCount) nameCount.innerText = `${displayNameVal.length}/32`;
@@ -142,22 +223,29 @@ window.updateLivePreview = function() {
 
     // Live preview card updates
     const pName = document.getElementById('preview-name');
-    if (pName) pName.innerText = displayNameVal || (currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : "Player Name");
-
+    if (pName) pName.innerText = finalName;
     const pHandle = document.getElementById('preview-handle');
-    if (pHandle) pHandle.innerText = usernameVal ? `@${usernameVal}` : "@username";
-
+    if (pHandle) pHandle.innerText = finalHandle;
     const pStatus = document.getElementById('preview-status-text');
-    if (pStatus) pStatus.innerText = statusVal || "Exploring CrimsonFlame";
-
+    if (pStatus) pStatus.innerText = finalStatus;
     const pBio = document.getElementById('preview-bio');
-    if (pBio) pBio.innerText = bioVal || "Welcome to my CrimsonFlame player profile!";
+    if (pBio) pBio.innerText = finalBio;
+
+    // Showcase Profile Banner Card updates
+    const showName = document.getElementById('showcase-display-name');
+    if (showName) showName.innerText = finalName;
+    const showHandle = document.getElementById('showcase-handle');
+    if (showHandle) showHandle.innerText = finalHandle;
+    const showStatus = document.getElementById('showcase-status-text');
+    if (showStatus) showStatus.innerText = finalStatus;
+    const showBio = document.getElementById('showcase-bio');
+    if (showBio) showBio.innerText = finalBio;
 
     // Sidebar summary updates
     const sName = document.getElementById('sidebar-user-name');
-    if (sName) sName.innerText = displayNameVal || (currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : "Loading...");
+    if (sName) sName.innerText = finalName;
     const sHandle = document.getElementById('sidebar-user-handle');
-    if (sHandle) sHandle.innerText = usernameVal ? `@${usernameVal}` : "@username";
+    if (sHandle) sHandle.innerText = finalHandle;
 };
 
 // ── Banner Preset Picker ──
@@ -165,16 +253,17 @@ window.selectPresetBanner = function(gradientCss) {
     currentBannerStyle = gradientCss;
     currentBannerIsImage = false;
 
-    const pBanner = document.getElementById('preview-banner');
-    if (pBanner) {
-        pBanner.style.background = gradientCss;
-        pBanner.style.backgroundImage = "";
-    }
+    applyBannerStyle(document.getElementById('preview-banner'), gradientCss);
+    applyBannerStyle(document.getElementById('showcase-banner-bg'), gradientCss);
+
     const bPreviewImg = document.getElementById('banner-preview-img');
     if (bPreviewImg) bPreviewImg.style.display = 'none';
 
     const bBox = document.getElementById('banner-uploader-box');
     if (bBox) bBox.style.background = gradientCss;
+
+    const urlInput = document.getElementById('banner-url-input');
+    if (urlInput) urlInput.value = '';
 
     document.querySelectorAll('.preset-banner-thumb').forEach(t => {
         t.classList.toggle('active', t.getAttribute('onclick')?.includes(gradientCss));
@@ -182,55 +271,129 @@ window.selectPresetBanner = function(gradientCss) {
     playSfx('click');
 };
 
-// ── Image Uploads (Avatar & Banner via ImgBB) ──
+// ── Banner Direct URL Customizer ──
+window.applyBannerUrl = function() {
+    const input = document.getElementById('banner-url-input');
+    const url = input?.value.trim();
+    if (!url || (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:image'))) {
+        playSfx('error');
+        window.showToast("Please enter a valid image URL (https://...)", "error");
+        return;
+    }
+
+    currentBannerStyle = url;
+    currentBannerIsImage = true;
+
+    const bPreviewImg = document.getElementById('banner-preview-img');
+    if (bPreviewImg) {
+        bPreviewImg.src = url;
+        bPreviewImg.style.display = 'block';
+    }
+
+    applyBannerStyle(document.getElementById('preview-banner'), url);
+    applyBannerStyle(document.getElementById('showcase-banner-bg'), url);
+
+    playSfx('success');
+    window.showToast("Banner image URL applied! Click 'Save Profile' to keep changes.", "success");
+};
+
+// ── Reset Banner to Default ──
+window.resetBannerToDefault = function() {
+    const defaultGradient = "linear-gradient(135deg, #2b0d18 0%, #dc2626 50%, #15090f 100%)";
+    currentBannerStyle = defaultGradient;
+    currentBannerIsImage = false;
+
+    const bPreviewImg = document.getElementById('banner-preview-img');
+    if (bPreviewImg) {
+        bPreviewImg.style.display = 'none';
+        bPreviewImg.src = '';
+    }
+
+    const bBox = document.getElementById('banner-uploader-box');
+    if (bBox) bBox.style.background = defaultGradient;
+
+    applyBannerStyle(document.getElementById('preview-banner'), defaultGradient);
+    applyBannerStyle(document.getElementById('showcase-banner-bg'), defaultGradient);
+
+    const urlInput = document.getElementById('banner-url-input');
+    if (urlInput) urlInput.value = '';
+
+    document.querySelectorAll('.preset-banner-thumb').forEach((t, idx) => {
+        t.classList.toggle('active', idx === 0);
+    });
+
+    playSfx('click');
+    window.showToast("Banner reset to default gradient! Click 'Save Profile' to commit.", "info");
+};
+
+// ── Image Uploads (Avatar & Banner with Base64 Fallback) ──
 window.handleUpload = async function(file, type) {
     if (!file || !file.type.startsWith('image/')) {
         window.showToast("Please choose a valid image file.", "error");
         return;
     }
     const sEl = document.getElementById('upload-status'); 
-    if (sEl) { sEl.style.display = 'block'; sEl.innerText = 'Uploading to CDN...'; }
+    if (sEl) { sEl.style.display = 'block'; sEl.innerText = 'Optimizing image...'; }
 
+    let uploadedUrl = null;
+
+    // Attempt 1: Upload to ImgBB CDN
     try {
         const fd = new FormData(); 
         fd.append("image", file);
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
         const json = await res.json(); 
-        if (!json.success) throw new Error("Upload Failed");
-
-        const uploadedUrl = json.data.url;
-
-        if (type === 'banner') {
-            currentBannerStyle = uploadedUrl;
-            currentBannerIsImage = true;
-
-            const bPreviewImg = document.getElementById('banner-preview-img');
-            if (bPreviewImg) {
-                bPreviewImg.src = uploadedUrl;
-                bPreviewImg.style.display = 'block';
-            }
-            const pBanner = document.getElementById('preview-banner');
-            if (pBanner) {
-                pBanner.style.backgroundImage = `url('${uploadedUrl}')`;
-                pBanner.style.backgroundSize = "cover";
-            }
-            playSfx('success');
-            window.showToast("Custom banner uploaded! Click 'Save Profile' to keep changes.", "success");
-        } else {
-            document.getElementById('dashboard-pfp-preview').src = uploadedUrl;
-            document.getElementById('preview-avatar').src = uploadedUrl;
-            const sidebarAvatar = document.getElementById('sidebar-user-avatar');
-            if (sidebarAvatar) sidebarAvatar.src = uploadedUrl;
-            playSfx('success');
-            window.showToast("Avatar uploaded! Click 'Save Profile' to keep changes.", "success");
+        if (json.success && json.data && json.data.url) {
+            uploadedUrl = json.data.url;
         }
-        if (sEl) sEl.innerText = "Upload ready!";
     } catch (err) { 
-        if (sEl) sEl.innerText = "Error uploading image.";
-        playSfx('error');
-        window.showToast("Upload failed: " + err.message, "error");
+        console.warn("ImgBB upload unreachable, engaging client-side compression fallback:", err);
     }
-    setTimeout(() => { if (sEl) sEl.style.display = 'none'; }, 3000);
+
+    // Attempt 2: Bulletproof client-side Base64 compression fallback
+    if (!uploadedUrl) {
+        try {
+            if (sEl) sEl.innerText = 'Encoding locally...';
+            uploadedUrl = await compressImageFile(file, type === 'banner' ? 1200 : 400, type === 'banner' ? 600 : 400, 0.82);
+        } catch(fallbackErr) {
+            if (sEl) sEl.innerText = "Upload failed.";
+            playSfx('error');
+            window.showToast("Upload failed: " + fallbackErr.message, "error");
+            setTimeout(() => { if (sEl) sEl.style.display = 'none'; }, 3000);
+            return;
+        }
+    }
+
+    if (type === 'banner') {
+        currentBannerStyle = uploadedUrl;
+        currentBannerIsImage = true;
+
+        const bPreviewImg = document.getElementById('banner-preview-img');
+        if (bPreviewImg) {
+            bPreviewImg.src = uploadedUrl;
+            bPreviewImg.style.display = 'block';
+        }
+        applyBannerStyle(document.getElementById('preview-banner'), uploadedUrl);
+        applyBannerStyle(document.getElementById('showcase-banner-bg'), uploadedUrl);
+
+        const urlInput = document.getElementById('banner-url-input');
+        if (urlInput && uploadedUrl.startsWith('http')) urlInput.value = uploadedUrl;
+
+        playSfx('success');
+        window.showToast("Custom banner applied! Click 'Save Profile' to keep changes.", "success");
+    } else {
+        document.getElementById('dashboard-pfp-preview').src = uploadedUrl;
+        document.getElementById('preview-avatar').src = uploadedUrl;
+        const showcaseAvatar = document.getElementById('showcase-avatar');
+        if (showcaseAvatar) showcaseAvatar.src = uploadedUrl;
+        const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+        if (sidebarAvatar) sidebarAvatar.src = uploadedUrl;
+
+        playSfx('success');
+        window.showToast("Avatar applied! Click 'Save Profile' to keep changes.", "success");
+    }
+    if (sEl) sEl.innerText = "Upload ready!";
+    setTimeout(() => { if (sEl) sEl.style.display = 'none'; }, 2500);
 };
 
 // ── Save Profile Submission ──
@@ -342,6 +505,7 @@ window.submitDirectPasswordChange = async function(e) {
             await reauthenticateWithCredential(currentUser, credential);
         }
         await updatePassword(currentUser, newPwd);
+        dispatchSecurityAlert('password_changed', currentUser.email, currentUser.uid);
         playSfx('success');
         window.showToast("Password updated successfully!", "success");
         e.target.reset();
@@ -629,6 +793,267 @@ window.revokeConnectedApp = async function(appId) {
     }
 };
 
+// ── Security Alert Dispatcher (API + Notification) ──
+async function dispatchSecurityAlert(type, email, uid) {
+    if (!email) return;
+    try {
+        await fetch('/api/notifications/security-alert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type,
+                email,
+                uid,
+                clientDetails: { userAgent: navigator.userAgent },
+                timestamp: Date.now()
+            })
+        });
+    } catch(e) {
+        console.warn("[CrimX] Security alert dispatch non-critical error:", e);
+    }
+}
+
+// ── CrimX Real-Time Friends System ──
+let friendsUnsub = null;
+let requestsUnsub = null;
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function initFriendsSystem() {
+    if (!currentUser) return;
+    if (friendsUnsub) friendsUnsub();
+    if (requestsUnsub) requestsUnsub();
+
+    // 1. Active Friends Listener
+    const friendsRef = collection(db, "users", currentUser.uid, "friends");
+    friendsUnsub = onSnapshot(friendsRef, (snap) => {
+        const badge = document.getElementById('friends-count-badge');
+        if (badge) badge.innerText = `${snap.size} Friend${snap.size === 1 ? '' : 's'}`;
+
+        const container = document.getElementById('active-friends-list');
+        if (!container) return;
+
+        if (snap.empty) {
+            container.innerHTML = `
+                <div class="friends-empty-state">
+                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🎮</div>
+                    <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 4px;">No friends connected yet</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem; max-width: 420px; margin: 0 auto;">
+                        Connect with players across CrimsonFlame games and VR servers by searching their @username above!
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const friends = [];
+        snap.forEach(docSnap => friends.push({ id: docSnap.id, ...docSnap.data() }));
+
+        container.innerHTML = friends.map(friend => `
+            <div class="friend-card">
+                <div class="friend-avatar-wrap">
+                    <img src="${friend.photoURL || DEFAULT_PFP}" alt="${friend.displayName || 'Friend'}">
+                    <div class="friend-online-dot ${friend.online !== false ? '' : 'offline'}" title="${friend.online !== false ? 'Online' : 'Offline'}"></div>
+                </div>
+                <div class="friend-info">
+                    <div class="friend-name">${escapeHtml(friend.displayName || 'CrimX Player')}</div>
+                    <div class="friend-handle">@${escapeHtml(friend.username || 'user')}</div>
+                    <div class="friend-status">${escapeHtml(friend.statusText || 'Playing CrimsonFlame')}</div>
+                </div>
+                <button type="button" class="btn-secondary" onclick="removeFriend('${friend.id}', '${escapeHtml(friend.displayName || friend.username || 'Friend')}')" style="width: auto; padding: 6px 12px; font-size: 0.74rem; color: #f87171; border-color: rgba(239, 68, 68, 0.25);" title="Remove Friend">
+                    Remove
+                </button>
+            </div>
+        `).join('');
+    });
+
+    // 2. Incoming Friend Requests Listener
+    const requestsRef = collection(db, "users", currentUser.uid, "friend_requests");
+    requestsUnsub = onSnapshot(requestsRef, (snap) => {
+        const box = document.getElementById('pending-requests-box');
+        const countSpan = document.getElementById('pending-count');
+        const list = document.getElementById('pending-requests-list');
+        if (!box || !countSpan || !list) return;
+
+        if (snap.empty) {
+            box.style.display = 'none';
+            list.innerHTML = '';
+            countSpan.innerText = '0';
+            return;
+        }
+
+        box.style.display = 'block';
+        countSpan.innerText = snap.size;
+
+        const requests = [];
+        snap.forEach(docSnap => requests.push({ id: docSnap.id, ...docSnap.data() }));
+
+        list.innerHTML = requests.map(req => `
+            <div class="pending-request-card">
+                <div class="friend-avatar-wrap">
+                    <img src="${req.fromPfp || DEFAULT_PFP}" alt="${req.fromName || 'Player'}">
+                </div>
+                <div class="friend-info">
+                    <div class="friend-name">${escapeHtml(req.fromName || 'CrimX Player')}</div>
+                    <div class="friend-handle">@${escapeHtml(req.fromUsername || 'user')}</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" class="btn-primary" onclick="acceptFriendRequest('${req.id}', '${escapeHtml(req.fromName || '')}', '${escapeHtml(req.fromUsername || '')}', '${escapeHtml(req.fromPfp || '')}')" style="width: auto; padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
+                        Accept ✓
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="declineFriendRequest('${req.id}')" style="width: auto; padding: 6px 10px; font-size: 0.78rem;">
+                        ✕
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    });
+}
+
+window.sendFriendRequestByUsername = async function(e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    const input = document.getElementById('friend-search-input');
+    const feedback = document.getElementById('friend-action-feedback');
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    const rawUsername = input?.value.trim() || '';
+    const cleanUsername = rawUsername.replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+    function showFeedback(msg, type) {
+        if (!feedback) return;
+        feedback.style.display = 'block';
+        feedback.style.background = type === 'success' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)';
+        feedback.style.border = type === 'success' ? '1px solid rgba(34, 197, 94, 0.4)' : '1px solid rgba(239, 68, 68, 0.4)';
+        feedback.style.color = type === 'success' ? '#4ade80' : '#f87171';
+        feedback.innerText = (type === 'success' ? '✓ ' : '⚠️ ') + msg;
+        setTimeout(() => { feedback.style.display = 'none'; }, 5000);
+    }
+
+    if (!cleanUsername || cleanUsername.length < 3) {
+        showFeedback("Please enter a valid @username (at least 3 characters).", "error");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Searching...";
+
+    try {
+        const mySnap = await getDoc(doc(db, "users", currentUser.uid));
+        const myData = mySnap.exists() ? mySnap.data() : {};
+        const myUsername = myData.username || currentUser.email.split('@')[0];
+
+        if (cleanUsername === myUsername) {
+            throw new Error("You cannot send a friend request to yourself!");
+        }
+
+        const q = query(collection(db, "users"), where("username", "==", cleanUsername));
+        const querySnap = await getDocs(q);
+
+        if (querySnap.empty) {
+            throw new Error(`Player @${cleanUsername} was not found on CrimX.`);
+        }
+
+        const targetDoc = querySnap.docs[0];
+        const targetUid = targetDoc.id;
+
+        const existingFriendSnap = await getDoc(doc(db, "users", currentUser.uid, "friends", targetUid));
+        if (existingFriendSnap.exists()) {
+            throw new Error(`You and @${cleanUsername} are already friends!`);
+        }
+
+        await setDoc(doc(db, "users", targetUid, "friend_requests", currentUser.uid), {
+            fromUid: currentUser.uid,
+            fromName: myData.displayName || currentUser.displayName || myUsername,
+            fromUsername: myUsername,
+            fromPfp: myData.photoURL || currentUser.photoURL || DEFAULT_PFP,
+            requestedAt: serverTimestamp()
+        });
+
+        playSfx('success');
+        showFeedback(`Friend request sent to @${cleanUsername}!`, "success");
+        window.showToast(`Request sent to @${cleanUsername}!`, "success");
+        input.value = '';
+    } catch(err) {
+        playSfx('error');
+        showFeedback(err.message, "error");
+        window.showToast(err.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "+ Add Friend";
+    }
+};
+
+window.acceptFriendRequest = async function(fromUid, fromName, fromUsername, fromPfp) {
+    if (!currentUser) return;
+    try {
+        const mySnap = await getDoc(doc(db, "users", currentUser.uid));
+        const myData = mySnap.exists() ? mySnap.data() : {};
+        const myUsername = myData.username || currentUser.email.split('@')[0];
+
+        // 1. Add to my friends
+        await setDoc(doc(db, "users", currentUser.uid, "friends", fromUid), {
+            uid: fromUid,
+            displayName: fromName || 'Player',
+            username: fromUsername || 'user',
+            photoURL: fromPfp || DEFAULT_PFP,
+            online: true,
+            addedAt: serverTimestamp()
+        });
+
+        // 2. Add to their friends
+        await setDoc(doc(db, "users", fromUid, "friends", currentUser.uid), {
+            uid: currentUser.uid,
+            displayName: myData.displayName || currentUser.displayName || myUsername,
+            username: myUsername,
+            photoURL: myData.photoURL || currentUser.photoURL || DEFAULT_PFP,
+            online: true,
+            addedAt: serverTimestamp()
+        });
+
+        // 3. Delete incoming request
+        await deleteDoc(doc(db, "users", currentUser.uid, "friend_requests", fromUid));
+
+        playSfx('success');
+        window.showToast(`You are now friends with @${fromUsername}!`, "success");
+    } catch(err) {
+        playSfx('error');
+        window.showToast("Failed to accept friend request: " + err.message, "error");
+    }
+};
+
+window.declineFriendRequest = async function(fromUid) {
+    if (!currentUser) return;
+    try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "friend_requests", fromUid));
+        playSfx('click');
+        window.showToast("Friend request declined.", "info");
+    } catch(err) {
+        window.showToast("Error declining request: " + err.message, "error");
+    }
+};
+
+window.removeFriend = async function(friendUid, friendName) {
+    if (!currentUser) return;
+    if (!confirm(`Are you sure you want to remove ${friendName} from your CrimX friends?`)) return;
+    try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "friends", friendUid));
+        await deleteDoc(doc(db, "users", friendUid, "friends", currentUser.uid));
+        playSfx('click');
+        window.showToast(`${friendName} removed from friends.`, "info");
+    } catch(err) {
+        window.showToast("Error removing friend: " + err.message, "error");
+    }
+};
+
 // ── Auth State Listener & Realtime Sync ──
 let userDocUnsub = null;
 
@@ -637,6 +1062,13 @@ onAuthStateChanged(auth, user => {
         currentUser = user;
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('dashboard-container').style.display = 'block';
+
+        // Dispatch security notification on fresh login session
+        const sessionKey = 'crimx_sign_in_alert_' + user.uid;
+        if (!sessionStorage.getItem(sessionKey)) {
+            sessionStorage.setItem(sessionKey, 'dispatched');
+            dispatchSecurityAlert('new_sign_in', user.email, user.uid);
+        }
 
         // Security card values
         const uidEl = document.getElementById('security-uid-display');
@@ -655,12 +1087,14 @@ onAuthStateChanged(auth, user => {
             if (emailBadge) { emailBadge.innerText = "⚠️ Unverified Email"; emailBadge.style.color = "#f87171"; }
         }
 
-        // Form initial values
+        // Form initial values & showcase synchronization
         const nameVal = user.displayName || user.email.split('@')[0];
         document.getElementById('display-name').value = user.displayName || "";
         document.getElementById('dashboard-pfp-preview').src = user.photoURL || DEFAULT_PFP;
         document.getElementById('preview-avatar').src = user.photoURL || DEFAULT_PFP;
         document.getElementById('sidebar-user-avatar').src = user.photoURL || DEFAULT_PFP;
+        const showcaseAvatar = document.getElementById('showcase-avatar');
+        if (showcaseAvatar) showcaseAvatar.src = user.photoURL || DEFAULT_PFP;
 
         // Ensure user document exists with initial username
         getDoc(doc(db, "users", currentUser.uid)).then(docSnap => {
@@ -673,6 +1107,9 @@ onAuthStateChanged(auth, user => {
                 }, { merge: true });
             }
         });
+
+        // Initialize Realtime Friends System
+        initFriendsSystem();
 
         // Realtime Firestore synchronization
         if (userDocUnsub) userDocUnsub();
@@ -690,16 +1127,20 @@ onAuthStateChanged(auth, user => {
                 if (data.banner) {
                     currentBannerStyle = data.banner;
                     const pBanner = document.getElementById('preview-banner');
+                    const sBannerBg = document.getElementById('showcase-banner-bg');
                     const bPreviewImg = document.getElementById('banner-preview-img');
                     const bBox = document.getElementById('banner-uploader-box');
 
-                    if (data.banner.startsWith('http')) {
+                    applyBannerStyle(pBanner, data.banner);
+                    applyBannerStyle(sBannerBg, data.banner);
+
+                    if (data.banner.startsWith('http') || data.banner.startsWith('data:image')) {
                         currentBannerIsImage = true;
-                        if (pBanner) { pBanner.style.backgroundImage = `url('${data.banner}')`; pBanner.style.backgroundSize = "cover"; }
                         if (bPreviewImg) { bPreviewImg.src = data.banner; bPreviewImg.style.display = 'block'; }
+                        const urlInput = document.getElementById('banner-url-input');
+                        if (urlInput && data.banner.startsWith('http')) urlInput.value = data.banner;
                     } else {
                         currentBannerIsImage = false;
-                        if (pBanner) { pBanner.style.background = data.banner; pBanner.style.backgroundImage = ""; }
                         if (bBox) bBox.style.background = data.banner;
                         if (bPreviewImg) bPreviewImg.style.display = 'none';
                     }
@@ -724,12 +1165,17 @@ onAuthStateChanged(auth, user => {
                 // Role Verification (Assigned strictly in Firebase/Firestore: isStaff / isDev / role)
                 const isStaff = data.isStaff === true || data.staff === true || data.role === 'staff' || data.role === 'admin';
                 const isDev = data.isDev === true || data.dev === true || data.developer === true || data.isDeveloper === true || data.role === 'developer' || data.role === 'dev';
+                
                 const previewStaffBadge = document.getElementById('preview-staff-badge');
                 const previewDevBadge = document.getElementById('preview-dev-badge');
                 const sidebarRoleBadge = document.getElementById('sidebar-role-badge');
+                const showStaffBadge = document.getElementById('showcase-staff-badge');
+                const showDevBadge = document.getElementById('showcase-dev-badge');
 
                 if (previewStaffBadge) previewStaffBadge.style.display = isStaff ? 'inline-flex' : 'none';
                 if (previewDevBadge) previewDevBadge.style.display = isDev ? 'inline-flex' : 'none';
+                if (showStaffBadge) showStaffBadge.style.display = isStaff ? 'inline-flex' : 'none';
+                if (showDevBadge) showDevBadge.style.display = isDev ? 'inline-flex' : 'none';
 
                 if (sidebarRoleBadge) {
                     if (isStaff) {
@@ -767,10 +1213,25 @@ onAuthStateChanged(auth, user => {
 
         window.loadConnectedApps();
         window.updateLivePreview();
+
+        // Handle URL ?tab= deep links
+        const urlTab = searchParams.get('tab');
+        if (urlTab === 'friends') {
+            setTimeout(() => {
+                const friendsEl = document.querySelector('.dash-friends-section');
+                if (friendsEl) friendsEl.scrollIntoView({ behavior: 'smooth' });
+            }, 400);
+        } else if (urlTab) {
+            setTimeout(() => {
+                window.switchSettingsTab(urlTab);
+            }, 400);
+        }
     } else {
         currentUser = null;
         document.getElementById('login-container').style.display = 'block';
         document.getElementById('dashboard-container').style.display = 'none';
         if (userDocUnsub) { userDocUnsub(); userDocUnsub = null; }
+        if (friendsUnsub) { friendsUnsub(); friendsUnsub = null; }
+        if (requestsUnsub) { requestsUnsub(); requestsUnsub = null; }
     }
 });

@@ -10,7 +10,7 @@
 
 
 
-:root {
+:root, [data-theme="crimson"] {
 
     --bg: #0a0608;
 
@@ -31,9 +31,44 @@
     --text-secondary: #8a7f84;
 
     --font-heading: 'Outfit', sans-serif;
-
     --font-body: 'Inter', sans-serif;
+}
 
+/* ─── CrimsonFlame Theme Variants ─── */
+[data-theme="emerald"] {
+    --crimson: #10b981;
+    --crimson-light: #34d399;
+    --crimson-glow: rgba(16, 185, 129, 0.22);
+    --ember: #059669;
+    --bg: #040d08;
+    --bg-card: rgba(10, 24, 16, 0.75);
+}
+
+[data-theme="void"] {
+    --crimson: #8b5cf6;
+    --crimson-light: #a78bfa;
+    --crimson-glow: rgba(139, 92, 246, 0.22);
+    --ember: #c084fc;
+    --bg: #07040d;
+    --bg-card: rgba(18, 12, 28, 0.75);
+}
+
+[data-theme="solar"] {
+    --crimson: #f59e0b;
+    --crimson-light: #fbbf24;
+    --crimson-glow: rgba(245, 158, 11, 0.22);
+    --ember: #d97706;
+    --bg: #0d0904;
+    --bg-card: rgba(26, 18, 10, 0.75);
+}
+
+[data-theme="glacier"] {
+    --crimson: #06b6d4;
+    --crimson-light: #38bdf8;
+    --crimson-glow: rgba(6, 182, 212, 0.22);
+    --ember: #0284c7;
+    --bg: #04090d;
+    --bg-card: rgba(10, 20, 28, 0.75);
 }
 
 
@@ -310,6 +345,131 @@ body {
 
 
 .pill-link:hover { color: #fff; }
+
+.pill-link.active {
+    color: #fff;
+    font-weight: 700;
+}
+
+.pill-cta {
+    background: #dc2626;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.84rem;
+    font-weight: 700;
+    padding: 7px 18px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.pill-cta:hover {
+    background: #ef4444;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+}
+
+/* ─── CrimX Hub Pill Dropdown ─── */
+.pill-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.pill-dropdown-trigger {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.18s ease;
+}
+
+.pill-dropdown-trigger:hover,
+.pill-dropdown:hover .pill-dropdown-trigger {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pill-dropdown-caret {
+    transition: transform 0.2s ease;
+}
+
+.pill-dropdown:hover .pill-dropdown-caret {
+    transform: rotate(180deg);
+}
+
+.pill-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: rgba(18, 10, 14, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 8px;
+    min-width: 235px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 20px var(--crimson-glow);
+    backdrop-filter: blur(28px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
+    z-index: 500;
+}
+
+.pill-dropdown:hover .pill-dropdown-menu,
+.pill-dropdown:focus-within .pill-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.pill-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #fff;
+    transition: background 0.15s ease, transform 0.15s ease;
+    text-align: left;
+}
+
+.pill-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(3px);
+}
+
+.pill-item-icon {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.pill-item-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.pill-item-desc {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
 
 
 
@@ -3026,6 +3186,618 @@ body.inferno-overdrive .bg-glow-2 {
     .feature-charge-meter {
         gap: 5px;
     }
+}
+
+/* ==========================================================================
+   CRIMX ECOSYSTEM & SUBDOMAIN ARCHITECTURE ADDITIONS
+   ========================================================================== */
+
+/* ─── PowerPoint Float In Animation ─── */
+@keyframes powerpointFloatIn {
+    from {
+        opacity: 0;
+        transform: translateY(35px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.powerpoint-float-in {
+    animation: powerpointFloatIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── CrimX Dashboard Showcase Banner & Gear Button ─── */
+.profile-banner-showcase-card {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    background: #12090e;
+}
+
+.profile-banner-showcase-bg {
+    height: 190px;
+    width: 100%;
+    background: linear-gradient(135deg, #2b0d18 0%, #dc2626 50%, #15090f 100%);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.profile-banner-showcase-bg::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background: linear-gradient(to top, rgba(18, 9, 14, 0.95), transparent);
+}
+
+.profile-banner-showcase-content {
+    padding: 0 28px 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    position: relative;
+    margin-top: -65px;
+    z-index: 2;
+}
+
+.profile-banner-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile-banner-avatar-wrap img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid #12090e;
+    object-fit: cover;
+    background: #1c0f16;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.profile-banner-status-dot {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    background: #22c55e;
+    border: 3px solid #12090e;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #22c55e;
+}
+
+.profile-banner-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-banner-name {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.profile-banner-handle {
+    font-family: monospace;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.profile-banner-badges {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 8px 0;
+}
+
+.badge-staff {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(185, 28, 28, 0.25));
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+}
+
+.badge-dev {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.25));
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    color: #93c5fd;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+}
+
+.badge-member {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ddd;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+}
+
+.profile-banner-status {
+    font-size: 0.92rem;
+    color: var(--crimson-light);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.profile-banner-bio {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    max-width: 600px;
+}
+
+/* Gear Button positioned in Bottom Right of Banner */
+.profile-banner-gear-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(14, 7, 11, 0.8);
+    border: 1.5px solid rgba(255, 255, 255, 0.18);
+    border-radius: 50%;
+    color: #ede8ea;
+    cursor: pointer;
+    backdrop-filter: blur(14px);
+    transition: all 0.25s ease;
+    z-index: 5;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+.profile-banner-gear-btn svg {
+    transition: transform 0.4s ease;
+}
+
+.profile-banner-gear-btn:hover {
+    background: rgba(220, 38, 38, 0.35);
+    border-color: rgba(220, 38, 38, 0.65);
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+}
+
+.profile-banner-gear-btn:hover svg {
+    transform: rotate(60deg);
+}
+
+@media (max-width: 768px) {
+    .profile-banner-showcase-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 0 18px 65px;
+    }
+    .profile-banner-gear-btn {
+        bottom: 12px;
+        right: 14px;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* ─── Top Left Exit / Back Button ─── */
+.crimx-top-bar {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.crimx-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(22, 12, 16, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ede8ea;
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    backdrop-filter: blur(14px);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.crimx-back-btn:hover {
+    background: rgba(220, 38, 38, 0.25);
+    border-color: rgba(220, 38, 38, 0.55);
+    color: #fff;
+    transform: translateX(-3px);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
+}
+
+/* ─── CrimX Dashboard 4-Block Layout (2 next to each other with 2 rows) ─── */
+.dash-4block-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto auto;
+    gap: 22px;
+    margin-bottom: 30px;
+    align-items: stretch;
+}
+
+.dash-block-friends {
+    grid-column: 1;
+    grid-row: 1;
+    background: rgba(22, 12, 16, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    min-height: 440px;
+}
+
+.dash-block-friends .dash-friends-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.dash-block-friends .friends-search-form {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.dash-block-friends .friends-search-input {
+    flex: 1;
+    width: 100%;
+}
+
+.dash-block-friends .active-friends-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 380px;
+    padding-right: 4px;
+}
+
+.dash-block-profile {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-block-profile .profile-banner-showcase-card {
+    height: 100%;
+    margin-bottom: 0;
+}
+
+.dash-block-coming-1 {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.dash-block-coming-2 {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+/* Coming Soon Cards */
+.dash-coming-soon-card {
+    background: rgba(22, 12, 16, 0.65);
+    border: 1.5px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 34px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    min-height: 220px;
+}
+
+.dash-coming-soon-card:hover {
+    border-color: rgba(220, 38, 38, 0.4);
+    background: rgba(22, 12, 16, 0.85);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px var(--crimson-glow);
+}
+
+.coming-soon-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #ede8ea;
+    margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 860px) {
+    .dash-4block-grid {
+        grid-template-columns: 1fr;
+    }
+    .dash-block-friends,
+    .dash-block-profile,
+    .dash-block-coming-1,
+    .dash-block-coming-2 {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}
+
+/* ─── CrimX Friends List ─── */
+.dash-friends-section {
+    background: rgba(22, 12, 16, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 28px;
+    backdrop-filter: blur(16px);
+}
+
+.dash-friends-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.friends-count-badge {
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    color: var(--crimson-light);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+}
+
+.friends-search-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.friends-search-input {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    color: #fff;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-family: var(--font-body);
+    width: 220px;
+    transition: border-color 0.2s ease, width 0.2s ease;
+}
+
+.friends-search-input:focus {
+    outline: none;
+    border-color: var(--crimson);
+    width: 260px;
+}
+
+.active-friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.friend-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 12px 14px;
+    transition: all 0.2s ease;
+}
+
+.friend-card:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.03);
+    transform: translateY(-2px);
+}
+
+.friend-avatar-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.friend-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.friend-online-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #12090e;
+    background: #22c55e;
+}
+
+.friend-online-dot.offline {
+    background: #6b7280;
+}
+
+.friend-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.friend-name {
+    font-weight: 700;
+    color: #fff;
+    font-size: 0.92rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friend-handle {
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.friend-status {
+    font-size: 0.74rem;
+    color: var(--crimson-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pending-requests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.pending-request-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(249, 115, 22, 0.08);
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.friends-empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 34px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 14px;
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Site Themes Selector ─── */
+.theme-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.theme-card-option {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.theme-card-option:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.theme-card-option.active {
+    border-color: var(--crimson);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 16px var(--crimson-glow);
+}
+
+.theme-preview-swatch {
+    height: 48px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.theme-option-name {
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.theme-option-desc {
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+}
+
+/* ─── Settings Studio Overlay / Modal Controls ─── */
+.settings-studio-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px);
+    z-index: 99999;
+    padding: 40px 20px;
+    overflow-y: auto;
+}
+
+.settings-studio-modal.open {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    animation: powerpointFloatIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.settings-studio-inner {
+    width: 100%;
+    max-width: 1120px;
+    background: #0e070b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 40px var(--crimson-glow);
+    padding: 26px;
+    margin: auto;
+    position: relative;
 }
 
 

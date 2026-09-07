@@ -4,7 +4,7 @@ const compression = require('compression');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8085;
 
 app.use(compression());
 app.use(cors());
@@ -204,10 +204,12 @@ function renderErrorHTML(statusCode, customTitle, customDesc, customIcon) {
             <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" class="pill-brand-logo">
             <span class="pill-brand-text">CrimsonFlame</span>
         </a>
-        <a href="/index.html" class="pill-link">Home</a>
-        <a href="/dashboard" class="pill-link">Dashboard</a>
-        <a href="/developer" class="pill-link">Developer</a>
-        <a href="/support" class="pill-link">Support</a>
+        <a href="/projects" class="pill-link">Projects</a>
+        <a href="/crimx" class="pill-link">CrimX</a>
+        <a href="https://discord.gg/tNK8z9gYGQ" class="pill-cta" target="_blank">
+            <svg width="18" height="14" viewBox="0 0 24 18" fill="currentColor"><path d="M20.317 1.492a19.7 19.7 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.7 19.7 0 0 0 3.677 1.492a.07.07 0 0 0-.032.027C.533 6.093-.32 10.555.099 14.961a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03z"/></svg>
+            <span>Discord</span>
+        </a>
     </nav>
 
     <main class="error-viewport">
@@ -294,10 +296,92 @@ app.all('/api/server/control', (req, res) => {
   res.status(400).json({ error: "Unknown action. Use 'stop', 'start', or 'crash'." });
 });
 
+// ─── CRIMX SECURITY ALERT & NOTIFICATION DISPATCHER ───
+app.post('/api/notifications/security-alert', (req, res) => {
+  const { type, email, uid, clientDetails, timestamp } = req.body || {};
+  if (!email || !type) {
+    return res.status(400).json({ success: false, error: "Missing required notification fields." });
+  }
+
+  const alertTitles = {
+    new_sign_in: "🔐 New Sign-in Detected on Your CrimX Account",
+    password_changed: "🔑 Your CrimX Password Has Been Changed"
+  };
+
+  const title = alertTitles[type] || "🛡️ CrimX Security Notification";
+  const timeStr = new Date(timestamp || Date.now()).toUTCString();
+  const device = clientDetails?.userAgent || "Web Browser";
+
+  console.log(`[CrimX Security Alert] [${type}] Dispatched to ${email} (UID: ${uid || 'N/A'}) - Time: ${timeStr} - Device: ${device}`);
+
+  // If SMTP environment variables exist in Cloud Run, transmit live email
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
+  if (smtpHost && smtpUser && smtpPass) {
+    try {
+      const nodemailer = require('nodemailer');
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: parseInt(process.env.SMTP_PORT || "587"),
+        secure: process.env.SMTP_SECURE === "true",
+        auth: { user: smtpUser, pass: smtpPass }
+      });
+
+      const htmlBody = `
+        <div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: #0a0608; color: #ede8ea; padding: 32px; border-radius: 12px; max-width: 540px; margin: auto; border: 1px solid #331018;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #dc2626; margin: 0; font-size: 1.5rem;">CrimsonFlame</h2>
+            <p style="color: #8a7f84; font-size: 0.85rem; margin-top: 4px;">CrimX Account Security Notice</p>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); border-radius: 8px; padding: 20px; border: 1px solid rgba(255,255,255,0.08);">
+            <h3 style="color: #fff; margin-top: 0;">${title}</h3>
+            <p style="color: #ccc; font-size: 0.9rem; line-height: 1.5;">
+              ${type === 'new_sign_in' 
+                ? 'We detected a new sign-in session to your CrimX account.' 
+                : 'Your CrimX account password was successfully changed.'}
+            </p>
+            <ul style="color: #8a7f84; font-size: 0.85rem; padding-left: 20px; line-height: 1.6;">
+              <li><strong>Time:</strong> ${timeStr}</li>
+              <li><strong>Device/Browser:</strong> ${device}</li>
+            </ul>
+            <p style="color: #f87171; font-size: 0.82rem; margin-bottom: 0;">
+              If this was not you, please immediately visit <a href="https://crimx.crimsonflame.net" style="color: #f87171;">CrimX Dashboard</a> and secure your account.
+            </p>
+          </div>
+        </div>
+      `;
+
+      transporter.sendMail({
+        from: `"CrimX Security" <${process.env.SMTP_FROM || smtpUser}>`,
+        to: email,
+        subject: title,
+        html: htmlBody
+      }).then(info => {
+        console.log(`[CrimX Security Alert] Live SMTP email transmitted: ${info.messageId}`);
+      }).catch(err => {
+        console.error(`[CrimX Security Alert] SMTP delivery error: ${err.message}`);
+      });
+    } catch(e) {
+      console.warn(`[CrimX Security Alert] Nodemailer error: ${e.message}`);
+    }
+  }
+
+  res.json({
+    success: true,
+    dispatched: true,
+    type,
+    email,
+    title,
+    message: `Security alert dispatched for ${email}`
+  });
+});
+
 // ─── GLOBAL DOWNTIME INTERCEPTOR ───
 app.use((req, res, next) => {
-  // Allow control API and static styles/assets needed for the error page to render cleanly
-  if (req.path.startsWith('/api/server') || req.path === '/style.css' || req.path.startsWith('/assets/')) {
+  // Allow control API, security notification API, and static styles/assets needed for the error page to render cleanly
+  if (req.path.startsWith('/api/server') || req.path.startsWith('/api/notifications') || req.path === '/style.css' || req.path.startsWith('/assets/')) {
     return next();
   }
 
@@ -337,23 +421,54 @@ app.get('/trigger-500', (req, res) => {
   throw new Error("Simulated Unhandled Server Exception");
 });
 
-// ─── 4. STATIC ASSET SERVING ───
+// ─── 4. CRIMX SUBDOMAIN ROUTING & DASHBOARD ACCESS ISOLATION ───
+// Dashboard is STRICTLY accessible via CrimX subdomain (crimx.crimsonflame.net).
+// Any attempt to access crimsonflame.net/dashboard will redirect directly to https://crimx.crimsonflame.net/
+app.use((req, res, next) => {
+  const host = (req.headers.host || '').toLowerCase();
+  const isCrimX = host.startsWith('crimx.') || host.startsWith('crimx-');
+  const reqPath = req.path.toLowerCase();
+
+  if (isCrimX) {
+    if (reqPath === '/' || reqPath === '/dashboard' || reqPath === '/dashboard/' || reqPath === '/dashboard/index.html') {
+      return res.sendFile(path.join(__dirname, 'dashboard', 'index.html'));
+    }
+    return next();
+  }
+
+  // Not on CrimX subdomain: block dashboard access on crimsonflame.net
+  if (reqPath === '/dashboard' || reqPath === '/dashboard/' || reqPath.startsWith('/dashboard/')) {
+    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+      const port = host.split(':')[1] ? `:${host.split(':')[1]}` : '';
+      return res.redirect(302, `${req.protocol}://crimx.localhost${port}/`);
+    }
+    return res.redirect(301, 'https://crimx.crimsonflame.net/');
+  }
+
+  next();
+});
+
+// ─── 5. STATIC ASSET SERVING ───
 app.use(express.static(__dirname, {
   extensions: ['html', 'htm'],
   index: false
 }));
 
-// ─── 5. DYNAMIC CLEAN URL ROUTING ───
+// ─── 6. DYNAMIC CLEAN URL ROUTING ───
 app.get('/', (req, res) => {
+  const host = (req.headers.host || '').toLowerCase();
+  if (host.startsWith('crimx.') || host.startsWith('crimx-')) {
+    return res.sendFile(path.join(__dirname, 'dashboard', 'index.html'));
+  }
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/crimx', (req, res) => {
+  res.sendFile(path.join(__dirname, 'crimx', 'index.html'));
 });
 
 app.get('/projects', (req, res) => {
   res.sendFile(path.join(__dirname, 'projects', 'index.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard', 'index.html'));
 });
 
 app.get('/developer', (req, res) => {
@@ -374,6 +489,14 @@ app.get('/link', (req, res) => {
 
 app.get('/reset-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'reset-password.html'));
+});
+
+app.get(['/terms', '/tos'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'terms.md'));
+});
+
+app.get('/privacy', (req, res) => {
+  res.sendFile(path.join(__dirname, 'privacy.md'));
 });
 
 // ─── 6. REAL HTTP 404 NOT FOUND HANDLER ───
