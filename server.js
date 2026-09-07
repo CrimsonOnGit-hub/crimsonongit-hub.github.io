@@ -421,9 +421,8 @@ app.get('/trigger-500', (req, res) => {
   throw new Error("Simulated Unhandled Server Exception");
 });
 
-// ─── 4. CRIMX SUBDOMAIN ROUTING & DASHBOARD ACCESS ISOLATION ───
-// Dashboard is STRICTLY accessible via CrimX subdomain (crimx.crimsonflame.net).
-// Any attempt to access crimsonflame.net/dashboard will redirect directly to https://crimx.crimsonflame.net/
+// ─── 4. CRIMX SUBDOMAIN ROUTING & DIRECT SIGN-IN ON MAIN SITE ───
+// Both crimx subdomain and main website support sign in via /dashboard, /login, and /signin
 app.use((req, res, next) => {
   const host = (req.headers.host || '').toLowerCase();
   const isCrimX = host.startsWith('crimx.') || host.startsWith('crimx-');
@@ -436,17 +435,14 @@ app.use((req, res, next) => {
     return next();
   }
 
-  // Not on CrimX subdomain: block dashboard access on crimsonflame.net
-  if (reqPath === '/dashboard' || reqPath === '/dashboard/' || reqPath.startsWith('/dashboard/')) {
-    if (host.includes('localhost') || host.includes('127.0.0.1')) {
-      const port = host.split(':')[1] ? `:${host.split(':')[1]}` : '';
-      return res.redirect(302, `${req.protocol}://crimx.localhost${port}/`);
-    }
-    return res.redirect(301, 'https://crimx.crimsonflame.net/');
+  // Normal website also has sign in: serve dashboard/index.html on /dashboard, /login, and /signin
+  if (reqPath === '/dashboard' || reqPath === '/dashboard/' || reqPath === '/dashboard/index.html' || reqPath === '/login' || reqPath === '/signin') {
+    return res.sendFile(path.join(__dirname, 'dashboard', 'index.html'));
   }
 
   next();
 });
+
 
 // ─── 5. STATIC ASSET SERVING ───
 app.use(express.static(__dirname, {
