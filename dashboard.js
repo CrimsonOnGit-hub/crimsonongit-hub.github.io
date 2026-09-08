@@ -1923,23 +1923,6 @@ onAuthStateChanged(auth, user => {
 });
 
 // ─── DOORAUTH LINKED APPS & CLIENT AUTH SYSTEM ───
-const DEFAULT_DOORAUTH_APPS = [
-    {
-        id: "app_cf_vr",
-        name: "CrimsonVR Portal",
-        icon: "🥽",
-        scopes: "Profile, Identity",
-        linkedAt: Date.now() - 86400000 * 3
-    },
-    {
-        id: "app_cf_bot",
-        name: "Crimson Flame Community Bot",
-        icon: "🤖",
-        scopes: "Profile, Friends List",
-        linkedAt: Date.now() - 86400000 * 7
-    }
-];
-
 window.loadConnectedApps = function() {
     window.loadDoorAuthApps();
 };
@@ -1952,12 +1935,12 @@ window.loadDoorAuthApps = function() {
         const raw = localStorage.getItem(storageKey);
         if (raw) {
             apps = JSON.parse(raw);
-        } else {
-            apps = DEFAULT_DOORAUTH_APPS;
+            // Purge any legacy mock apps
+            apps = apps.filter(a => a && a.id !== "app_cf_vr" && a.id !== "app_cf_bot" && a.name !== "CrimsonVR Portal" && a.name !== "Crimson Flame Community Bot");
             localStorage.setItem(storageKey, JSON.stringify(apps));
         }
     } catch (e) {
-        apps = DEFAULT_DOORAUTH_APPS;
+        apps = [];
     }
 
     const countBadge = document.getElementById('doorauth-count-badge');
