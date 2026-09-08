@@ -89,99 +89,246 @@
         <!-- Settings Studio & Dashboard Hub Container -->
         <div id="dashboard-container" style="display: none;">
             
-            <!-- Top Left Back Button (Exits crimx.crimsonflame.net back to main site) -->
-            <div class="crimx-top-bar">
-                <a href="https://crimsonflame.net/" id="crimx-exit-btn" class="crimx-back-btn" onclick="exitCrimX(event)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
-                    </svg>
-                    <span>Back</span>
-                </a>
-            </div>
-
-            <!-- 4-Block CrimX Dashboard Layout -->
+            <!-- CrimX Dashboard 2-Column Layout matching untitled.png -->
             <div class="dash-4block-grid">
                 
-                <!-- BLOCK 1 (Top Left, Tall): CrimX Friends List -->
-                <div class="dash-block-friends">
-                    <div class="dash-friends-header">
-                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">
-                                👥 Friends
-                            </h3>
-                            <span id="friends-count-badge" class="friends-count-badge">0 Friends</span>
+                <!-- LEFT COLUMN: Friends (top) + Coming Soon (bottom) -->
+                <div class="dash-grid-left-col">
+                    <div>
+                        <div class="crimx-top-bar" style="margin-bottom: 10px;">
+                            <a href="https://crimsonflame.net/" class="crimx-back-btn" onclick="exitCrimX(event)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                <span>Back</span>
+                            </a>
                         </div>
-                        <!-- Search bar -->
-                        <form onsubmit="sendFriendRequestByUsername(event)" class="friends-search-form">
-                            <input type="text" id="friend-search-input" placeholder="Search by @username..." required autocomplete="off" class="friends-search-input">
-                            <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; width: auto; border-radius: 9999px; white-space: nowrap;">
-                                + Add
+
+                        <!-- Friends Block -->
+                        <div class="dash-block-friends">
+                            <div class="dash-friends-header">
+                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">
+                                        👥 Friends
+                                    </h3>
+                                    <span id="friends-count-badge" class="friends-count-badge">0 Friends</span>
+                                </div>
+                                <!-- Search bar -->
+                                <form onsubmit="sendFriendRequestByUsername(event)" class="friends-search-form">
+                                    <input type="text" id="friend-search-input" placeholder="Search by @username..." required autocomplete="off" class="friends-search-input">
+                                    <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; width: auto; border-radius: 9999px; white-space: nowrap;">
+                                        + Add
+                                    </button>
+                                </form>
+                            </div>
+                            <div id="friend-action-feedback" style="display: none; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.82rem;"></div>
+
+                            <!-- Incoming Pending Requests -->
+                            <div id="pending-requests-box" style="display: none; margin-bottom: 16px;">
+                                <div style="font-size: 0.78rem; font-weight: 700; color: #fb923c; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    ⏳ Incoming Requests (<span id="pending-count">0</span>)
+                                </div>
+                                <div id="pending-requests-list" class="pending-requests-grid"></div>
+                            </div>
+
+                            <!-- Active Friends Feed -->
+                            <div id="active-friends-list" class="active-friends-grid">
+                                <div class="friends-empty-state">
+                                    <div style="font-size: 2rem; margin-bottom: 6px;">🎮</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 4px;">No friends connected yet</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4;">
+                                        Search any player's @username above to send a request!
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DoorAuth: Linked Apps & Auth System (With Back Button) -->
+                    <div style="margin-top: 6px;">
+                        <div class="crimx-top-bar" style="margin-bottom: 10px;">
+                            <a href="https://crimsonflame.net/" class="crimx-back-btn" onclick="exitCrimX(event)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                <span>Back</span>
+                            </a>
+                        </div>
+                        <div class="dash-block-doorauth" id="dash-doorauth-block">
+                            <div class="doorauth-header">
+                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div class="doorauth-icon-badge">🚪</div>
+                                        <div>
+                                            <h3 class="doorauth-title">DoorAuth</h3>
+                                            <span class="doorauth-subtitle">Linked Apps & Sign In</span>
+                                        </div>
+                                    </div>
+                                    <a href="/developer" class="doorauth-dev-link" title="Open CF Dev Panel">
+                                        <span>Dev Hub</span>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="doorauth-body">
+                                <div class="doorauth-desc">
+                                    Manage third-party games and external apps linked to your CrimX account via DoorAuth.
+                                </div>
+
+                                <div class="doorauth-section-row">
+                                    <span class="doorauth-section-label">LINKED APPS</span>
+                                    <span id="doorauth-count-badge" class="doorauth-count-tag">0 Apps</span>
+                                </div>
+
+                                <div id="doorauth-apps-list" class="doorauth-apps-list">
+                                    <div class="doorauth-empty-state">
+                                        <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
+                                        <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
+                                            Use "Sign in with CrimsonFlame" on supported apps or link with a code below.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Connect Form -->
+                                <form onsubmit="connectDoorAuthCode(event)" class="doorauth-connect-form">
+                                    <input type="text" id="doorauth-code-input" placeholder="Enter App Link Code..." autocomplete="off" class="doorauth-connect-input">
+                                    <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 9999px; white-space: nowrap;">
+                                        + Link App
+                                    </button>
+                                </form>
+                                <div id="doorauth-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: CIM (Tall Full-Height Block matching untitled.png) -->
+                <div class="dash-block-cim" id="dash-cim-block">
+                    <div class="cim-header">
+                        <div class="cim-title-wrap">
+                            <div class="cim-icon-pill">💬</div>
+                            <div>
+                                <h3 class="cim-title">CIM</h3>
+                                <span class="cim-subtitle">CrimX Instant Messager</span>
+                            </div>
+                        </div>
+                        <div class="cim-header-actions">
+                            <button type="button" class="cim-fullscreen-btn" onclick="toggleCIMFullscreen()" id="cim-fullscreen-btn" title="Toggle Fullscreen Chat (Esc to exit)">
+                                <svg id="cim-fullscreen-icon-expand" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                                </svg>
+                                <svg id="cim-fullscreen-icon-compress" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display: none;">
+                                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-14v3h3v2h-5V5h2z"/>
+                                </svg>
+                                <span id="cim-fullscreen-label">Fullscreen</span>
                             </button>
-                        </form>
-                    </div>
-                    <div id="friend-action-feedback" style="display: none; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.82rem;"></div>
-
-                    <!-- Incoming Pending Requests -->
-                    <div id="pending-requests-box" style="display: none; margin-bottom: 16px;">
-                        <div style="font-size: 0.78rem; font-weight: 700; color: #fb923c; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-                            ⏳ Incoming Requests (<span id="pending-count">0</span>)
-                        </div>
-                        <div id="pending-requests-list" class="pending-requests-grid"></div>
-                    </div>
-
-                    <!-- Active Friends Feed -->
-                    <div id="active-friends-list" class="active-friends-grid">
-                        <div class="friends-empty-state">
-                            <div style="font-size: 2rem; margin-bottom: 6px;">🎮</div>
-                            <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 4px;">No friends connected yet</div>
-                            <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4;">
-                                Search any player's @username above to send a request!
+                            <div class="cim-online-badge">
+                                <span class="cim-pulse-dot"></span> LIVE
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- BLOCK 2: Profile Banner Card with Little Gear Button on Bottom Right -->
-                <div class="dash-block-profile">
-                    <div class="profile-banner-showcase-card" style="margin-bottom: 0;">
-                        <div id="showcase-banner-bg" class="profile-banner-showcase-bg"></div>
-                        <div class="profile-banner-showcase-content">
-                            <div class="profile-banner-avatar-wrap">
-                                <img id="showcase-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
-                                <div class="profile-banner-status-dot" title="Online"></div>
+                    <div class="cim-container">
+                        <!-- Left Chat Selection -->
+                        <div class="cim-sidebar">
+                            <div class="cim-sidebar-header">
+                                <span>FRIENDS</span>
+                                <span id="cim-friends-count" class="cim-count-tag">0</span>
                             </div>
-                            <div class="profile-banner-meta">
-                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                    <h2 id="showcase-display-name" class="profile-banner-name">Player Name</h2>
-                                    <span id="showcase-handle" class="profile-banner-handle">@username</span>
+                            <div id="cim-conversations-list" class="cim-conversations-list">
+                                <div style="color: var(--text-secondary); font-size: 0.74rem; text-align: center; padding: 16px 4px;">
+                                    Loading...
                                 </div>
-                                <div id="showcase-badges" class="profile-banner-badges">
-                                    <span id="showcase-staff-badge" class="badge-staff" style="display: none;">🛡️ Staff</span>
-                                    <span id="showcase-dev-badge" class="badge-dev" style="display: none;">🛠️ Developer</span>
-                                    <span id="showcase-member-badge" class="badge-member">🔥 Member</span>
+                            </div>
+
+                            <!-- User Profile Showcase Card (matches untitled.png) -->
+                            <div class="cim-sidebar-profile" id="cim-sidebar-profile">
+                                <div class="cim-profile-banner" id="cim-profile-banner"></div>
+                                <div class="cim-profile-content">
+                                    <div class="cim-profile-avatar-wrap">
+                                        <img id="cim-profile-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
+                                        <span class="cim-profile-dot"></span>
+                                    </div>
+                                    <div class="cim-profile-info">
+                                        <div class="cim-profile-name-row">
+                                            <span id="cim-profile-name" class="cim-profile-name">Player</span>
+                                            <span class="cim-profile-badge" id="cim-profile-badge">🔥 Member</span>
+                                        </div>
+                                        <div id="cim-profile-handle" class="cim-profile-handle">@user</div>
+                                        <div id="cim-profile-status" class="cim-profile-status">Browsing the Website</div>
+                                        <div id="cim-profile-bio" class="cim-profile-bio">The developer behind it all 👾</div>
+                                    </div>
+                                    <button type="button" class="cim-profile-settings-btn" onclick="toggleSettingsStudio(true)" title="Account Settings">
+                                        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                                        </svg>
+                                    </button>
                                 </div>
-                                <div id="showcase-status-text" class="profile-banner-status">Exploring CrimsonFlame</div>
-                                <div id="showcase-bio" class="profile-banner-bio">Welcome to my CrimX profile!</div>
                             </div>
                         </div>
-                        <!-- Little Gear Button on Bottom Right Corner to Open Settings -->
-                        <button type="button" class="profile-banner-gear-btn" onclick="toggleSettingsStudio(true)" title="Open Settings">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-                            </svg>
-                        </button>
+
+                        <!-- Right Active Chat Area -->
+                        <div class="cim-chat-area">
+                            <div id="cim-chat-header" class="cim-chat-header" style="display: none;">
+                                <div class="cim-chat-user-wrap">
+                                    <div class="cim-chat-avatar-wrap">
+                                        <img id="cim-active-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
+                                        <span id="cim-active-dot" class="cim-active-dot"></span>
+                                    </div>
+                                    <div style="overflow: hidden;">
+                                        <div id="cim-active-name" class="cim-active-name">Friend</div>
+                                        <div id="cim-active-status" class="cim-active-status">Online</div>
+                                    </div>
+                                </div>
+                                <div class="cim-chat-header-actions" style="display: flex; align-items: center; gap: 6px;">
+                                    <button type="button" class="cim-action-btn" onclick="toggleCIMFullscreen()" title="Toggle Fullscreen">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="cim-action-btn" onclick="clearActiveCIMChat()" title="Close chat">✕</button>
+                                </div>
+                            </div>
+
+                            <div id="cim-messages-box" class="cim-messages-box">
+                                <div id="cim-no-chat-state" class="cim-no-chat-state">
+                                    <div style="font-size: 3.2rem; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(255,255,255,0.2));">💬</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 800; color: #fff; font-size: 1.45rem; margin-bottom: 8px; letter-spacing: -0.3px;">CIM Instant Messager</div>
+                                    <div style="font-size: 0.92rem; line-height: 1.5; max-width: 260px; color: var(--text-secondary);">
+                                        Select a friend from the list on the left to start instant messaging!
+                                    </div>
+                                </div>
+                                <div id="cim-messages-list" style="display: none; flex-direction: column; gap: 10px;"></div>
+                            </div>
+
+                            <form id="cim-input-form" onsubmit="sendCIMMessage(event)" class="cim-input-form" style="display: none;">
+                                <input type="text" id="cim-message-input" placeholder="Type an instant message..." autocomplete="off" maxlength="1000" class="cim-input-field">
+                                <button type="submit" class="cim-send-btn" title="Send message (Enter)">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
-                <!-- BLOCK 3 (Bottom Left): Coming soon! -->
-                <div class="dash-coming-soon-card dash-block-coming-1">
-                    <h3 class="coming-soon-title">Coming soon!</h3>
-                </div>
-
-                <!-- BLOCK 4 (Bottom Right): Coming soon! -->
-                <div class="dash-coming-soon-card dash-block-coming-2">
-                    <h3 class="coming-soon-title">Coming soon!</h3>
+                <!-- Hidden compatibility elements for existing listeners -->
+                <div style="display: none;" aria-hidden="true">
+                    <div id="showcase-banner-bg"></div>
+                    <img id="showcase-avatar" src="">
+                    <span id="showcase-display-name"></span>
+                    <span id="showcase-handle"></span>
+                    <span id="showcase-status-text"></span>
+                    <span id="showcase-bio"></span>
+                    <span id="showcase-staff-badge"></span>
+                    <span id="showcase-dev-badge"></span>
+                    <span id="showcase-member-badge"></span>
+                    <div id="cim-fullscreen-backdrop"></div>
                 </div>
 
             </div>
@@ -762,6 +909,9 @@
         }
     };
     </script>
+
+    <!-- Top Right CIM Instant Messager Notification Container -->
+    <div id="cim-notification-container" class="cim-notification-container"></div>
 
     <script type="module" src="/dashboard.js"></script>
 </body>

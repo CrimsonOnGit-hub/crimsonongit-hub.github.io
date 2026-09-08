@@ -1399,28 +1399,51 @@ body {
         height: 5px;
     }
 
-    /* Modal / Popups on Mobile */
-    .flappy-modal-overlay {
-        padding: 12px;
+    /* Account Modal on Mobile */
+    .account-modal-overlay {
+        padding: 10px;
     }
 
-    .flappy-cabinet {
+    .account-modal-window {
+        flex-direction: column;
+        height: 94vh;
+        max-height: 94vh;
         width: 100%;
-        max-width: 360px;
         border-radius: 16px;
     }
 
-    .flappy-header {
-        padding: 10px 14px;
+    .account-sidebar {
+        width: 100%;
+        min-width: 0;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px;
     }
 
-    .flappy-title {
-        font-size: 1rem;
+    .account-nav-scroll {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 6px;
+        padding-bottom: 4px;
     }
 
-    .flappy-hud-bottom {
-        padding: 8px 14px;
-        font-size: 0.75rem;
+    .account-nav-section-title {
+        display: none;
+    }
+
+    .account-nav-btn {
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+    }
+
+    .account-content-header {
+        padding: 12px 16px;
+    }
+
+    .account-tab-body {
+        padding: 16px;
     }
 
     /* iOS Auto-Zoom Prevention */
@@ -2799,128 +2822,285 @@ body.inferno-overdrive .bg-glow-2 {
     letter-spacing: 0.6px;
 }
 
-/* ─── Secret Arcade Easter Egg at Bottom of Screen ─── */
-.arcade-egg-fab {
+/* ─── Floating User Account Profile FAB ─── */
+.account-fab {
     position: fixed;
     bottom: 22px;
     right: 22px;
     z-index: 9990;
-    width: 44px;
-    height: 44px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background: rgba(22, 10, 16, 0.85);
-    border: 1px solid rgba(220, 38, 38, 0.35);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 12px rgba(220, 38, 38, 0.2);
+    background: rgba(20, 8, 14, 0.9);
+    border: 2px solid rgba(220, 38, 38, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(220, 38, 38, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
     cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    opacity: 0.7;
     user-select: none;
 }
 
-.arcade-egg-fab:hover {
-    opacity: 1;
-    transform: translateY(-2px) scale(1.15) rotate(12deg);
-    border-color: rgba(251, 146, 60, 0.8);
-    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6), 0 0 18px rgba(251, 146, 60, 0.45);
+.account-fab:hover {
+    transform: translateY(-3px) scale(1.08);
+    border-color: #ef4444;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 24px rgba(239, 68, 68, 0.6);
 }
 
-.arcade-egg-icon {
-    line-height: 1;
-    transition: transform 0.2s ease;
+.account-fab-avatar-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.arcade-egg-fab:hover .arcade-egg-icon {
-    transform: scale(1.1);
+.account-fab-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
-/* ─── Flappy Flame Arcade Modal & Cabinet ─── */
-.flappy-modal-overlay {
+.account-fab-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #14080e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+    transition: all 0.2s ease;
+}
+
+.account-fab-dot.offline {
+    background: #6b7280;
+    box-shadow: none;
+}
+
+/* ─── CrimX Account Menu Modal (CrimsonFlame Themed) ─── */
+.account-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(6, 3, 5, 0.82);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(5, 2, 4, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     z-index: 100000;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 24px;
     animation: modalFadeIn 0.25s ease-out;
 }
 
-@keyframes modalFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.flappy-cabinet {
-    width: 410px;
-    max-width: 95vw;
-    background: #140b0f;
-    border: 2px solid rgba(220, 38, 38, 0.5);
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(220, 38, 38, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+.account-modal-window {
+    width: 880px;
+    max-width: 96vw;
+    height: 600px;
+    max-height: 90vh;
+    background: #0e0509;
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    border-radius: 22px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.9), 0 0 45px rgba(220, 38, 38, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     overflow: hidden;
     display: flex;
-    flex-direction: column;
     animation: cabinetSlideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
-@keyframes cabinetSlideUp {
-    from { transform: translateY(28px) scale(0.95); opacity: 0; }
-    to { transform: translateY(0) scale(1); opacity: 1; }
+/* Sidebar */
+.account-sidebar {
+    width: 250px;
+    min-width: 230px;
+    background: rgba(18, 7, 13, 0.98);
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    flex-direction: column;
+    padding: 18px 12px;
 }
 
-.flappy-header {
+.account-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 14px;
+    margin-bottom: 14px;
+}
+
+.account-user-pfp-ring {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.account-user-pfp-ring img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid rgba(220, 38, 38, 0.5);
+}
+
+.account-user-pfp-ring .user-status-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #12070d;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+}
+
+.account-user-pfp-ring .user-status-dot.offline {
+    background: #6b7280;
+    box-shadow: none;
+}
+
+.account-user-meta {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.account-user-name {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-user-sub {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-nav-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.account-nav-section-title {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.38);
+    letter-spacing: 0.9px;
+    padding: 12px 10px 4px;
+    text-transform: uppercase;
+}
+
+.account-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #cbd5e1;
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.account-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.account-nav-btn.active {
+    background: rgba(220, 38, 38, 0.22);
+    border-color: rgba(220, 38, 38, 0.55);
+    color: #fff;
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.25);
+}
+
+.account-sidebar-footer {
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    margin-top: auto;
+}
+
+.account-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #ef4444;
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.account-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+}
+
+/* Main Content Pane */
+.account-content-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #090306;
+    overflow: hidden;
+}
+
+.account-content-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 18px;
-    background: rgba(26, 12, 18, 0.95);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px 24px;
+    background: rgba(14, 5, 9, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.flappy-title-group {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.flappy-badge {
-    font-size: 0.62rem;
-    font-weight: 800;
-    color: #fb923c;
-    letter-spacing: 0.8px;
-}
-
-.flappy-title {
+.account-tab-title {
     font-family: var(--font-heading);
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 800;
     color: #fff;
-    margin: 0;
-}
-
-.flappy-header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
-.flappy-sound-toggle,
-.flappy-close-btn {
-    background: rgba(255, 255, 255, 0.06);
+.account-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     color: #ede8ea;
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2929,82 +3109,259 @@ body.inferno-overdrive .bg-glow-2 {
     transition: all 0.2s ease;
 }
 
-.flappy-sound-toggle:hover,
-.flappy-close-btn:hover {
+.account-modal-close:hover {
     background: rgba(220, 38, 38, 0.25);
     border-color: rgba(220, 38, 38, 0.6);
     color: #fff;
     transform: scale(1.05);
 }
 
-.flappy-canvas-wrap {
-    position: relative;
-    width: 100%;
+.account-tab-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+/* Not Logged In View (matching user reference) */
+.account-empty-state {
+    min-height: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    background: #000;
-    user-select: none;
-    touch-action: none;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
 }
 
-#flappy-canvas {
-    display: block;
-    width: 100%;
-    max-width: 380px;
-    height: auto;
-    aspect-ratio: 380 / 480;
+.account-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.85;
+}
+
+.account-empty-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.account-empty-desc {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    margin-bottom: 22px;
+}
+
+.account-login-btn {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #fff;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
     cursor: pointer;
+    box-shadow: 0 4px 18px rgba(220, 38, 38, 0.45);
+    transition: all 0.2s ease;
 }
 
-.flappy-scanlines {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-        rgba(18, 16, 16, 0) 50%, 
-        rgba(0, 0, 0, 0.25) 50%
-    );
-    background-size: 100% 4px;
-    opacity: 0.4;
+.account-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(220, 38, 38, 0.65);
 }
 
-.flappy-hud-bottom {
+/* Logged In Cards & Controls */
+.account-section-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(220, 38, 38, 0.22);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+
+.account-card-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-status-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 18px;
-    background: rgba(20, 10, 14, 0.95);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.8rem;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.account-status-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #ede8ea;
+}
+
+.status-dot-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+}
+
+.status-dot-indicator.offline {
+    background: #6b7280;
+    box-shadow: none;
+}
+
+.account-status-toggle-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.status-toggle-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.status-toggle-btn.active-online {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #4ade80;
+}
+
+.status-toggle-btn.active-offline {
+    background: rgba(107, 114, 128, 0.2);
+    border-color: rgba(107, 114, 128, 0.5);
+    color: #d1d5db;
+}
+
+.account-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.account-info-item {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+.account-info-label {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.account-info-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 4px;
+}
+
+.account-friend-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(220, 38, 38, 0.18);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+
+.account-friend-card:hover {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: rgba(220, 38, 38, 0.35);
+}
+
+.account-friend-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.account-friend-pfp {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.account-friend-pfp img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.account-friend-pfp .friend-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #090306;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+}
+
+.account-friend-pfp .friend-dot.offline {
+    background: #6b7280;
+    box-shadow: none;
+}
+
+.account-friend-meta {
+    overflow: hidden;
+}
+
+.account-friend-name {
+    font-weight: 700;
+    color: #fff;
+    font-size: 0.92rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-friend-handle {
+    font-size: 0.74rem;
     color: var(--text-secondary);
 }
 
-.flappy-hud-bottom kbd {
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-family: monospace;
+.account-friend-status {
     font-size: 0.75rem;
-    color: #fff;
-}
-
-.flappy-hud-best strong {
-    color: #fb923c;
-    font-weight: 800;
-    font-size: 0.92rem;
-}
-
-@media (max-width: 600px) {
-    .arcade-fab {
-        bottom: 16px;
-        right: 16px;
-        padding: 8px 14px;
-    }
-    .arcade-fab-text {
-        display: none;
-    }
+    color: #f87171;
+    font-weight: 500;
+    margin-top: 2px;
 }
 
 /* ==========================================================================
@@ -3351,8 +3708,8 @@ body.inferno-overdrive .bg-glow-2 {
     max-width: 600px;
 }
 
-/* Gear Button positioned in Bottom Right of Banner */
-.profile-banner-gear-btn {
+/* Banner Action Buttons: CIM (Bottom Right) & Settings (Bottom Left) */
+.profile-banner-cim-btn {
     position: absolute;
     bottom: 16px;
     right: 18px;
@@ -3361,7 +3718,35 @@ body.inferno-overdrive .bg-glow-2 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(14, 7, 11, 0.8);
+    background: rgba(14, 7, 11, 0.85);
+    border: 1.5px solid rgba(220, 38, 38, 0.4);
+    border-radius: 50%;
+    color: #ede8ea;
+    cursor: pointer;
+    backdrop-filter: blur(14px);
+    transition: all 0.25s ease;
+    z-index: 5;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 12px rgba(220, 38, 38, 0.25);
+}
+
+.profile-banner-cim-btn:hover {
+    background: rgba(220, 38, 38, 0.4);
+    border-color: #ef4444;
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 0 22px rgba(220, 38, 38, 0.6);
+}
+
+.profile-banner-settings-btn {
+    position: absolute;
+    bottom: 16px;
+    left: 18px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(14, 7, 11, 0.85);
     border: 1.5px solid rgba(255, 255, 255, 0.18);
     border-radius: 50%;
     color: #ede8ea;
@@ -3372,11 +3757,11 @@ body.inferno-overdrive .bg-glow-2 {
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
 }
 
-.profile-banner-gear-btn svg {
+.profile-banner-settings-btn svg {
     transition: transform 0.4s ease;
 }
 
-.profile-banner-gear-btn:hover {
+.profile-banner-settings-btn:hover {
     background: rgba(220, 38, 38, 0.35);
     border-color: rgba(220, 38, 38, 0.65);
     color: #fff;
@@ -3384,7 +3769,7 @@ body.inferno-overdrive .bg-glow-2 {
     box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
 }
 
-.profile-banner-gear-btn:hover svg {
+.profile-banner-settings-btn:hover svg {
     transform: rotate(60deg);
 }
 
@@ -3437,27 +3822,39 @@ body.inferno-overdrive .bg-glow-2 {
     box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
 }
 
-/* ─── CrimX Dashboard 4-Block Layout (2 next to each other with 2 rows) ─── */
+/* ─── CrimX Dashboard 2-Column Layout matching untitled.png ─── */
 .dash-4block-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: auto auto;
+    grid-template-columns: 1fr 1.18fr;
     gap: 22px;
     margin-bottom: 30px;
     align-items: stretch;
 }
 
+@media (max-width: 960px) {
+    .dash-4block-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dash-grid-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: space-between;
+}
+
 .dash-block-friends {
-    grid-column: 1;
-    grid-row: 1;
-    background: rgba(22, 12, 16, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(20, 10, 15, 0.85);
+    border: 1px solid rgba(220, 38, 38, 0.3);
     border-radius: 20px;
     padding: 24px;
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     display: flex;
     flex-direction: column;
-    min-height: 440px;
+    min-height: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .dash-block-friends .dash-friends-header {
@@ -3491,9 +3888,285 @@ body.inferno-overdrive .bg-glow-2 {
     padding-right: 4px;
 }
 
+.dash-coming-soon-card {
+    background: rgba(20, 10, 15, 0.85);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    flex: 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.coming-soon-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+/* ─── DoorAuth Linked Apps & Sign-In Block ─── */
+.dash-block-doorauth {
+    background: rgba(20, 10, 15, 0.85);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 20px;
+    padding: 22px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    min-height: 340px;
+    flex: 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.doorauth-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+}
+
+.doorauth-icon-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(220, 38, 38, 0.18);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.25);
+}
+
+.doorauth-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.22rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.doorauth-subtitle {
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+}
+
+.doorauth-dev-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #ede8ea;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.doorauth-dev-link:hover {
+    background: rgba(220, 38, 38, 0.25);
+    border-color: rgba(220, 38, 38, 0.6);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.doorauth-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.doorauth-desc {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 14px;
+}
+
+.doorauth-section-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.doorauth-section-label {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: #ef4444;
+    letter-spacing: 0.6px;
+}
+
+.doorauth-count-tag {
+    background: #7f1d1d;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.doorauth-apps-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 190px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.doorauth-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.doorauth-app-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    transition: all 0.2s;
+}
+
+.doorauth-app-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.doorauth-app-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.doorauth-app-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.doorauth-app-name {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.doorauth-app-scopes {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+}
+
+.doorauth-revoke-btn {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.doorauth-revoke-btn:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.doorauth-connect-form {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-top: auto;
+}
+
+.doorauth-connect-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    padding: 8px 16px;
+    color: #fff;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.doorauth-connect-input:focus {
+    border-color: var(--crimson-light);
+}
+
+/* ─── "Sign in with CrimsonFlame" DoorAuth Button Widget ─── */
+.cf-auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.22s ease;
+    user-select: none;
+}
+
+.cf-auth-btn-dark {
+    background: linear-gradient(135deg, #18090f 0%, #2a0b14 100%);
+    border: 1px solid rgba(220, 38, 38, 0.5);
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 14px rgba(220, 38, 38, 0.2);
+}
+
+.cf-auth-btn-dark:hover {
+    background: linear-gradient(135deg, #2a0b14 0%, #dc2626 100%);
+    border-color: #ef4444;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.45);
+}
+
+.cf-auth-btn-flame-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+}
+
 .dash-block-profile {
-    grid-column: 2;
-    grid-row: 1;
     display: flex;
     flex-direction: column;
 }
@@ -3503,9 +4176,776 @@ body.inferno-overdrive .bg-glow-2 {
     margin-bottom: 0;
 }
 
-.dash-block-coming-1 {
-    grid-column: 1;
-    grid-row: 2;
+.dash-block-cim {
+    background: rgba(20, 10, 15, 0.85);
+    border: 1.5px solid rgba(220, 38, 38, 0.35);
+    border-radius: 20px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    min-height: 780px;
+    height: 100%;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 28px rgba(220, 38, 38, 0.15);
+    transition: all 0.25s ease;
+}
+
+/* ─── CIM Fullscreen (In-page Maximize) Mode ─── */
+.cim-fullscreen-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 99998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.cim-fullscreen-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.cim-fullscreen-active {
+    overflow: hidden !important;
+}
+
+.dash-block-cim.cim-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    padding: 16px 20px 18px 20px !important;
+    z-index: 999999 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #0f050a !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+
+.dash-block-cim.cim-fullscreen .cim-sidebar {
+    width: 290px;
+    min-width: 270px;
+}
+
+.dash-block-cim.cim-fullscreen .cim-message-bubble {
+    font-size: 1.05rem;
+    padding: 12px 18px;
+    border-radius: 16px;
+}
+
+.dash-block-cim.cim-fullscreen .cim-input-field {
+    font-size: 1.05rem;
+    padding: 14px 20px;
+    border-radius: 14px;
+}
+
+.dash-block-cim.cim-fullscreen .cim-send-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+}
+
+.dash-block-cim.cim-fullscreen .cim-send-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.cim-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cim-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cim-icon-pill {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(220, 38, 38, 0.2);
+    border: 1px solid rgba(220, 38, 38, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.25);
+}
+
+.cim-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+}
+
+.cim-subtitle {
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.4px;
+}
+
+.cim-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cim-fullscreen-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ede8ea;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cim-fullscreen-btn:hover {
+    background: rgba(220, 38, 38, 0.25);
+    border-color: rgba(220, 38, 38, 0.6);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+}
+
+.cim-online-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #4ade80;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 4px 10px;
+    border-radius: 9999px;
+    letter-spacing: 0.5px;
+}
+
+.cim-pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: cfPulse 1.8s infinite ease-in-out;
+}
+
+.cim-container {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 14px;
+    overflow: hidden;
+}
+
+.cim-sidebar {
+    width: 230px;
+    min-width: 210px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    padding-right: 10px;
+}
+
+.cim-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #ef4444;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+}
+
+.cim-count-tag {
+    background: #7f1d1d;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cim-conversations-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding-right: 3px;
+}
+
+.cim-contact-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #ede8ea;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+}
+
+.cim-contact-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.cim-contact-btn.active {
+    background: rgba(220, 38, 38, 0.24);
+    border-color: rgba(220, 38, 38, 0.6);
+    box-shadow: 0 0 14px rgba(220, 38, 38, 0.3);
+}
+
+.cim-contact-avatar-wrap {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.cim-contact-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cim-contact-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #140a0f;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.cim-contact-dot.offline {
+    background: #6b7280;
+    box-shadow: none;
+}
+
+.cim-contact-meta {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.cim-contact-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cim-contact-sub {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ─── CIM Sidebar Mini Profile Card (matches untitled.png) ─── */
+.cim-sidebar-profile {
+    margin-top: 10px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
+}
+
+.cim-profile-banner {
+    height: 48px;
+    background: linear-gradient(135deg, #091e3a 0%, #2563eb 50%, #030a14 100%);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.cim-profile-content {
+    padding: 0 10px 10px 10px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.cim-profile-avatar-wrap {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    margin-top: -21px;
+    margin-bottom: 5px;
+}
+
+.cim-profile-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #140a0f;
+    background: #000;
+}
+
+.cim-profile-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #140a0f;
+    box-shadow: 0 0 6px #22c55e;
+}
+
+.cim-profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cim-profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cim-profile-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cim-profile-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: rgba(220, 38, 38, 0.25);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    padding: 1px 6px;
+    border-radius: 999px;
+}
+
+.cim-profile-handle {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.cim-profile-status {
+    font-size: 0.72rem;
+    color: #f87171;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cim-profile-bio {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cim-profile-settings-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+}
+
+.cim-profile-settings-btn:hover {
+    background: rgba(220, 38, 38, 0.3);
+    border-color: #ef4444;
+    color: #fff;
+    transform: rotate(30deg);
+}
+
+.cim-chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.cim-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(20, 9, 14, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cim-chat-user-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cim-chat-avatar-wrap {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+}
+
+.cim-chat-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cim-active-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #140a0f;
+    box-shadow: 0 0 6px #22c55e;
+}
+
+.cim-active-dot.offline {
+    background: #6b7280;
+    box-shadow: none;
+}
+
+.cim-active-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.2px;
+}
+
+.cim-active-status {
+    font-size: 0.78rem;
+    color: #f87171;
+    font-weight: 600;
+}
+
+.cim-action-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ede8ea;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.88rem;
+    transition: all 0.2s;
+}
+
+.cim-action-btn:hover {
+    background: rgba(220, 38, 38, 0.35);
+    border-color: #ef4444;
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.cim-messages-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cim-no-chat-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 24px;
+}
+
+.cim-message-bubble {
+    max-width: 78%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 0.96rem;
+    line-height: 1.45;
+    word-break: break-word;
+    animation: messagePopIn 0.18s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes messagePopIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.cim-message-sent {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #fff;
+    border-bottom-right-radius: 2px;
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.38);
+}
+
+.cim-message-received {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #f1f5f9;
+    border-bottom-left-radius: 2px;
+}
+
+.cim-message-time {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.cim-input-form {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(14, 6, 10, 0.98);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cim-input-field {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    border-radius: 12px;
+    padding: 11px 16px;
+    color: #fff;
+    font-size: 0.96rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.cim-input-field:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.cim-send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+    flex-shrink: 0;
+}
+
+.cim-send-btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.65);
+}
+
+/* ─── Top Right Incoming Message Toast ─── */
+.cim-notification-container {
+    position: fixed;
+    top: 22px;
+    right: 22px;
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.cim-notification-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(18, 8, 14, 0.96);
+    border: 1.5px solid rgba(220, 38, 38, 0.55);
+    border-radius: 14px;
+    padding: 12px 16px;
+    min-width: 310px;
+    max-width: 380px;
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.85), 0 0 24px rgba(220, 38, 38, 0.38);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    cursor: pointer;
+    animation: cimSlideInRight 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.cim-notification-toast:hover {
+    transform: translateY(-2px) scale(1.02);
+    border-color: #ef4444;
+}
+
+@keyframes cimSlideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.cim-toast-avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.cim-toast-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(220, 38, 38, 0.5);
+}
+
+.cim-toast-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 1.5px solid #12080e;
+    box-shadow: 0 0 6px #22c55e;
+}
+
+.cim-toast-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.cim-toast-sender {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cim-toast-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #fb923c;
+    background: rgba(251, 146, 60, 0.15);
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.cim-toast-msg {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+.cim-toast-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.cim-toast-close:hover {
+    color: #fff;
 }
 
 .dash-block-coming-2 {

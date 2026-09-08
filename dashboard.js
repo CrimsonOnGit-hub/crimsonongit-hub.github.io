@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc, addDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBSSJKDrFJ1_qlliZqgw34CY2TSaKOxxxM",
@@ -246,6 +246,16 @@ window.updateLivePreview = function() {
     if (sName) sName.innerText = finalName;
     const sHandle = document.getElementById('sidebar-user-handle');
     if (sHandle) sHandle.innerText = finalHandle;
+
+    // CIM sidebar mini profile card updates (matches untitled.png)
+    const cimName = document.getElementById('cim-profile-name');
+    if (cimName) cimName.innerText = finalName;
+    const cimHandle = document.getElementById('cim-profile-handle');
+    if (cimHandle) cimHandle.innerText = finalHandle;
+    const cimStatus = document.getElementById('cim-profile-status');
+    if (cimStatus) cimStatus.innerText = finalStatus;
+    const cimBio = document.getElementById('cim-profile-bio');
+    if (cimBio) cimBio.innerText = finalBio;
 };
 
 // ── Banner Preset Picker ──
@@ -816,6 +826,8 @@ async function dispatchSecurityAlert(type, email, uid) {
 // ── CrimX Real-Time Friends System ──
 let friendsUnsub = null;
 let requestsUnsub = null;
+const friendDocUnsubs = new Map();
+const friendLivePresence = new Map();
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -827,10 +839,665 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function clearFriendPresenceSubscriptions() {
+    friendDocUnsubs.forEach(unsub => unsub());
+    friendDocUnsubs.clear();
+    friendLivePresence.clear();
+}
+
+function renderFriendsDOM(friends) {
+    const container = document.getElementById('active-friends-list');
+    if (!container) return;
+
+    if (!friends || friends.length === 0) {
+        container.innerHTML = `
+            <div class="friends-empty-state">
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">🎮</div>
+                <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 4px;">No friends connected yet</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem; max-width: 420px; margin: 0 auto;">
+                    Connect with players across CrimsonFlame games and VR servers by searching their @username above!
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = friends.map(friend => {
+        const fUid = friend.uid || friend.id;
+        const live = friendLivePresence.get(fUid) || {};
+        const isOnline = live.online !== undefined ? live.online : (friend.online !== false);
+        const statusText = isOnline ? (live.statusText || friend.statusText || 'Browsing the Website') : 'Offline';
+        const pfp = live.photoURL || friend.photoURL || DEFAULT_PFP;
+        const dispName = live.displayName || friend.displayName || 'CrimX Player';
+        const handle = live.username || friend.username || 'user';
+
+        return `
+            <div class="friend-card">
+                <div class="friend-avatar-wrap">
+                    <img src="${pfp}" alt="${escapeHtml(dispName)}">
+                    <div class="friend-online-dot ${isOnline ? '' : 'offline'}" title="${isOnline ? 'Online' : 'Offline'}"></div>
+                </div>
+                <div class="friend-info">
+                    <div class="friend-name">${escapeHtml(dispName)}</div>
+                    <div class="friend-handle">@${escapeHtml(handle)}</div>
+                    <div class="friend-status" style="color: ${isOnline ? '#f87171' : '#9ca3af'};">${escapeHtml(statusText)}</div>
+                </div>
+                <button type="button" class="btn-secondary" onclick="removeFriend('${friend.id}', '${escapeHtml(dispName)}')" style="width: auto; padding: 6px 12px; font-size: 0.74rem; color: #f87171; border-color: rgba(239, 68, 68, 0.25);" title="Remove Friend">
+                    Remove
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    renderCIMFriends(friends);
+}
+
+// ── CIM (CrimX Instant Messager) System ──
+let activeCIMRecipient = null;
+let activeCIMChatUnsub = null;
+let cimGlobalWatcherUnsub = null;
+let fcmMessaging = null;
+let fcmUnsub = null;
+let cimSessionStartTime = Date.now();
+
+function playCIMChime() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, now);
+        osc1.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(880, now + 0.1);
+        osc2.frequency.exponentialRampToValueAtTime(1174.66, now + 0.22);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc1.stop(now + 0.12);
+        osc2.start(now + 0.1);
+        osc2.stop(now + 0.35);
+    } catch(e) {}
+}
+
+function showCIMNotification(senderUid, senderName, senderPfp, text) {
+    const container = document.getElementById('cim-notification-container');
+    if (!container) return;
+
+    playCIMChime();
+
+    const toast = document.createElement('div');
+    toast.className = 'cim-notification-toast';
+    toast.innerHTML = `
+        <div class="cim-toast-avatar">
+            <img src="${senderPfp || DEFAULT_PFP}" alt="${escapeHtml(senderName || 'Friend')}">
+            <span class="cim-toast-dot"></span>
+        </div>
+        <div class="cim-toast-content">
+            <div class="cim-toast-sender">
+                ${escapeHtml(senderName || 'Friend')} <span class="cim-toast-tag">CIM</span>
+            </div>
+            <div class="cim-toast-msg">${escapeHtml(text || 'New instant message')}</div>
+        </div>
+        <button type="button" class="cim-toast-close" title="Dismiss">✕</button>
+    `;
+
+    toast.querySelector('.cim-toast-close').onclick = (e) => {
+        e.stopPropagation();
+        toast.remove();
+    };
+
+    toast.onclick = () => {
+        window.openCIMChat(senderUid, senderName, senderPfp);
+        window.focusCIM();
+        toast.remove();
+    };
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.transition = 'all 0.3s ease';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 5500);
+}
+
+function renderCIMFriends(friends) {
+    const list = document.getElementById('cim-conversations-list');
+    const countTag = document.getElementById('cim-friends-count');
+    if (!list) return;
+
+    if (countTag) countTag.innerText = friends ? friends.length : 0;
+
+    if (!friends || friends.length === 0) {
+        list.innerHTML = `
+            <div style="color: var(--text-secondary); font-size: 0.72rem; text-align: center; padding: 20px 4px;">
+                No friends yet
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = friends.map(friend => {
+        const fUid = friend.uid || friend.id;
+        const live = friendLivePresence.get(fUid) || {};
+        const isOnline = live.online !== undefined ? live.online : (friend.online !== false);
+        const pfp = live.photoURL || friend.photoURL || DEFAULT_PFP;
+        const dispName = live.displayName || friend.displayName || 'CrimX Player';
+        const handle = live.username || friend.username || 'user';
+        const isActive = activeCIMRecipient && activeCIMRecipient.uid === fUid;
+
+        return `
+            <button type="button" class="cim-contact-btn ${isActive ? 'active' : ''}" onclick="openCIMChat('${fUid}', '${escapeHtml(dispName)}', '${escapeHtml(pfp)}', '${escapeHtml(handle)}')">
+                <div class="cim-contact-avatar-wrap">
+                    <img src="${pfp}" alt="${escapeHtml(dispName)}">
+                    <span class="cim-contact-dot ${isOnline ? '' : 'offline'}"></span>
+                </div>
+                <div class="cim-contact-meta">
+                    <div class="cim-contact-name">${escapeHtml(dispName)}</div>
+                    <div class="cim-contact-sub">@${escapeHtml(handle)}</div>
+                </div>
+            </button>
+        `;
+    }).join('');
+
+    // If currently active chat is open, refresh their status in the header
+    if (activeCIMRecipient) {
+        const live = friendLivePresence.get(activeCIMRecipient.uid) || {};
+        const isOnline = live.online !== undefined ? live.online : true;
+        const statusEl = document.getElementById('cim-active-status');
+        const dotEl = document.getElementById('cim-active-dot');
+        if (statusEl) statusEl.innerText = isOnline ? (live.statusText || 'Browsing the Website') : 'Offline';
+        if (dotEl) {
+            if (isOnline) dotEl.classList.remove('offline');
+            else dotEl.classList.add('offline');
+        }
+    }
+}
+
+// Local Device Storage Helpers (Ensures 0 messages ever stored in Firestore cloud database)
+function getCIMLocalMessages(myUid, friendUid) {
+    try {
+        const key = `cim_chat_${myUid}_${friendUid}`;
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+}
+
+function saveCIMLocalMessage(myUid, friendUid, msg) {
+    try {
+        const key = `cim_chat_${myUid}_${friendUid}`;
+        const msgs = getCIMLocalMessages(myUid, friendUid);
+        const sId = msg.senderId || msg.senderUid;
+        // Avoid duplicate message
+        const isDuplicate = msgs.some(m => 
+            (m.id && msg.id && m.id === msg.id) ||
+            ((m.senderId || m.senderUid) === sId && m.text === msg.text && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 4000)
+        );
+        if (isDuplicate) return false;
+        msgs.push(msg);
+        if (msgs.length > 100) msgs.shift();
+        localStorage.setItem(key, JSON.stringify(msgs));
+        return true;
+    } catch(e) { return false; }
+}
+
+function renderCIMMessagesUI(messages) {
+    const list = document.getElementById('cim-messages-list');
+    if (!list) return;
+
+    if (!messages || messages.length === 0) {
+        list.innerHTML = `
+            <div style="color: var(--text-secondary); font-size: 0.76rem; text-align: center; padding: 30px 10px;">
+                No messages yet. Send an instant message to start chatting!
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = messages.map(msg => {
+        const isMine = msg.senderId === currentUser.uid || msg.senderUid === currentUser.uid;
+        const timeVal = msg.timestamp ? new Date(msg.timestamp) : new Date();
+        const timeStr = isNaN(timeVal.getTime()) ? 'Just now' : timeVal.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+            <div class="cim-message-bubble ${isMine ? 'cim-message-sent' : 'cim-message-received'}">
+                <div>${escapeHtml(msg.text || '')}</div>
+                <div class="cim-message-time">${timeStr}</div>
+            </div>
+        `;
+    }).join('');
+
+    const box = document.getElementById('cim-messages-box');
+    if (box) box.scrollTop = box.scrollHeight;
+}
+
+window.openCIMChat = function(friendUid, friendName, friendPfp, friendHandle) {
+    activeCIMRecipient = {
+        uid: friendUid,
+        name: friendName || 'Friend',
+        pfp: friendPfp || DEFAULT_PFP,
+        handle: friendHandle || 'user'
+    };
+
+    const header = document.getElementById('cim-chat-header');
+    const noChat = document.getElementById('cim-no-chat-state');
+    const list = document.getElementById('cim-messages-list');
+    const form = document.getElementById('cim-input-form');
+    const input = document.getElementById('cim-message-input');
+
+    if (header) header.style.display = 'flex';
+    if (noChat) noChat.style.display = 'none';
+    if (list) list.style.display = 'flex';
+    if (form) form.style.display = 'flex';
+
+    // Update active recipient header
+    const avatar = document.getElementById('cim-active-avatar');
+    const nameEl = document.getElementById('cim-active-name');
+    const statusEl = document.getElementById('cim-active-status');
+    const dotEl = document.getElementById('cim-active-dot');
+
+    const live = friendLivePresence.get(friendUid) || {};
+    const isOnline = live.online !== undefined ? live.online : true;
+
+    if (avatar) avatar.src = live.photoURL || friendPfp || DEFAULT_PFP;
+    if (nameEl) nameEl.innerText = live.displayName || friendName || 'Friend';
+    if (statusEl) statusEl.innerText = isOnline ? (live.statusText || 'Browsing the Website') : 'Offline';
+    if (dotEl) {
+        if (isOnline) dotEl.classList.remove('offline');
+        else dotEl.classList.add('offline');
+    }
+
+    if (input) {
+        input.placeholder = `Message ${live.displayName || friendName}...`;
+        input.focus();
+    }
+
+    // Highlight button in contact sidebar
+    document.querySelectorAll('.cim-contact-btn').forEach(btn => {
+        if (btn.getAttribute('onclick')?.includes(friendUid)) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    // 1. Load messages from private local device memory immediately
+    const messages = getCIMLocalMessages(currentUser.uid, friendUid);
+    renderCIMMessagesUI(messages);
+
+    // 2. Dynamically sync conversation history from in-memory relay (no refresh needed)
+    const convoId = [currentUser.uid, friendUid].sort().join('_');
+    fetch(`/api/cim/history?convoId=${convoId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.messages && Array.isArray(data.messages)) {
+                let hasNew = false;
+                data.messages.forEach(m => {
+                    const saved = saveCIMLocalMessage(currentUser.uid, friendUid, m);
+                    if (saved) hasNew = true;
+                });
+                if (hasNew && activeCIMRecipient && activeCIMRecipient.uid === friendUid) {
+                    const updated = getCIMLocalMessages(currentUser.uid, friendUid);
+                    renderCIMMessagesUI(updated);
+                }
+            }
+        })
+        .catch(() => {});
+};
+
+window.clearActiveCIMChat = function() {
+    activeCIMRecipient = null;
+
+    const header = document.getElementById('cim-chat-header');
+    const noChat = document.getElementById('cim-no-chat-state');
+    const list = document.getElementById('cim-messages-list');
+    const form = document.getElementById('cim-input-form');
+
+    if (header) header.style.display = 'none';
+    if (noChat) noChat.style.display = 'flex';
+    if (list) { list.style.display = 'none'; list.innerHTML = ''; }
+    if (form) form.style.display = 'none';
+
+    document.querySelectorAll('.cim-contact-btn').forEach(btn => btn.classList.remove('active'));
+};
+
+window.sendCIMMessage = async function(e) {
+    if (e) e.preventDefault();
+    if (!currentUser || !activeCIMRecipient) return;
+
+    const input = document.getElementById('cim-message-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+
+    try {
+        const mySnap = await getDoc(doc(db, "users", currentUser.uid)).catch(() => null);
+        const myData = mySnap && mySnap.exists() ? mySnap.data() : {};
+        const myName = myData.displayName || currentUser.displayName || currentUser.email.split('@')[0];
+        const myPfp = myData.photoURL || currentUser.photoURL || DEFAULT_PFP;
+        const nowTime = Date.now();
+
+        const newMsg = {
+            id: `cim_${nowTime}_${Math.random().toString(36).slice(2, 7)}`,
+            senderId: currentUser.uid,
+            senderUid: currentUser.uid,
+            senderName: myName,
+            senderPfp: myPfp,
+            recipientId: activeCIMRecipient.uid,
+            text: text,
+            timestamp: nowTime
+        };
+
+        // 1. Save directly to local device storage (NO Firestore cloud message leaks!)
+        saveCIMLocalMessage(currentUser.uid, activeCIMRecipient.uid, newMsg);
+
+        // 2. Render immediately in chat
+        const currentMsgs = getCIMLocalMessages(currentUser.uid, activeCIMRecipient.uid);
+        renderCIMMessagesUI(currentMsgs);
+
+        // 3. Dispatch directly via Firebase Cloud Messaging & Realtime Relay
+        const recipientSnap = await getDoc(doc(db, "users", activeCIMRecipient.uid)).catch(() => null);
+        const rData = recipientSnap && recipientSnap.exists() ? recipientSnap.data() : {};
+
+        fetch('/api/cim/send-fcm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                token: rData.fcmToken || null,
+                title: `${myName} (CIM)`,
+                body: text,
+                senderUid: currentUser.uid,
+                senderName: myName,
+                senderPfp: myPfp,
+                recipientUid: activeCIMRecipient.uid,
+                timestamp: nowTime
+            })
+        }).catch(() => {});
+
+    } catch (err) {
+        console.error("Failed to send CIM message:", err);
+        window.showToast("Failed to send message: " + err.message, "error");
+    }
+};
+
+window.focusCIM = function() {
+    const block = document.getElementById('dash-cim-block');
+    if (block) {
+        block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        block.style.boxShadow = '0 0 35px rgba(220, 38, 38, 0.6)';
+        setTimeout(() => { block.style.boxShadow = ''; }, 1600);
+        const input = document.getElementById('cim-message-input');
+        if (input && input.offsetParent !== null) input.focus();
+    }
+};
+
+window.toggleCIMFullscreen = function() {
+    const block = document.getElementById('dash-cim-block');
+    const backdrop = document.getElementById('cim-fullscreen-backdrop');
+    const expandIcon = document.getElementById('cim-fullscreen-icon-expand');
+    const compressIcon = document.getElementById('cim-fullscreen-icon-compress');
+    const label = document.getElementById('cim-fullscreen-label');
+    if (!block) return;
+
+    const isFs = block.classList.toggle('cim-fullscreen');
+    document.body.classList.toggle('cim-fullscreen-active', isFs);
+    if (backdrop) {
+        if (isFs) backdrop.classList.add('active');
+        else backdrop.classList.remove('active');
+    }
+
+    if (expandIcon && compressIcon) {
+        expandIcon.style.display = isFs ? 'none' : 'block';
+        compressIcon.style.display = isFs ? 'block' : 'none';
+    }
+    if (label) {
+        label.innerText = isFs ? 'Exit Fullscreen' : 'Fullscreen';
+    }
+
+    const box = document.getElementById('cim-messages-box');
+    if (box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
+};
+
+// Listen for Escape key to exit fullscreen
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const block = document.getElementById('dash-cim-block');
+        if (block && block.classList.contains('cim-fullscreen')) {
+            window.toggleCIMFullscreen();
+        }
+    }
+});
+
+function updateCIMProfileCard(userData) {
+    if (!currentUser) return;
+    const nameEl = document.getElementById('cim-profile-name');
+    const handleEl = document.getElementById('cim-profile-handle');
+    const statusEl = document.getElementById('cim-profile-status');
+    const bioEl = document.getElementById('cim-profile-bio');
+    const pfpEl = document.getElementById('cim-profile-pfp');
+    const bannerEl = document.getElementById('cim-profile-banner');
+
+    const name = userData?.displayName || currentUser.displayName || currentUser.email.split('@')[0];
+    const username = userData?.username || currentUser.email.split('@')[0];
+    const status = userData?.statusText || 'Browsing the Website';
+    const bio = userData?.bio || 'The developer behind it all 👾';
+    const pfp = userData?.photoURL || currentUser.photoURL || DEFAULT_PFP;
+    const banner = userData?.banner || (typeof currentBannerStyle !== 'undefined' ? currentBannerStyle : null) || 'linear-gradient(135deg, #091e3a 0%, #2563eb 50%, #030a14 100%)';
+
+    if (nameEl) nameEl.innerText = name;
+    if (handleEl) handleEl.innerText = `@${username}`;
+    if (statusEl) statusEl.innerText = status;
+    if (bioEl) bioEl.innerText = bio;
+    if (pfpEl) pfpEl.src = pfp;
+    if (bannerEl) applyBannerStyle(bannerEl, banner);
+}
+
+let cimEventSource = null;
+let cimPollInterval = null;
+
+function handleIncomingCIMMessage(msg) {
+    if (!currentUser || !msg || !msg.senderUid) return;
+    if (msg.senderUid === currentUser.uid) return;
+
+    const saved = saveCIMLocalMessage(currentUser.uid, msg.senderUid, {
+        id: msg.id || `msg_${msg.timestamp || Date.now()}`,
+        senderId: msg.senderUid,
+        senderUid: msg.senderUid,
+        senderName: msg.senderName,
+        senderPfp: msg.senderPfp,
+        recipientId: currentUser.uid,
+        text: msg.text,
+        timestamp: msg.timestamp || Date.now()
+    });
+
+    if (!saved) return; // already processed / rendered
+
+    playCIMChime();
+
+    // If currently chatting with this friend, update chat UI in real time dynamically!
+    if (activeCIMRecipient && activeCIMRecipient.uid === msg.senderUid) {
+        const updated = getCIMLocalMessages(currentUser.uid, activeCIMRecipient.uid);
+        renderCIMMessagesUI(updated);
+    }
+
+    // If chat not active or window backgrounded, show top-right notification toast
+    if (!activeCIMRecipient || activeCIMRecipient.uid !== msg.senderUid || document.hidden) {
+        showCIMNotification(msg.senderUid, msg.senderName, msg.senderPfp, msg.text);
+    }
+}
+
+function checkCIMPendingMessages() {
+    if (!currentUser) return;
+    fetch(`/api/cim/poll?uid=${currentUser.uid}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.messages && Array.isArray(data.messages)) {
+                data.messages.forEach(msg => handleIncomingCIMMessage(msg));
+            }
+        })
+        .catch(() => {});
+
+    // If currently chatting with a friend, sync history dynamically as well!
+    if (activeCIMRecipient && activeCIMRecipient.uid) {
+        const convoId = [currentUser.uid, activeCIMRecipient.uid].sort().join('_');
+        fetch(`/api/cim/history?convoId=${convoId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.messages && Array.isArray(data.messages)) {
+                    let hasNew = false;
+                    data.messages.forEach(m => {
+                        const saved = saveCIMLocalMessage(currentUser.uid, activeCIMRecipient.uid, m);
+                        if (saved) hasNew = true;
+                    });
+                    if (hasNew && activeCIMRecipient) {
+                        const updated = getCIMLocalMessages(currentUser.uid, activeCIMRecipient.uid);
+                        renderCIMMessagesUI(updated);
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+}
+
+function initCIMStream() {
+    if (!currentUser) return;
+    if (cimEventSource) { cimEventSource.close(); cimEventSource = null; }
+    if (cimPollInterval) { clearInterval(cimPollInterval); cimPollInterval = null; }
+
+    // 1. Realtime SSE connection (sub-millisecond delivery)
+    try {
+        cimEventSource = new EventSource(`/api/cim/stream?uid=${currentUser.uid}`);
+        cimEventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data && data.type === 'cim_message') {
+                    handleIncomingCIMMessage(data);
+                }
+            } catch(e) {}
+        };
+        cimEventSource.onerror = () => {
+            // EventSource auto-reconnects; fast-poll ensures zero dropped messages
+        };
+    } catch(e) {}
+
+    // 2. High-speed poll loop (every 750ms) ensures instant live updates without refresh
+    checkCIMPendingMessages();
+    cimPollInterval = setInterval(checkCIMPendingMessages, 750);
+}
+
+async function initFirebaseMessaging() {
+    try {
+        if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
+            console.log("[CIM] Web Notifications or ServiceWorker not supported in this browser.");
+            return;
+        }
+
+        const fcmModule = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js").catch(e => {
+            console.warn("[CIM] Could not load firebase-messaging.js dynamically:", e);
+            return null;
+        });
+
+        if (!fcmModule) return;
+        const { getMessaging, getToken, onMessage, isSupported } = fcmModule;
+
+        const supported = await isSupported().catch(() => false);
+        if (!supported) {
+            console.log("[CIM] Firebase Messaging is not supported in this browser context.");
+            return;
+        }
+
+        // Register Service Worker for background push notifications
+        let swReg = null;
+        try {
+            swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            console.log("[CIM] Service Worker registered for Firebase Messaging");
+        } catch(swErr) {
+            console.warn("[CIM] Service Worker registration failed:", swErr);
+        }
+
+        fcmMessaging = getMessaging(app);
+
+        // Request browser permission for notifications
+        if (Notification.permission === 'default') {
+            try {
+                await Notification.requestPermission();
+            } catch (pErr) {}
+        }
+
+        // Retrieve token if permission is granted
+        if (Notification.permission === 'granted') {
+            try {
+                const tokenOpts = swReg ? { serviceWorkerRegistration: swReg } : {};
+                const token = await getToken(fcmMessaging, tokenOpts).catch(() => null);
+                if (token && currentUser) {
+                    console.log("[CIM] Firebase Messaging Token acquired");
+                    await setDoc(doc(db, "users", currentUser.uid), {
+                        fcmToken: token,
+                        fcmUpdatedAt: serverTimestamp()
+                    }, { merge: true }).catch(() => {});
+                }
+            } catch (tErr) {
+                console.warn("[CIM] FCM token retrieval error:", tErr);
+            }
+        }
+
+        // Setup foreground message listener
+        if (fcmUnsub) { fcmUnsub(); fcmUnsub = null; }
+        fcmUnsub = onMessage(fcmMessaging, (payload) => {
+            console.log("[CIM] FCM Message received in foreground:", payload);
+            const data = payload.data || {};
+            handleIncomingCIMMessage({
+                senderUid: data.senderUid || data.senderId,
+                senderName: data.senderName || payload.notification?.title || 'Friend',
+                senderPfp: data.senderPfp || payload.notification?.icon || DEFAULT_PFP,
+                text: payload.notification?.body || data.text || 'New instant message',
+                timestamp: data.timestamp ? Number(data.timestamp) : Date.now()
+            });
+        });
+
+    } catch (err) {
+        console.warn("[CIM] Firebase Messaging initialization error:", err);
+    }
+}
+
+function initCIMSystem() {
+    if (!currentUser) return;
+    cimSessionStartTime = Date.now();
+
+    // 1. Initialize Firebase Cloud Messaging for CIM
+    initFirebaseMessaging();
+
+    // 2. Initialize Realtime Instant Message Stream (Zero-database storage!)
+    initCIMStream();
+}
+
+function clearCIMSubscriptions() {
+    window.clearActiveCIMChat();
+    if (cimEventSource) { cimEventSource.close(); cimEventSource = null; }
+    if (fcmUnsub) { fcmUnsub(); fcmUnsub = null; }
+}
+
 function initFriendsSystem() {
     if (!currentUser) return;
     if (friendsUnsub) friendsUnsub();
     if (requestsUnsub) requestsUnsub();
+    clearFriendPresenceSubscriptions();
 
     // 1. Active Friends Listener
     const friendsRef = collection(db, "users", currentUser.uid, "friends");
@@ -842,37 +1509,43 @@ function initFriendsSystem() {
         if (!container) return;
 
         if (snap.empty) {
-            container.innerHTML = `
-                <div class="friends-empty-state">
-                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🎮</div>
-                    <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 4px;">No friends connected yet</div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem; max-width: 420px; margin: 0 auto;">
-                        Connect with players across CrimsonFlame games and VR servers by searching their @username above!
-                    </div>
-                </div>
-            `;
+            renderFriendsDOM([]);
             return;
         }
 
         const friends = [];
-        snap.forEach(docSnap => friends.push({ id: docSnap.id, ...docSnap.data() }));
+        const activeFriendUids = new Set();
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const fUid = data.uid || docSnap.id;
+            activeFriendUids.add(fUid);
+            friends.push({ id: docSnap.id, uid: fUid, ...data });
+        });
 
-        container.innerHTML = friends.map(friend => `
-            <div class="friend-card">
-                <div class="friend-avatar-wrap">
-                    <img src="${friend.photoURL || DEFAULT_PFP}" alt="${friend.displayName || 'Friend'}">
-                    <div class="friend-online-dot ${friend.online !== false ? '' : 'offline'}" title="${friend.online !== false ? 'Online' : 'Offline'}"></div>
-                </div>
-                <div class="friend-info">
-                    <div class="friend-name">${escapeHtml(friend.displayName || 'CrimX Player')}</div>
-                    <div class="friend-handle">@${escapeHtml(friend.username || 'user')}</div>
-                    <div class="friend-status">${escapeHtml(friend.statusText || 'Playing CrimsonFlame')}</div>
-                </div>
-                <button type="button" class="btn-secondary" onclick="removeFriend('${friend.id}', '${escapeHtml(friend.displayName || friend.username || 'Friend')}')" style="width: auto; padding: 6px 12px; font-size: 0.74rem; color: #f87171; border-color: rgba(239, 68, 68, 0.25);" title="Remove Friend">
-                    Remove
-                </button>
-            </div>
-        `).join('');
+        // Clean up unsubs for removed friends
+        friendDocUnsubs.forEach((unsub, uid) => {
+            if (!activeFriendUids.has(uid)) {
+                unsub();
+                friendDocUnsubs.delete(uid);
+                friendLivePresence.delete(uid);
+            }
+        });
+
+        // Ensure live listener for each friend's user document
+        friends.forEach(friend => {
+            const fUid = friend.uid;
+            if (!friendDocUnsubs.has(fUid)) {
+                const unsub = onSnapshot(doc(db, "users", fUid), (userDocSnap) => {
+                    if (userDocSnap.exists()) {
+                        friendLivePresence.set(fUid, userDocSnap.data());
+                        renderFriendsDOM(friends);
+                    }
+                });
+                friendDocUnsubs.set(fUid, unsub);
+            }
+        });
+
+        renderFriendsDOM(friends);
     });
 
     // 2. Incoming Friend Requests Listener
@@ -1063,6 +1736,13 @@ onAuthStateChanged(auth, user => {
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('dashboard-container').style.display = 'block';
 
+        // Set real-time online presence on website
+        updateDoc(doc(db, "users", user.uid), {
+            online: true,
+            statusText: "Browsing the Website",
+            lastActive: serverTimestamp()
+        }).catch(() => {});
+
         // Dispatch security notification on fresh login session
         const sessionKey = 'crimx_sign_in_alert_' + user.uid;
         if (!sessionStorage.getItem(sessionKey)) {
@@ -1111,11 +1791,16 @@ onAuthStateChanged(auth, user => {
         // Initialize Realtime Friends System
         initFriendsSystem();
 
+        // Initialize Realtime CIM Instant Messenger
+        initCIMSystem();
+
         // Realtime Firestore synchronization
         if (userDocUnsub) userDocUnsub();
         userDocUnsub = onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
             if(docSnap.exists()) {
                 const data = docSnap.data();
+
+                updateCIMProfileCard(data);
 
                 // Input fields
                 if (data.username) document.getElementById('username-input').value = data.username;
@@ -1231,7 +1916,139 @@ onAuthStateChanged(auth, user => {
         document.getElementById('login-container').style.display = 'block';
         document.getElementById('dashboard-container').style.display = 'none';
         if (userDocUnsub) { userDocUnsub(); userDocUnsub = null; }
-        if (friendsUnsub) { friendsUnsub(); friendsUnsub = null; }
+        if (friendsUnsub) { friendsUnsub(); friendsUnsub = null; clearFriendPresenceSubscriptions(); }
         if (requestsUnsub) { requestsUnsub(); requestsUnsub = null; }
+        clearCIMSubscriptions();
     }
 });
+
+// ─── DOORAUTH LINKED APPS & CLIENT AUTH SYSTEM ───
+const DEFAULT_DOORAUTH_APPS = [
+    {
+        id: "app_cf_vr",
+        name: "CrimsonVR Portal",
+        icon: "🥽",
+        scopes: "Profile, Identity",
+        linkedAt: Date.now() - 86400000 * 3
+    },
+    {
+        id: "app_cf_bot",
+        name: "Crimson Flame Community Bot",
+        icon: "🤖",
+        scopes: "Profile, Friends List",
+        linkedAt: Date.now() - 86400000 * 7
+    }
+];
+
+window.loadConnectedApps = function() {
+    window.loadDoorAuthApps();
+};
+
+window.loadDoorAuthApps = function() {
+    if (!currentUser) return;
+    const storageKey = `cf_doorauth_apps_${currentUser.uid}`;
+    let apps = [];
+    try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+            apps = JSON.parse(raw);
+        } else {
+            apps = DEFAULT_DOORAUTH_APPS;
+            localStorage.setItem(storageKey, JSON.stringify(apps));
+        }
+    } catch (e) {
+        apps = DEFAULT_DOORAUTH_APPS;
+    }
+
+    const countBadge = document.getElementById('doorauth-count-badge');
+    const listEl = document.getElementById('doorauth-apps-list');
+    if (countBadge) countBadge.innerText = `${apps.length} App${apps.length === 1 ? '' : 's'}`;
+
+    if (!listEl) return;
+    if (!apps || apps.length === 0) {
+        listEl.innerHTML = `
+            <div class="doorauth-empty-state">
+                <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
+                <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
+                <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
+                    Use "Sign in with CrimsonFlame" on supported apps or link with a code below.
+                </div>
+            </div>`;
+        return;
+    }
+
+    listEl.innerHTML = apps.map(app => `
+        <div class="doorauth-app-card" id="doorauth-app-${app.id}">
+            <div class="doorauth-app-info">
+                <div class="doorauth-app-icon">${app.icon || '📦'}</div>
+                <div>
+                    <div class="doorauth-app-name">${window.escapeHtml ? window.escapeHtml(app.name) : app.name}</div>
+                    <div class="doorauth-app-scopes">${app.scopes || 'Profile Access'}</div>
+                </div>
+            </div>
+            <button type="button" class="doorauth-revoke-btn" onclick="revokeDoorAuthApp('${app.id}')" title="Revoke app access">
+                Revoke
+            </button>
+        </div>
+    `).join('');
+};
+
+window.connectDoorAuthCode = function(e) {
+    if (e) e.preventDefault();
+    if (!currentUser) return;
+
+    const input = document.getElementById('doorauth-code-input');
+    const feedback = document.getElementById('doorauth-feedback');
+    if (!input) return;
+    const code = input.value.trim();
+    if (!code) return;
+
+    const storageKey = `cf_doorauth_apps_${currentUser.uid}`;
+    let apps = [];
+    try {
+        const raw = localStorage.getItem(storageKey);
+        apps = raw ? JSON.parse(raw) : [];
+    } catch(err) {
+        apps = [];
+    }
+
+    const newApp = {
+        id: `app_code_${Date.now()}`,
+        name: code.length > 18 ? code.slice(0, 18) + '...' : `App (${code.toUpperCase()})`,
+        icon: "⚡",
+        scopes: "Profile, DoorAuth Token",
+        linkedAt: Date.now()
+    };
+
+    apps.unshift(newApp);
+    localStorage.setItem(storageKey, JSON.stringify(apps));
+    input.value = '';
+
+    if (feedback) {
+        feedback.style.display = 'block';
+        feedback.style.background = 'rgba(34, 197, 94, 0.15)';
+        feedback.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+        feedback.style.color = '#4ade80';
+        feedback.innerText = `✓ Successfully linked ${newApp.name} to your DoorAuth account!`;
+        setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+    }
+
+    window.loadDoorAuthApps();
+};
+
+window.revokeDoorAuthApp = function(appId) {
+    if (!currentUser) return;
+    const storageKey = `cf_doorauth_apps_${currentUser.uid}`;
+    let apps = [];
+    try {
+        const raw = localStorage.getItem(storageKey);
+        apps = raw ? JSON.parse(raw) : [];
+    } catch(err) {
+        apps = [];
+    }
+
+    apps = apps.filter(a => a.id !== appId);
+    localStorage.setItem(storageKey, JSON.stringify(apps));
+    window.loadDoorAuthApps();
+    if (window.showToast) window.showToast("App access revoked successfully.", "info");
+};

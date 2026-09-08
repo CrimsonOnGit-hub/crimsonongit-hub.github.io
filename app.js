@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, getDoc, query, orderBy, where, doc, onSnapshot, updateDoc, serverTimestamp, arrayUnion, arrayRemove, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, getDoc, query, orderBy, where, doc, onSnapshot, updateDoc, serverTimestamp, arrayUnion, arrayRemove, setDoc, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBSSJKDrFJ1_qlliZqgw34CY2TSaKOxxxM",
@@ -273,6 +273,7 @@ onAuthStateChanged(auth, user => {
             if (isGlobalAdmin && document.getElementById('admin-panel')) document.getElementById('admin-panel').style.display = 'block';
             window.updateQuickAuthUI();
         }
+        handleAccountPresence(currentUser);
 
     } else {
         currentUser = null; isGlobalAdmin = false;
@@ -283,6 +284,7 @@ onAuthStateChanged(auth, user => {
         if (currentPage === 'support.html') { document.getElementById('support-locked').style.display = 'block'; document.getElementById('support-system').style.display = 'none'; }
         if (isIndex) { window.updateQuickAuthUI(); }
         if (userDocUnsub) { userDocUnsub(); userDocUnsub = null; }
+        handleAccountPresence(null);
     }
 });
 
@@ -744,3 +746,753 @@ setTimeout(() => {
         window.routeTo('home');
     }
 }, 100);
+
+// ─── CRIMSONFLAME ACCOUNT MODAL & REAL PRESENCE SYSTEM ───
+let activeAccountTab = 'account';
+let accountUserDocUnsub = null;
+let accountFriendsUnsub = null;
+let accountRequestsUnsub = null;
+let presenceHeartbeatInterval = null;
+let currentUserAccountData = null;
+const friendPresenceUnsubs = new Map();
+const friendPresenceCache = new Map();
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+const TAB_TITLES = {
+    account: { icon: "👤", text: "My Account" },
+    security: { icon: "🛡️", text: "Security Check" },
+    profile: { icon: "🪪", text: "Profile" },
+    notifications: { icon: "🔔", text: "Notifications" },
+    settings: { icon: "⚙️", text: "Settings" },
+    users: { icon: "🌐", text: "Users" },
+    friends: { icon: "🤝", text: "Friends" }
+};
+
+function updateAccountModalUserUI(user, userData) {
+    const fabPfp = document.getElementById('fab-user-pfp');
+    const fabDot = document.getElementById('fab-status-dot');
+    const modalAvatar = document.getElementById('modal-user-avatar');
+    const modalDot = document.getElementById('modal-user-dot');
+    const modalName = document.getElementById('modal-user-name');
+    const modalSub = document.getElementById('modal-user-sub');
+    const authBtnText = document.getElementById('modal-auth-btn-text');
+
+    if (!user) {
+        if (fabPfp) fabPfp.src = DEFAULT_PFP;
+        if (fabDot) { fabDot.classList.add('offline'); fabDot.title = 'Offline'; }
+        if (modalAvatar) modalAvatar.src = DEFAULT_PFP;
+        if (modalDot) modalDot.classList.add('offline');
+        if (modalName) modalName.innerText = 'Guest';
+        if (modalSub) modalSub.innerText = 'Not Logged In';
+        if (authBtnText) authBtnText.innerText = 'Log In';
+        return;
+    }
+
+    const pfp = (userData && userData.photoURL) || user.photoURL || DEFAULT_PFP;
+    const displayName = (userData && userData.displayName) || user.displayName || user.email.split('@')[0];
+    const username = (userData && userData.username) ? `@${userData.username}` : `@${user.email.split('@')[0]}`;
+    const isOnline = userData ? userData.online !== false : true;
+
+    if (fabPfp) fabPfp.src = pfp;
+    if (fabDot) {
+        if (isOnline) {
+            fabDot.classList.remove('offline');
+            fabDot.title = 'Online';
+        } else {
+            fabDot.classList.add('offline');
+            fabDot.title = 'Offline';
+        }
+    }
+
+    if (modalAvatar) modalAvatar.src = pfp;
+    if (modalDot) {
+        if (isOnline) modalDot.classList.remove('offline');
+        else modalDot.classList.add('offline');
+    }
+    if (modalName) modalName.innerText = displayName;
+    if (modalSub) modalSub.innerText = username;
+    if (authBtnText) authBtnText.innerText = 'Log Out';
+}
+
+window.setOnlineStatus = async function(isOnline) {
+    if (!currentUser) return;
+    try {
+        const targetOnline = !!isOnline;
+        const targetStatus = targetOnline ? "Browsing the Website" : "Offline";
+        await updateDoc(doc(db, "users", currentUser.uid), {
+            online: targetOnline,
+            statusText: targetStatus,
+            lastActive: serverTimestamp()
+        });
+        if (currentUserAccountData) {
+            currentUserAccountData.online = targetOnline;
+            currentUserAccountData.statusText = targetStatus;
+        }
+        updateAccountModalUserUI(currentUser, currentUserAccountData);
+        renderActiveModalTab();
+    } catch (err) {
+        console.error("[Account Modal] Failed to update status:", err);
+    }
+};
+
+function handleAccountPresence(user) {
+    if (presenceHeartbeatInterval) {
+        clearInterval(presenceHeartbeatInterval);
+        presenceHeartbeatInterval = null;
+    }
+    if (accountUserDocUnsub) {
+        accountUserDocUnsub();
+        accountUserDocUnsub = null;
+    }
+
+    if (!user) {
+        currentUserAccountData = null;
+        updateAccountModalUserUI(null, null);
+        renderActiveModalTab();
+        return;
+    }
+
+    // Set initial presence on website visit
+    getDoc(doc(db, "users", user.uid)).then(snap => {
+        const data = snap.exists() ? snap.data() : {};
+        const isOnline = data.online !== false;
+        const status = isOnline ? "Browsing the Website" : "Offline";
+
+        updateDoc(doc(db, "users", user.uid), {
+            online: isOnline,
+            statusText: status,
+            lastActive: serverTimestamp()
+        }).catch(() => {});
+    }).catch(() => {});
+
+    // Periodic heartbeat every 60s
+    presenceHeartbeatInterval = setInterval(() => {
+        if (currentUser && currentUserAccountData && currentUserAccountData.online !== false) {
+            updateDoc(doc(db, "users", currentUser.uid), {
+                lastActive: serverTimestamp()
+            }).catch(() => {});
+        }
+    }, 60000);
+
+    // Live listener for own user doc
+    accountUserDocUnsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
+        if (snap.exists()) {
+            currentUserAccountData = snap.data();
+            updateAccountModalUserUI(user, currentUserAccountData);
+            renderActiveModalTab();
+        }
+    });
+}
+
+function switchAccountTab(tabName) {
+    activeAccountTab = tabName;
+    document.querySelectorAll('.account-nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabName) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    const info = TAB_TITLES[tabName] || { icon: "👤", text: "My Account" };
+    const titleIcon = document.getElementById('tab-title-icon');
+    const titleText = document.getElementById('tab-title-text');
+    if (titleIcon) titleIcon.innerText = info.icon;
+    if (titleText) titleText.innerText = info.text;
+
+    document.querySelectorAll('.account-tab-pane').forEach(pane => {
+        pane.style.display = 'none';
+        pane.classList.remove('active');
+    });
+
+    const targetPane = document.getElementById(`pane-${tabName}`);
+    if (targetPane) {
+        targetPane.style.display = 'block';
+        targetPane.classList.add('active');
+    }
+
+    renderActiveModalTab();
+}
+
+function renderActiveModalTab() {
+    const pane = document.getElementById(`pane-${activeAccountTab}`);
+    if (!pane) return;
+
+    if (!currentUser) {
+        pane.innerHTML = `
+            <div class="account-empty-state">
+                <div class="account-empty-icon">${TAB_TITLES[activeAccountTab]?.icon || '👤'}</div>
+                <div class="account-empty-title">Not logged in</div>
+                <div class="account-empty-desc">Sign in to manage your account.</div>
+                <button class="account-login-btn" onclick="window.location.href='/auth'">Login</button>
+            </div>
+        `;
+        return;
+    }
+
+    switch (activeAccountTab) {
+        case 'account':
+            renderModalAccount(pane);
+            break;
+        case 'security':
+            renderModalSecurity(pane);
+            break;
+        case 'profile':
+            renderModalProfile(pane);
+            break;
+        case 'notifications':
+            renderModalNotifications(pane);
+            break;
+        case 'settings':
+            renderModalSettings(pane);
+            break;
+        case 'users':
+            renderModalUsers(pane);
+            break;
+        case 'friends':
+            renderModalFriends(pane);
+            break;
+        default:
+            renderModalAccount(pane);
+            break;
+    }
+}
+
+function renderModalAccount(pane) {
+    const data = currentUserAccountData || {};
+    const isOnline = data.online !== false;
+    const statusText = isOnline ? (data.statusText || "Browsing the Website") : "Offline";
+    const displayName = data.displayName || currentUser.displayName || currentUser.email.split('@')[0];
+    const username = data.username ? `@${data.username}` : `@${currentUser.email.split('@')[0]}`;
+
+    pane.innerHTML = `
+        <div class="account-section-card">
+            <div class="account-card-title"><span>📡</span> Presence & Live Status</div>
+            <div class="account-status-row">
+                <div class="account-status-preview">
+                    <div class="status-dot-indicator ${isOnline ? '' : 'offline'}"></div>
+                    <div>
+                        <div style="font-weight: 700; color: #fff;">${escapeHtml(statusText)}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary);">Visible to your friends across the CrimsonFlame network</div>
+                    </div>
+                </div>
+                <div class="account-status-toggle-btns">
+                    <button type="button" class="status-toggle-btn ${isOnline ? 'active-online' : ''}" onclick="window.setOnlineStatus(true)">
+                        🟢 Online
+                    </button>
+                    <button type="button" class="status-toggle-btn ${!isOnline ? 'active-offline' : ''}" onclick="window.setOnlineStatus(false)">
+                        ⚪ Offline
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="account-section-card">
+            <div class="account-card-title"><span>👤</span> Account Details</div>
+            <div class="account-info-grid">
+                <div class="account-info-item">
+                    <div class="account-info-label">Display Name</div>
+                    <div class="account-info-value">${escapeHtml(displayName)}</div>
+                </div>
+                <div class="account-info-item">
+                    <div class="account-info-label">Username</div>
+                    <div class="account-info-value">${escapeHtml(username)}</div>
+                </div>
+                <div class="account-info-item">
+                    <div class="account-info-label">Email</div>
+                    <div class="account-info-value" style="font-size: 0.85rem; word-break: break-all;">${escapeHtml(currentUser.email)}</div>
+                </div>
+                <div class="account-info-item">
+                    <div class="account-info-label">Membership</div>
+                    <div class="account-info-value" style="color: #ef4444;">${isGlobalAdmin ? 'CrimX Admin' : 'CrimX Member'}</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="account-login-btn" style="padding: 9px 20px;" onclick="window.location.href='/dashboard'">
+                    Open Full CrimX Dashboard 🚀
+                </button>
+                <button type="button" class="status-toggle-btn" style="padding: 9px 16px; border-radius: 10px; color: #fff;" onclick="window.location.href='/support'">
+                    Support Tickets 💬
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function renderModalSecurity(pane) {
+    const isEmailVerified = currentUser.emailVerified;
+    pane.innerHTML = `
+        <div class="account-section-card">
+            <div class="account-card-title"><span>🛡️</span> Security & Verification</div>
+            <div class="account-info-grid">
+                <div class="account-info-item">
+                    <div class="account-info-label">Account ID (UID)</div>
+                    <div class="account-info-value" style="font-size: 0.76rem; font-family: monospace; color: #94a3b8; word-break: break-all;">
+                        ${escapeHtml(currentUser.uid)}
+                    </div>
+                </div>
+                <div class="account-info-item">
+                    <div class="account-info-label">Email Verified</div>
+                    <div class="account-info-value" style="color: ${isEmailVerified ? '#4ade80' : '#fb923c'};">
+                        ${isEmailVerified ? '✅ Verified' : '⚠️ Pending Verification'}
+                    </div>
+                </div>
+                <div class="account-info-item">
+                    <div class="account-info-label">DoorAuth Protected</div>
+                    <div class="account-info-value" style="color: #4ade80;">Active</div>
+                </div>
+                <div class="account-info-item">
+                    <div class="account-info-label">Sign-In Method</div>
+                    <div class="account-info-value">${currentUser.providerData.some(p => p.providerId === 'google.com') ? 'Google OAuth' : 'Email / Password'}</div>
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <button type="button" class="account-login-btn" style="padding: 8px 18px; font-size: 0.85rem;" onclick="window.location.href='/reset-password'">
+                    Reset Password
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function renderModalProfile(pane) {
+    const data = currentUserAccountData || {};
+    const displayName = data.displayName || currentUser.displayName || '';
+    const username = data.username || '';
+    pane.innerHTML = `
+        <div class="account-section-card">
+            <div class="account-card-title"><span>🪪</span> Profile Information</div>
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">DISPLAY NAME</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="modal-quick-name-input" value="${escapeHtml(displayName)}" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px; padding: 8px 12px; color: #fff;">
+                    <button type="button" class="account-login-btn" style="padding: 8px 16px; font-size: 0.85rem;" onclick="window.saveModalDisplayName()">Save</button>
+                </div>
+            </div>
+            <div class="account-info-grid">
+                <div class="account-info-item">
+                    <div class="account-info-label">Current Handle</div>
+                    <div class="account-info-value">@${escapeHtml(username || 'user')}</div>
+                </div>
+                <div class="account-info-item">
+                    <div class="account-info-label">Custom Avatar & Banner</div>
+                    <div class="account-info-value">
+                        <a href="/dashboard" style="color: #ef4444; text-decoration: underline; font-size: 0.85rem;">Manage on Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+window.saveModalDisplayName = async function() {
+    if (!currentUser) return;
+    const inp = document.getElementById('modal-quick-name-input');
+    if (!inp) return;
+    const newName = inp.value.trim();
+    if (!newName) return window.showCustomAlert("Please enter a valid display name.");
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), { displayName: newName });
+        await updateProfile(currentUser, { displayName: newName });
+        window.showCustomAlert("Display name updated!");
+    } catch (err) {
+        window.showCustomAlert("Failed to update name: " + err.message);
+    }
+};
+
+function renderModalNotifications(pane) {
+    pane.innerHTML = `
+        <div class="account-section-card">
+            <div class="account-card-title"><span>🔔</span> Incoming Friend Requests</div>
+            <div id="modal-notifications-list">
+                <div style="color: var(--text-secondary); font-size: 0.88rem; padding: 12px 0;">Loading notifications...</div>
+            </div>
+        </div>
+    `;
+
+    if (accountRequestsUnsub) accountRequestsUnsub();
+    const reqRef = collection(db, "users", currentUser.uid, "friend_requests");
+    accountRequestsUnsub = onSnapshot(reqRef, (snap) => {
+        const list = document.getElementById('modal-notifications-list');
+        if (!list) return;
+
+        if (snap.empty) {
+            list.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.88rem; padding: 12px 0;">No pending friend requests or notifications.</div>`;
+            return;
+        }
+
+        const requests = [];
+        snap.forEach(d => requests.push({ id: d.id, ...d.data() }));
+
+        list.innerHTML = requests.map(req => `
+            <div class="account-friend-card">
+                <div class="account-friend-left">
+                    <div class="account-friend-pfp">
+                        <img src="${req.fromPfp || DEFAULT_PFP}" alt="${escapeHtml(req.fromName || 'User')}">
+                    </div>
+                    <div class="account-friend-meta">
+                        <div class="account-friend-name">${escapeHtml(req.fromName || 'Player')}</div>
+                        <div class="account-friend-handle">@${escapeHtml(req.fromUsername || 'user')}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" class="account-login-btn" style="padding: 6px 12px; font-size: 0.78rem;" onclick="window.acceptAccountFriendRequest('${req.id}', '${escapeHtml(req.fromName || '')}', '${escapeHtml(req.fromUsername || '')}', '${escapeHtml(req.fromPfp || '')}')">
+                        Accept
+                    </button>
+                    <button type="button" class="status-toggle-btn" style="padding: 6px 12px; font-size: 0.78rem; color: #f87171;" onclick="window.declineAccountFriendRequest('${req.id}')">
+                        Decline
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    });
+}
+
+function renderModalSettings(pane) {
+    pane.innerHTML = `
+        <div class="account-section-card">
+            <div class="account-card-title"><span>⚙️</span> Website & Preferences</div>
+            <div class="account-status-row" style="margin-bottom: 10px;">
+                <div>
+                    <div style="font-weight: 700; color: #fff;">Dark Crimson Theme</div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary);">Default high-fidelity Obsidian Crimson palette</div>
+                </div>
+                <span style="color: #4ade80; font-weight: 700; font-size: 0.82rem;">ENABLED</span>
+            </div>
+            <div class="account-status-row">
+                <div>
+                    <div style="font-weight: 700; color: #fff;">Live Online Presence</div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary);">Allows friends to see when you're browsing the website or playing games</div>
+                </div>
+                <span style="color: #4ade80; font-weight: 700; font-size: 0.82rem;">ACTIVE</span>
+            </div>
+        </div>
+    `;
+}
+
+function renderModalUsers(pane) {
+    pane.innerHTML = `
+        <div class="account-section-card">
+            <div class="account-card-title"><span>🌐</span> Discover & Add Friends</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                <input type="text" id="modal-user-search-input" placeholder="Search by @username..." style="flex: 1; background: rgba(0,0,0,0.35); border: 1px solid rgba(220,38,38,0.3); border-radius: 10px; padding: 10px 14px; color: #fff;">
+                <button type="button" class="account-login-btn" style="padding: 10px 18px;" onclick="window.searchModalUsers()">Search</button>
+            </div>
+            <div id="modal-users-search-results">
+                <div style="color: var(--text-secondary); font-size: 0.85rem; padding: 10px 0;">Type a username above to search for players across CrimX.</div>
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        const inp = document.getElementById('modal-user-search-input');
+        if (inp) {
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') window.searchModalUsers();
+            });
+        }
+    }, 50);
+}
+
+window.searchModalUsers = async function() {
+    const inp = document.getElementById('modal-user-search-input');
+    const container = document.getElementById('modal-users-search-results');
+    if (!inp || !container) return;
+
+    const queryStr = inp.value.trim().toLowerCase().replace('@', '');
+    if (!queryStr) {
+        container.innerHTML = `<div style="color: #f87171; font-size: 0.85rem; padding: 10px 0;">Please enter a username to search.</div>`;
+        return;
+    }
+
+    container.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 10px 0;">Searching...</div>`;
+
+    try {
+        const q = query(
+            collection(db, "users"),
+            where("username", ">=", queryStr),
+            where("username", "<=", queryStr + "\uf8ff"),
+            limit(10)
+        );
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            container.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 10px 0;">No users found matching "@${escapeHtml(queryStr)}".</div>`;
+            return;
+        }
+
+        const users = [];
+        snap.forEach(d => {
+            if (currentUser && d.id !== currentUser.uid) {
+                users.push({ id: d.id, ...d.data() });
+            }
+        });
+
+        if (users.length === 0) {
+            container.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 10px 0;">No other users found matching "@${escapeHtml(queryStr)}".</div>`;
+            return;
+        }
+
+        container.innerHTML = users.map(u => `
+            <div class="account-friend-card">
+                <div class="account-friend-left">
+                    <div class="account-friend-pfp">
+                        <img src="${u.photoURL || DEFAULT_PFP}" alt="${escapeHtml(u.displayName || 'Player')}">
+                        <div class="friend-dot ${u.online !== false ? '' : 'offline'}"></div>
+                    </div>
+                    <div class="account-friend-meta">
+                        <div class="account-friend-name">${escapeHtml(u.displayName || 'CrimX Player')}</div>
+                        <div class="account-friend-handle">@${escapeHtml(u.username || 'user')}</div>
+                        <div class="account-friend-status">${escapeHtml(u.online !== false ? (u.statusText || 'Browsing the Website') : 'Offline')}</div>
+                    </div>
+                </div>
+                <button type="button" class="account-login-btn" style="padding: 6px 14px; font-size: 0.78rem;" onclick="window.sendAccountFriendRequest('${u.id}', '${escapeHtml(u.username || '')}')">
+                    Add Friend
+                </button>
+            </div>
+        `).join('');
+    } catch (err) {
+        container.innerHTML = `<div style="color: #f87171; font-size: 0.85rem; padding: 10px 0;">Search failed: ${escapeHtml(err.message)}</div>`;
+    }
+};
+
+window.sendAccountFriendRequest = async function(targetUid, targetUsername) {
+    if (!currentUser) return;
+    try {
+        const myData = currentUserAccountData || {};
+        const myUsername = myData.username || currentUser.email.split('@')[0];
+        const myName = myData.displayName || currentUser.displayName || myUsername;
+        const myPfp = myData.photoURL || currentUser.photoURL || DEFAULT_PFP;
+
+        await setDoc(doc(db, "users", targetUid, "friend_requests", currentUser.uid), {
+            fromUid: currentUser.uid,
+            fromName: myName,
+            fromUsername: myUsername,
+            fromPfp: myPfp,
+            timestamp: serverTimestamp()
+        });
+
+        window.showCustomAlert(`Friend request sent to @${targetUsername}!`);
+    } catch (err) {
+        window.showCustomAlert("Failed to send request: " + err.message);
+    }
+};
+
+function renderModalFriends(pane) {
+    pane.innerHTML = `
+        <div class="account-section-card">
+            <div class="account-card-title"><span>🤝</span> Friends & Network</div>
+            <div id="modal-friends-list">
+                <div style="color: var(--text-secondary); font-size: 0.88rem; padding: 12px 0;">Loading friends...</div>
+            </div>
+        </div>
+    `;
+
+    if (accountFriendsUnsub) accountFriendsUnsub();
+
+    const friendsRef = collection(db, "users", currentUser.uid, "friends");
+    accountFriendsUnsub = onSnapshot(friendsRef, (snap) => {
+        const container = document.getElementById('modal-friends-list');
+        if (!container) return;
+
+        if (snap.empty) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 24px 12px; color: var(--text-secondary);">
+                    <div style="font-size: 2rem; margin-bottom: 6px;">🎮</div>
+                    <div style="font-weight: 700; color: #fff; font-size: 0.98rem; margin-bottom: 4px;">No friends connected yet</div>
+                    <div style="font-size: 0.82rem; margin-bottom: 14px;">Find players across CrimsonFlame games and website by searching in the Users tab!</div>
+                    <button type="button" class="account-login-btn" style="padding: 7px 18px; font-size: 0.82rem;" onclick="window.switchAccountTab('users')">Find Players</button>
+                </div>
+            `;
+            return;
+        }
+
+        const rawFriends = [];
+        snap.forEach(d => rawFriends.push({ id: d.id, ...d.data() }));
+
+        // Ensure live listener for each friend's user document
+        rawFriends.forEach(friend => {
+            const fUid = friend.uid || friend.id;
+            if (!friendPresenceUnsubs.has(fUid)) {
+                const unsub = onSnapshot(doc(db, "users", fUid), (userSnap) => {
+                    if (userSnap.exists()) {
+                        friendPresenceCache.set(fUid, userSnap.data());
+                        updateModalFriendsListDOM(rawFriends);
+                    }
+                });
+                friendPresenceUnsubs.set(fUid, unsub);
+            }
+        });
+
+        updateModalFriendsListDOM(rawFriends);
+    });
+}
+
+function updateModalFriendsListDOM(friendsList) {
+    const container = document.getElementById('modal-friends-list');
+    if (!container) return;
+
+    container.innerHTML = friendsList.map(friend => {
+        const fUid = friend.uid || friend.id;
+        const live = friendPresenceCache.get(fUid) || {};
+        const isOnline = live.online !== undefined ? live.online : (friend.online !== false);
+        const statusText = isOnline ? (live.statusText || friend.statusText || 'Browsing the Website') : 'Offline';
+        const pfp = live.photoURL || friend.photoURL || DEFAULT_PFP;
+        const dispName = live.displayName || friend.displayName || 'CrimX Player';
+        const handle = live.username || friend.username || 'user';
+
+        return `
+            <div class="account-friend-card">
+                <div class="account-friend-left">
+                    <div class="account-friend-pfp">
+                        <img src="${pfp}" alt="${escapeHtml(dispName)}">
+                        <div class="friend-dot ${isOnline ? '' : 'offline'}" title="${isOnline ? 'Online' : 'Offline'}"></div>
+                    </div>
+                    <div class="account-friend-meta">
+                        <div class="account-friend-name">${escapeHtml(dispName)}</div>
+                        <div class="account-friend-handle">@${escapeHtml(handle)}</div>
+                        <div class="account-friend-status" style="color: ${isOnline ? '#f87171' : '#9ca3af'};">
+                            ${escapeHtml(statusText)}
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="status-toggle-btn" style="padding: 6px 12px; font-size: 0.74rem; color: #f87171; border-color: rgba(239, 68, 68, 0.25);" onclick="window.removeAccountFriend('${friend.id}', '${escapeHtml(dispName)}')">
+                    Remove
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.acceptAccountFriendRequest = async function(fromUid, fromName, fromUsername, fromPfp) {
+    if (!currentUser) return;
+    try {
+        const myData = currentUserAccountData || {};
+        const myUsername = myData.username || currentUser.email.split('@')[0];
+        const myName = myData.displayName || currentUser.displayName || myUsername;
+        const myPfp = myData.photoURL || currentUser.photoURL || DEFAULT_PFP;
+
+        await setDoc(doc(db, "users", currentUser.uid, "friends", fromUid), {
+            uid: fromUid,
+            displayName: fromName || 'Player',
+            username: fromUsername || 'user',
+            photoURL: fromPfp || DEFAULT_PFP,
+            online: true,
+            statusText: "Browsing the Website",
+            addedAt: serverTimestamp()
+        });
+
+        await setDoc(doc(db, "users", fromUid, "friends", currentUser.uid), {
+            uid: currentUser.uid,
+            displayName: myName,
+            username: myUsername,
+            photoURL: myPfp,
+            online: true,
+            statusText: "Browsing the Website",
+            addedAt: serverTimestamp()
+        });
+
+        await deleteDoc(doc(db, "users", currentUser.uid, "friend_requests", fromUid));
+        window.showCustomAlert(`You are now friends with @${fromUsername}!`);
+    } catch (err) {
+        window.showCustomAlert("Failed to accept friend request: " + err.message);
+    }
+};
+
+window.declineAccountFriendRequest = async function(fromUid) {
+    if (!currentUser) return;
+    try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "friend_requests", fromUid));
+        window.showCustomAlert("Request declined.");
+    } catch (err) {
+        window.showCustomAlert("Failed to decline request: " + err.message);
+    }
+};
+
+window.removeAccountFriend = async function(friendUid, friendName) {
+    if (!currentUser) return;
+    if (!confirm(`Are you sure you want to remove ${friendName} from your friends?`)) return;
+    try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "friends", friendUid));
+        await deleteDoc(doc(db, "users", friendUid, "friends", currentUser.uid));
+        window.showCustomAlert(`Removed ${friendName} from your friends.`);
+    } catch (err) {
+        window.showCustomAlert("Failed to remove friend: " + err.message);
+    }
+};
+
+function initAccountModal() {
+    const fab = document.getElementById('account-fab');
+    const modal = document.getElementById('account-modal');
+    const closeBtn = document.getElementById('account-modal-close');
+    const authBtn = document.getElementById('modal-auth-btn');
+
+    if (fab && modal) {
+        fab.addEventListener('click', () => {
+            const isHidden = modal.style.display === 'none' || !modal.style.display;
+            modal.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden) renderActiveModalTab();
+        });
+    }
+
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.style.display !== 'none') {
+            modal.style.display = 'none';
+        }
+    });
+
+    document.querySelectorAll('.account-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.getAttribute('data-tab');
+            if (tab) switchAccountTab(tab);
+        });
+    });
+
+    if (authBtn) {
+        authBtn.addEventListener('click', async () => {
+            if (currentUser) {
+                try {
+                    await updateDoc(doc(db, "users", currentUser.uid), {
+                        online: false,
+                        statusText: "Offline",
+                        lastActive: serverTimestamp()
+                    });
+                } catch (e) {}
+                await signOut(auth);
+                window.location.reload();
+            } else {
+                window.location.href = '/auth';
+            }
+        });
+    }
+
+    window.switchAccountTab = switchAccountTab;
+    updateAccountModalUserUI(currentUser, currentUserAccountData);
+    renderActiveModalTab();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAccountModal);
+} else {
+    initAccountModal();
+}
+

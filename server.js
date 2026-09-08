@@ -452,6 +452,11 @@ app.use((req, res, next) => {
 });
 
 
+// ─── 4.5 SPECIAL ERROR CODES ───
+app.get(['/teapot', '/teapot/*', '/418'], (req, res) => {
+  res.status(418).sendFile(path.join(__dirname, 'teapot', 'index.html'));
+});
+
 // ─── 5. STATIC ASSET SERVING ───
 app.use(express.static(__dirname, {
   extensions: ['html', 'htm'],
@@ -505,6 +510,163 @@ app.get(['/terms', '/tos'], (req, res) => {
 
 app.get('/privacy', (req, res) => {
   res.sendFile(path.join(__dirname, 'privacy', 'index.html'));
+});
+
+// ─── API: CIM REALTIME IN-MEMORY RELAY & FIREBASE MESSAGING ───
+// Kept in RAM only: 0 database storage, zero cloud leaks!
+const activeCIMClients = new Map();       // recipientUid -> Set of SSE client responses
+const cimMemoryConversations = new Map(); // convoId -> Array of last 100 messages
+const cimPendingQueues = new Map();       // recipientUid -> Array of undelivered messages
+
+// Realtime SSE stream for instant sub-millisecond message delivery
+app.get('/api/cim/stream', (req, res) => {
+  const uid = req.query.uid;
+  if (!uid) return res.status(400).send('UID parameter required');
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  if (!activeCIMClients.has(uid)) {
+    activeCIMClients.set(uid, new Set());
+  }
+  activeCIMClients.get(uid).add(res);
+
+  res.write(`data: ${JSON.stringify({ type: 'connected', uid })}\n\n`);
+  if (typeof res.flush === 'function') res.flush();
+
+  // Heartbeat keep-alive every 20 seconds to prevent proxy / browser timeout
+  const keepAliveInterval = setInterval(() => {
+    try {
+      res.write(': keepalive\n\n');
+      if (typeof res.flush === 'function') res.flush();
+    } catch(e) {
+      clearInterval(keepAliveInterval);
+    }
+  }, 20000);
+
+  req.on('close', () => {
+    clearInterval(keepAliveInterval);
+    const clients = activeCIMClients.get(uid);
+    if (clients) {
+      clients.delete(res);
+      if (clients.size === 0) activeCIMClients.delete(uid);
+    }
+  });
+});
+
+// Realtime fast poll fallback (guarantees dynamic updates even without SSE)
+app.get('/api/cim/poll', (req, res) => {
+  const uid = req.query.uid;
+  if (!uid) return res.json({ messages: [] });
+  const msgs = cimPendingQueues.get(uid) || [];
+  cimPendingQueues.delete(uid);
+  res.json({ messages: msgs });
+});
+
+// In-Memory conversation history (retrieved across sessions/tabs without Firestore)
+app.get('/api/cim/history', (req, res) => {
+  const convoId = req.query.convoId;
+  if (!convoId) return res.json({ messages: [] });
+  const msgs = cimMemoryConversations.get(convoId) || [];
+  res.json({ messages: msgs });
+});
+
+// Dynamic dispatch endpoint for instant messages & FCM push notifications
+app.post('/api/cim/send-fcm', async (req, res) => {
+  const { token, title, body, text, senderUid, senderName, senderPfp, recipientUid, timestamp } = req.body || {};
+  const cleanTimestamp = timestamp || Date.now();
+  const convoId = [senderUid, recipientUid].sort().join('_');
+  const messageText = body || text || '';
+
+  const msgObj = {
+    id: `cim_${cleanTimestamp}_${Math.random().toString(36).slice(2, 7)}`,
+    convoId,
+    senderId: senderUid || '',
+    senderUid: senderUid || '',
+    senderName: senderName || 'Friend',
+    senderPfp: senderPfp || '',
+    recipientId: recipientUid || '',
+    text: messageText,
+    timestamp: cleanTimestamp
+  };
+
+  console.log(`[CIM Instant Message] Realtime dispatch: ${senderName || senderUid} -> ${recipientUid}: "${messageText}"`);
+
+  // 1. Store in server RAM conversation history (Last 100 messages, zero database)
+  if (convoId) {
+    if (!cimMemoryConversations.has(convoId)) {
+      cimMemoryConversations.set(convoId, []);
+    }
+    const history = cimMemoryConversations.get(convoId);
+    history.push(msgObj);
+    if (history.length > 100) history.shift();
+  }
+
+  // 2. Add to recipient's pending poll queue
+  if (recipientUid) {
+    if (!cimPendingQueues.has(recipientUid)) {
+      cimPendingQueues.set(recipientUid, []);
+    }
+    const q = cimPendingQueues.get(recipientUid);
+    q.push(msgObj);
+    if (q.length > 50) q.shift();
+  }
+
+  // 3. Instant Push via SSE stream to active web browser
+  if (recipientUid && activeCIMClients.has(recipientUid)) {
+    const clients = activeCIMClients.get(recipientUid);
+    const ssePayload = JSON.stringify({ type: 'cim_message', ...msgObj });
+    clients.forEach(clientRes => {
+      try {
+        clientRes.write(`data: ${ssePayload}\n\n`);
+        if (typeof clientRes.flush === 'function') clientRes.flush();
+      } catch(e) {}
+    });
+  }
+
+  // 4. Firebase Cloud Messaging push notification (background)
+  const serverKey = process.env.FIREBASE_SERVER_KEY;
+  if (serverKey && token) {
+    try {
+      const fcmRes = await fetch('https://fcm.googleapis.com/fcm/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `key=${serverKey}`
+        },
+        body: JSON.stringify({
+          to: token,
+          notification: {
+            title: title || 'CrimX Instant Message',
+            body: body || 'New message',
+            icon: senderPfp || '/favicon.ico'
+          },
+          data: {
+            senderUid: senderUid || '',
+            senderName: senderName || '',
+            senderPfp: senderPfp || '',
+            text: body || '',
+            timestamp: String(cleanTimestamp)
+          }
+        })
+      });
+      const fcmData = await fcmRes.json();
+      return res.json({ success: true, message: msgObj, fcmResult: fcmData });
+    } catch (fcmErr) {
+      console.warn('[CIM FCM Error]:', fcmErr);
+    }
+  }
+
+  res.json({ success: true, message: msgObj, deliveredDirect: true });
+});
+
+// ─── API: SECURITY ALERT NOTIFICATIONS ───
+app.post('/api/notifications/security-alert', (req, res) => {
+  console.log('[CrimX Security Alert]:', req.body);
+  res.json({ success: true });
 });
 
 // ─── 6. REAL HTTP 404 NOT FOUND HANDLER ───

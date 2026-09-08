@@ -273,33 +273,101 @@
         </div>
     </div>
 
-    <!-- Secret Arcade Easter Egg at bottom of screen -->
-    <div class="arcade-egg-fab" id="arcade-fab" title="???">
-        <span class="arcade-egg-icon">🕹️</span>
+    <!-- Floating User Account Profile FAB -->
+    <div class="account-fab" id="account-fab" title="CrimX Account">
+        <div class="account-fab-avatar-wrap">
+            <img id="fab-user-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Profile">
+            <span class="account-fab-dot" id="fab-status-dot"></span>
+        </div>
     </div>
 
-    <!-- Flappy Flame Arcade Mini-Game Modal -->
-    <div id="flappy-modal" class="flappy-modal-overlay" style="display: none;">
-        <div class="flappy-cabinet">
-            <div class="flappy-header">
-                <div class="flappy-title-group">
-                    <span class="flappy-badge">ARCADE MINI-GAME</span>
-                    <h3 class="flappy-title">🔥 Flappy Flame</h3>
+    <!-- CrimX Account Menu Modal (CrimsonFlame Themed) -->
+    <div id="account-modal" class="account-modal-overlay" style="display: none;">
+        <div class="account-modal-window">
+            <!-- Sidebar -->
+            <aside class="account-sidebar">
+                <!-- User card -->
+                <div class="account-user-card">
+                    <div class="account-user-pfp-ring">
+                        <img id="modal-user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User">
+                        <span class="user-status-dot" id="modal-user-dot"></span>
+                    </div>
+                    <div class="account-user-meta">
+                        <div class="account-user-name" id="modal-user-name">Loading...</div>
+                        <div class="account-user-sub" id="modal-user-sub">CrimX Member</div>
+                    </div>
                 </div>
-                <div class="flappy-header-actions">
-                    <button class="flappy-close-btn" id="flappy-close-btn" title="Close (Esc)">✕</button>
+
+                <!-- Navigation Tabs -->
+                <div class="account-nav-scroll">
+                    <div class="account-nav-section-title">ACCOUNT</div>
+                    <button class="account-nav-btn active" data-tab="account">
+                        <span class="nav-btn-icon">👤</span> My Account
+                    </button>
+                    <button class="account-nav-btn" data-tab="security">
+                        <span class="nav-btn-icon">🛡️</span> Security Check
+                    </button>
+                    <button class="account-nav-btn" data-tab="profile">
+                        <span class="nav-btn-icon">🪪</span> Profile
+                    </button>
+                    <button class="account-nav-btn" data-tab="notifications">
+                        <span class="nav-btn-icon">🔔</span> Notifications
+                    </button>
+                    <button class="account-nav-btn" data-tab="settings">
+                        <span class="nav-btn-icon">⚙️</span> Settings
+                    </button>
+
+                    <div class="account-nav-section-title">SOCIAL</div>
+                    <button class="account-nav-btn" data-tab="users">
+                        <span class="nav-btn-icon">🌐</span> Users
+                    </button>
+                    <button class="account-nav-btn" data-tab="friends">
+                        <span class="nav-btn-icon">🤝</span> Friends
+                    </button>
                 </div>
-            </div>
 
-            <div class="flappy-canvas-wrap">
-                <canvas id="flappy-canvas" width="380" height="480"></canvas>
-                <div class="flappy-scanlines"></div>
-            </div>
+                <!-- Footer Log Out / Log In -->
+                <div class="account-sidebar-footer">
+                    <button id="modal-auth-btn" class="account-logout-btn">
+                        <span class="nav-btn-icon">🚪</span> <span id="modal-auth-btn-text">Log Out</span>
+                    </button>
+                </div>
+            </aside>
 
-            <div class="flappy-hud-bottom">
-                <span>Press <kbd>Space</kbd> or <kbd>Click</kbd> to fly</span>
-                <span class="flappy-hud-best">Best: <strong id="flappy-best-score">0</strong></span>
-            </div>
+            <!-- Main Content Area -->
+            <section class="account-content-pane">
+                <div class="account-content-header">
+                    <div class="account-tab-title" id="account-tab-title">
+                        <span id="tab-title-icon">👤</span> <span id="tab-title-text">My Account</span>
+                    </div>
+                    <button class="account-modal-close" id="account-modal-close" title="Close (Esc)">✕</button>
+                </div>
+
+                <div class="account-tab-body" id="account-tab-body">
+                    <!-- Dynamic Tab Panes -->
+                    <div class="account-tab-pane active" id="pane-account">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="account-tab-pane" id="pane-security" style="display: none;">
+                        <!-- Security Check -->
+                    </div>
+                    <div class="account-tab-pane" id="pane-profile" style="display: none;">
+                        <!-- Profile -->
+                    </div>
+                    <div class="account-tab-pane" id="pane-notifications" style="display: none;">
+                        <!-- Notifications -->
+                    </div>
+                    <div class="account-tab-pane" id="pane-settings" style="display: none;">
+                        <!-- Settings -->
+                    </div>
+                    <div class="account-tab-pane" id="pane-users" style="display: none;">
+                        <!-- Users -->
+                    </div>
+                    <div class="account-tab-pane" id="pane-friends" style="display: none;">
+                        <!-- Friends -->
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
