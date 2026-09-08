@@ -196,6 +196,172 @@
             margin-bottom: 12px;
             display: inline-block;
         }
+
+        /* ─── GOOGLE-STYLE "SIGN IN WITH YOUR CRIMXID" (Untitled.png) ─── */
+        .crimxid-auth-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .crimxid-header-title {
+            font-size: 1.55rem;
+            font-weight: 400;
+            color: #cbd5e1;
+            margin-bottom: 22px;
+            text-align: center;
+            letter-spacing: -0.3px;
+        }
+
+        .crimxid-header-title strong {
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .crimxid-card {
+            width: 100%;
+            background: #46090e;
+            background: linear-gradient(180deg, #4f0b11 0%, #360509 100%);
+            border: 1px solid #680e16;
+            border-radius: 6px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+            padding: 40px 34px 34px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .crimxid-avatar-circle {
+            width: 104px;
+            height: 104px;
+            border-radius: 50%;
+            background: #0099ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 22px;
+            box-shadow: 0 6px 20px rgba(0, 153, 255, 0.4);
+            overflow: hidden;
+        }
+
+        .crimxid-avatar-circle svg {
+            width: 72px;
+            height: 72px;
+            fill: #ffffff;
+        }
+
+        .crimxid-greeting {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .crimxid-app-prompt {
+            font-size: 0.85rem;
+            color: #fca5a5;
+            margin-bottom: 26px;
+            line-height: 1.45;
+        }
+
+        .crimxid-input-box {
+            width: 100%;
+            border: 2px solid #ef4444;
+            background: #240406;
+            color: #ffffff;
+            border-radius: 4px;
+            padding: 14px 18px;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .crimxid-input-box::placeholder {
+            color: #ef4444;
+            opacity: 0.9;
+        }
+
+        .crimxid-input-box:focus {
+            border-color: #f87171;
+            background: #2c0508;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+        }
+
+        .crimxid-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .crimxid-btn-cancel {
+            background: transparent;
+            border: 1px solid #7f1d1d;
+            color: #fca5a5;
+            padding: 10px 22px;
+            border-radius: 4px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .crimxid-btn-cancel:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fff;
+        }
+
+        .crimxid-btn-submit {
+            background: #ef4444;
+            color: #ffffff;
+            border: none;
+            padding: 11px 26px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+            transition: all 0.2s;
+        }
+
+        .crimxid-btn-submit:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.6);
+        }
+
+        .crimxid-footer {
+            margin-top: 36px;
+            text-align: center;
+        }
+
+        .crimxid-footer-tagline {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .crimxid-footer-hashtag {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #00e5ff;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -347,9 +513,41 @@
             <a href="/dashboard" class="btn-secondary" style="display: block; width: 100%; text-decoration: none; padding: 12px; font-weight: 700; text-align: center;">
                 ← Back to Sign In
             </a>
+    </main>
+
+    <!-- ─── GOOGLE-STYLE "SIGN IN WITH YOUR CRIMXID" (Untitled.png) ─── -->
+    <div id="crimxid-view" class="crimxid-auth-wrapper">
+        <div class="crimxid-header-title">
+            Sign in with your <strong>CrimXID</strong>
         </div>
 
-    </main>
+        <div class="crimxid-card">
+            <div class="crimxid-avatar-circle" id="oauth-avatar">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
+                </svg>
+            </div>
+
+            <div class="crimxid-greeting" id="oauth-greeting">Hey there, User!</div>
+            <div class="crimxid-app-prompt" id="oauth-prompt">
+                <strong id="oauth-app-name" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
+            </div>
+
+            <form onsubmit="handleOAuthAuthorizeSubmit(event)" style="width: 100%;">
+                <input type="password" id="oauth-password-input" class="crimxid-input-box" placeholder="Enter CrimX Password." autocomplete="current-password">
+
+                <div class="crimxid-actions">
+                    <button type="button" class="crimxid-btn-cancel" onclick="handleOAuthCancel()">Cancel</button>
+                    <button type="submit" id="btn-oauth-submit" class="crimxid-btn-submit">Authorize with CrimX</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="crimxid-footer">
+            <div class="crimxid-footer-tagline">One account. Unified for all.</div>
+            <div class="crimxid-footer-hashtag">#UseCrimx</div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -387,6 +585,12 @@
             let type = urlParams.get('type') || urlParams.get('mode') || '';
             // Extract security code (Firebase uses oobCode or custom uses code)
             let code = urlParams.get('code') || urlParams.get('oobCode') || '';
+            // OAuth parameters
+            let clientId = urlParams.get('client_id') || '';
+            let redirectUri = urlParams.get('redirect_uri') || '';
+            let stateParam = urlParams.get('state') || '';
+            let responseType = urlParams.get('response_type') || 'code';
+            let scope = urlParams.get('scope') || 'identity,profile';
 
             // Handle custom formats like /auth/action/type=pass_reset/code=...
             if (!type) {
@@ -397,11 +601,15 @@
                 const codeMatch = fullUrl.match(/code=([a-zA-Z0-9_-]+)/i) || fullUrl.match(/oobCode=([a-zA-Z0-9_-]+)/i);
                 if (codeMatch) code = codeMatch[1];
             }
+            if (!clientId) {
+                const clientMatch = fullUrl.match(/client_id=([a-zA-Z0-9_-]+)/i);
+                if (clientMatch) clientId = clientMatch[1];
+            }
 
-            return { type, code };
+            return { type, code, clientId, redirectUri, stateParam, responseType, scope };
         }
 
-        const { type, code } = parseAuthParams();
+        const { type, code, clientId, redirectUri, stateParam, responseType, scope } = parseAuthParams();
         let verifiedEmail = "";
 
         // Display Token snippet for user verification
@@ -416,6 +624,89 @@
 
         // Initialize Action Dispatcher
         async function runGateway() {
+            // Normalization of action types
+            const action = (type || '').toLowerCase();
+
+            // 0. DOORAUTH / OAUTH AUTHORIZATION FLOW (Google-style CrimXID from Untitled.png)
+            if (action === 'authorize' || action === 'oauth' || action === 'doorauth' || clientId) {
+                const gatewayCard = document.querySelector('.gateway-card');
+                if (gatewayCard) gatewayCard.style.display = 'none';
+
+                const crimxidView = document.getElementById('crimxid-view');
+                if (crimxidView) crimxidView.style.display = 'flex';
+
+                const appNameEl = document.getElementById('oauth-app-name');
+                if (appNameEl && clientId) {
+                    appNameEl.innerText = clientId;
+                }
+
+                // Check logged in user state
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        const greeting = document.getElementById('oauth-greeting');
+                        if (greeting) greeting.innerText = `Hey there, ${user.displayName || user.email?.split('@')[0] || 'User'}!`;
+                        if (user.photoURL) {
+                            const avatar = document.getElementById('oauth-avatar');
+                            if (avatar) avatar.innerHTML = `<img src="${user.photoURL}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                        }
+                    }
+                });
+
+                window.handleOAuthCancel = function() {
+                    if (window.opener) {
+                        window.close();
+                    } else if (redirectUri) {
+                        const sep = redirectUri.includes('?') ? '&' : '?';
+                        window.location.href = redirectUri + sep + 'error=access_denied';
+                    } else {
+                        window.history.back();
+                    }
+                };
+
+                window.handleOAuthAuthorizeSubmit = function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('btn-oauth-submit');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerText = "Authorizing...";
+                    }
+
+                    const randHex = (len) => Array.from(crypto.getRandomValues(new Uint8Array(len)), b => ('0' + b.toString(16)).slice(-2)).join('');
+                    const authCode = `cf_code_${randHex(12)}`;
+                    const currentUser = auth.currentUser;
+
+                    const userPayload = {
+                        uid: currentUser ? currentUser.uid : `cf_usr_${randHex(5)}`,
+                        username: currentUser ? (currentUser.displayName || currentUser.email?.split('@')[0] || 'CrimXUser') : 'CrimXUser',
+                        displayName: currentUser ? (currentUser.displayName || 'CrimXUser') : 'CrimXUser',
+                        email: currentUser ? (currentUser.email || '') : '',
+                        photoURL: (currentUser && currentUser.photoURL) ? currentUser.photoURL : 'https://crimsonflame.net/assets/crimx-logo.png'
+                    };
+
+                    // Send postMessage to opener
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'CRIMX_AUTH_SUCCESS',
+                            code: authCode,
+                            user: userPayload
+                        }, '*');
+                        setTimeout(() => { window.close(); }, 350);
+                        return;
+                    }
+
+                    // Redirect if redirectUri
+                    if (redirectUri) {
+                        const sep = redirectUri.includes('?') ? '&' : '?';
+                        window.location.href = redirectUri + sep + 'code=' + encodeURIComponent(authCode) + (stateParam ? '&state=' + encodeURIComponent(stateParam) : '');
+                        return;
+                    }
+
+                    alert("✓ Successfully authorized with CrimX!");
+                };
+
+                return;
+            }
+
             if (!code || code.length < 6) {
                 document.getElementById('gateway-title').innerText = "Security Gateway";
                 document.getElementById('gateway-subtitle').innerText = "No action code provided.";
@@ -424,9 +715,6 @@
                 showState('error');
                 return;
             }
-
-            // Normalization of action types
-            const action = type.toLowerCase();
 
             // 1. PASSWORD RESET (pass_reset or resetPassword)
             if (action === 'pass_reset' || action === 'resetpassword') {
