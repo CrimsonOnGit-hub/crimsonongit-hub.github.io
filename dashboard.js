@@ -1971,7 +1971,7 @@ window.loadDoorAuthApps = function() {
                 <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
                 <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
                 <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
-                    Use "Sign in with CrimsonFlame" on supported apps or link with a code below.
+                    Use "Sign in with CrimX" on supported apps or link with a code below.
                 </div>
             </div>`;
         return;
