@@ -480,8 +480,8 @@ app.get('/projects', (req, res) => {
   res.sendFile(path.join(__dirname, 'projects', 'index.html'));
 });
 
-app.get('/developer', (req, res) => {
-  res.sendFile(path.join(__dirname, 'developer', 'index.html'));
+app.get(['/developer', '/developer/*'], (req, res) => {
+  res.redirect(302, 'https://developer.crimx.crimsonflame.net');
 });
 
 app.get('/support', (req, res) => {
