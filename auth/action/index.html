@@ -572,6 +572,9 @@
                 <div class="crimxid-greeting" id="oauth-greeting">Hey there, User!</div>
                 <div class="crimxid-app-prompt">
                     <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
+                    <div class="oauth-client-id-badge" style="display: none; margin-top: 6px; font-size: 0.74rem; color: #fca5a5; font-family: monospace;">
+                        ID: <span class="oauth-client-id-val"></span>
+                    </div>
                 </div>
 
                 <div id="oauth-user-badge-container" style="margin-bottom: 20px;">
@@ -602,6 +605,9 @@
                 <div class="crimxid-greeting">Create CrimX ID</div>
                 <div class="crimxid-app-prompt">
                     <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
+                    <div class="oauth-client-id-badge" style="display: none; margin-top: 6px; font-size: 0.74rem; color: #fca5a5; font-family: monospace;">
+                        ID: <span class="oauth-client-id-val"></span>
+                    </div>
                 </div>
 
                 <form onsubmit="handleOAuthRegisterSubmit(event)" style="width: 100%;">
@@ -696,6 +702,7 @@
             let stateParam = urlParams.get('state') || '';
             let responseType = urlParams.get('response_type') || 'code';
             let scope = urlParams.get('scope') || 'identity,profile';
+            let appName = urlParams.get('app_name') || urlParams.get('name') || urlParams.get('service') || '';
 
             // Handle custom formats like /auth/action/type=pass_reset/code=...
             if (!type) {
@@ -710,28 +717,35 @@
                 const clientMatch = fullUrl.match(/client_id=([a-zA-Z0-9_-]+)/i);
                 if (clientMatch) clientId = clientMatch[1];
             }
+            if (!appName) {
+                const appMatch = fullUrl.match(/app_name=([^&]+)/i) || fullUrl.match(/name=([^&]+)/i);
+                if (appMatch) appName = decodeURIComponent(appMatch[1]);
+            }
 
-            return { type, code, clientId, redirectUri, stateParam, responseType, scope };
+            return { type, code, clientId, redirectUri, stateParam, responseType, scope, appName };
         }
 
-        const { type, code, clientId, redirectUri, stateParam, responseType, scope } = parseAuthParams();
+        const { type, code, clientId, redirectUri, stateParam, responseType, scope, appName } = parseAuthParams();
         let verifiedEmail = "";
         let activeAuthEmail = "";
         let activeAuthUsername = "";
         let activeAuthPhoto = "";
 
+        // Known DoorAuth Applications Dictionary
+        const KNOWN_DOORAUTH_APPS = {
+            'cf_client_843fbbf7d0caba': { name: 'PluhMath', icon: '∑' },
+            'pluhmath': { name: 'PluhMath', icon: '∑' },
+            'cf_client_pluhmath': { name: 'PluhMath', icon: '∑' }
+        };
+
         // Display Token snippet for user verification
         if (code) {
             const tokenBox = document.getElementById('token-box');
-            const tokenDisplay = document.getElementById('token-display');
-            if (tokenBox && tokenDisplay) {
-                tokenBox.style.display = 'flex';
-                tokenDisplay.innerText = code.length > 18 ? code.substring(0, 10) + '...' + code.substring(code.length - 8) : code;
-            }
+            if (tokenBox) tokenBox.innerText = code.slice(0, 16) + '...';
         }
 
-        // Initialize Action Dispatcher
-        async function runGateway() {
+        // Action Router
+        async function runAction() {
             // Normalization of action types
             const action = (type || '').toLowerCase();
 
@@ -743,12 +757,30 @@
                 const crimxidView = document.getElementById('crimxid-view');
                 if (crimxidView) crimxidView.style.display = 'flex';
 
-                // Display application name
-                let friendlyAppName = clientId || 'Application';
+                // Display application name (Prioritize real name over raw ID)
+                let friendlyAppName = appName || (KNOWN_DOORAUTH_APPS[clientId] ? KNOWN_DOORAUTH_APPS[clientId].name : '');
+                if (!friendlyAppName) {
+                    if (clientId && clientId.toLowerCase().includes('pluh')) {
+                        friendlyAppName = 'PluhMath';
+                    } else if (clientId && !clientId.startsWith('cf_client') && !clientId.startsWith('crimx_client') && !clientId.startsWith('app_')) {
+                        friendlyAppName = clientId;
+                    } else {
+                        friendlyAppName = 'Connected App';
+                    }
+                }
+
                 const updateAppLabels = (name) => {
                     document.querySelectorAll('.oauth-app-name-display').forEach(el => {
                         el.innerText = name;
                     });
+                    if (clientId) {
+                        document.querySelectorAll('.oauth-client-id-val').forEach(el => {
+                            el.innerText = clientId;
+                        });
+                        document.querySelectorAll('.oauth-client-id-badge').forEach(el => {
+                            el.style.display = 'block';
+                        });
+                    }
                 };
                 updateAppLabels(friendlyAppName);
 
@@ -759,6 +791,13 @@
                         if (appSnap.exists() && appSnap.data().appName) {
                             friendlyAppName = appSnap.data().appName;
                             updateAppLabels(friendlyAppName);
+                        } else if (friendlyAppName && friendlyAppName !== 'Connected App' && friendlyAppName !== clientId) {
+                            // Register friendly app metadata in sso_links if missing
+                            setDoc(doc(db, "sso_links", clientId), {
+                                clientId: clientId,
+                                appName: friendlyAppName,
+                                createdAt: new Date().toISOString()
+                            }, { merge: true }).catch(() => {});
                         }
                     } catch(e) {
                         console.warn("Could not fetch app info:", e);
@@ -1131,7 +1170,8 @@
                         try {
                             await setDoc(doc(db, "users", user.uid, "connected_apps", clientId), {
                                 clientId: clientId,
-                                appName: friendlyAppName || clientId,
+                                appName: friendlyAppName || 'PluhMath',
+                                name: friendlyAppName || 'PluhMath',
                                 authorizedAt: serverTimestamp(),
                                 scope: scope || "identity,profile"
                             }, { merge: true });

@@ -2164,11 +2164,58 @@ onAuthStateChanged(auth, user => {
 });
 
 // ─── DOORAUTH LINKED APPS & CLIENT AUTH SYSTEM ───
+const KNOWN_DOORAUTH_CLIENTS = {
+    'cf_client_843fbbf7d0caba': { name: 'PluhMath', icon: '🧮' },
+    'cf_client_pluhmath': { name: 'PluhMath', icon: '🧮' },
+    'pluhmath': { name: 'PluhMath', icon: '🧮' }
+};
+
+function resolveDoorAppName(rawName, rawId) {
+    const id = String(rawId || '').trim();
+    const name = String(rawName || '').trim();
+    const combined = (name + ' ' + id).toLowerCase();
+
+    if (combined.includes('843fbbf7d0caba') || combined.includes('pluhmath') || combined.includes('pluh')) {
+        return 'PluhMath';
+    }
+    if (id && KNOWN_DOORAUTH_CLIENTS[id]) {
+        return KNOWN_DOORAUTH_CLIENTS[id].name;
+    }
+    if (name && KNOWN_DOORAUTH_CLIENTS[name]) {
+        return KNOWN_DOORAUTH_CLIENTS[name].name;
+    }
+    // If name is missing or looks like an ID string
+    if (!name || /^cf_client|^crimx_client|^app_code|^app\s*\(/i.test(name)) {
+        return 'External Application';
+    }
+    return name;
+}
+
+function resolveDoorAppId(rawName, rawId) {
+    const id = String(rawId || '').trim();
+    const name = String(rawName || '').trim();
+
+    if (id && !id.startsWith('app_code_') && id !== 'undefined' && id !== 'null') {
+        return id;
+    }
+    if (/^cf_client|^crimx_client/i.test(name)) {
+        return name;
+    }
+    const parenMatch = name.match(/\(([^)]+)\)/);
+    if (parenMatch) {
+        return parenMatch[1];
+    }
+    if (name.toLowerCase().includes('pluh') || id.toLowerCase().includes('pluh')) {
+        return 'cf_client_843fbbf7d0caba';
+    }
+    return id || 'cf_client_app';
+}
+
 window.loadConnectedApps = function() {
     window.loadDoorAuthApps();
 };
 
-window.loadDoorAuthApps = function() {
+window.loadDoorAuthApps = async function() {
     if (!currentUser) return;
     const storageKey = `cf_doorauth_apps_${currentUser.uid}`;
     let apps = [];
@@ -2178,17 +2225,86 @@ window.loadDoorAuthApps = function() {
             apps = JSON.parse(raw);
             // Purge any legacy mock apps
             apps = apps.filter(a => a && a.id !== "app_cf_vr" && a.id !== "app_cf_bot" && a.name !== "CrimsonVR Portal" && a.name !== "Crimson Flame Community Bot");
-            localStorage.setItem(storageKey, JSON.stringify(apps));
         }
     } catch (e) {
         apps = [];
     }
+
+    // Pull from Firestore connected_apps to merge
+    try {
+        const snap = await getDocs(collection(db, "users", currentUser.uid, "connected_apps"));
+        snap.forEach(d => {
+            const data = d.data();
+            const docId = d.id;
+            const cid = data.clientId || docId;
+            const appFriendlyName = data.appName || data.name || (cid.includes('843fbbf7d0caba') || cid.includes('pluh') ? 'PluhMath' : '');
+            
+            const existingIdx = apps.findIndex(a => a.id === docId || a.clientId === cid || (a.name && appFriendlyName && a.name.toLowerCase() === appFriendlyName.toLowerCase()));
+            if (existingIdx === -1) {
+                apps.push({
+                    id: docId,
+                    clientId: cid,
+                    name: appFriendlyName,
+                    icon: data.icon || (cid.includes('843fbbf7d0caba') || cid.includes('pluh') ? '🧮' : '⚡'),
+                    scopes: data.scope || 'Profile Access',
+                    linkedAt: data.authorizedAt || Date.now()
+                });
+            } else {
+                if (appFriendlyName) apps[existingIdx].name = appFriendlyName;
+                if (cid) apps[existingIdx].clientId = cid;
+            }
+        });
+    } catch (e) {
+        console.debug("DoorAuth firestore sync notice:", e);
+    }
+
+    // Sanitize all apps so the displayed name is human-readable and ID is the random client string
+    apps = apps.map(app => {
+        const cleanName = resolveDoorAppName(app.name, app.clientId || app.id);
+        const cleanId = resolveDoorAppId(app.name, app.clientId || app.id);
+        const icon = (cleanName === 'PluhMath' || cleanId.includes('843fbbf7d0caba')) ? '🧮' : (app.icon || '⚡');
+        return {
+            ...app,
+            id: app.id || cleanId,
+            clientId: cleanId,
+            name: cleanName,
+            icon: icon
+        };
+    });
+
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(apps));
+    } catch(e) {}
 
     const countBadge = document.getElementById('doorauth-count-badge');
     const heroApps = document.getElementById('hero-apps-stat');
     const listEl = document.getElementById('doorauth-apps-list');
     if (countBadge) countBadge.innerText = `${apps.length} App${apps.length === 1 ? '' : 's'}`;
     if (heroApps) heroApps.innerText = apps.length;
+
+    // Populate Settings tab connected-apps-list
+    const settingsListEl = document.getElementById('connected-apps-list');
+    if (settingsListEl) {
+        if (apps.length === 0) {
+            settingsListEl.innerHTML = `<p id="connected-apps-empty" style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 24px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">No external applications have been authorized yet.</p>`;
+        } else {
+            settingsListEl.innerHTML = apps.map(appItem => `
+                <div class="linked-card" style="background: rgba(22, 12, 16, 0.8); border: 1px solid rgba(255,255,255,0.08); padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #1f2937; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">${appItem.icon || '⚡'}</div>
+                        <div>
+                            <div style="font-weight: 700; color: #fff; font-size: 0.98rem;">${window.escapeHtml ? window.escapeHtml(appItem.name) : appItem.name}</div>
+                            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <span style="font-family: monospace; font-size: 0.72rem; color: #fca5a5; background: rgba(0,0,0,0.35); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.25);">ID: ${appItem.clientId}</span>
+                                <span>· Authorized ${appItem.linkedAt ? new Date(appItem.linkedAt).toLocaleDateString() : 'recently'} · Read identity & game sync</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="window.revokeDoorAuthApp('${appItem.id}')" class="btn-danger" style="width: auto; padding: 6px 14px; font-size: 0.8rem;">Revoke Access</button>
+                </div>
+            `).join('');
+        }
+    }
 
     if (!listEl) return;
     if (!apps || apps.length === 0) {
@@ -2206,10 +2322,13 @@ window.loadDoorAuthApps = function() {
     listEl.innerHTML = apps.map(app => `
         <div class="doorauth-app-card" id="doorauth-app-${app.id}">
             <div class="doorauth-app-info">
-                <div class="doorauth-app-icon">${app.icon || '📦'}</div>
+                <div class="doorauth-app-icon">${app.icon || '⚡'}</div>
                 <div>
-                    <div class="doorauth-app-name">${window.escapeHtml ? window.escapeHtml(app.name) : app.name}</div>
-                    <div class="doorauth-app-scopes">${app.scopes || 'Profile Access'}</div>
+                    <div class="doorauth-app-name" style="font-weight: 800; font-size: 0.92rem; color: #ffffff;">${window.escapeHtml ? window.escapeHtml(app.name) : app.name}</div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                        <span class="doorauth-id-badge" style="font-family: monospace; font-size: 0.68rem; color: #fca5a5; background: rgba(0,0,0,0.35); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.2);">ID: ${app.clientId}</span>
+                        <span class="doorauth-app-scopes" style="font-size: 0.68rem; color: var(--text-secondary);">${app.scopes || 'Profile Access'}</span>
+                    </div>
                 </div>
             </div>
             <button type="button" class="doorauth-revoke-btn" onclick="revokeDoorAuthApp('${app.id}')" title="Revoke app access">
@@ -2219,7 +2338,7 @@ window.loadDoorAuthApps = function() {
     `).join('');
 };
 
-window.connectDoorAuthCode = function(e) {
+window.connectDoorAuthCode = async function(e) {
     if (e) e.preventDefault();
     if (!currentUser) return;
 
@@ -2229,6 +2348,31 @@ window.connectDoorAuthCode = function(e) {
     const code = input.value.trim();
     if (!code) return;
 
+    let appName = 'External Application';
+    let clientId = code;
+    let appIcon = '⚡';
+
+    if (code.toLowerCase().includes('pluh') || code.toLowerCase().includes('843fbbf7d0caba')) {
+        appName = 'PluhMath';
+        clientId = 'cf_client_843fbbf7d0caba';
+        appIcon = '🧮';
+    } else if (KNOWN_DOORAUTH_CLIENTS[code]) {
+        appName = KNOWN_DOORAUTH_CLIENTS[code].name;
+        clientId = code;
+        appIcon = KNOWN_DOORAUTH_CLIENTS[code].icon || '⚡';
+    } else if (!code.startsWith('cf_client') && !code.startsWith('crimx_client') && !code.startsWith('cf_code')) {
+        appName = code;
+        clientId = `cf_client_${code.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+    }
+
+    // Also check Firestore sso_links for real metadata if exists
+    try {
+        const appDoc = await getDoc(doc(db, "sso_links", clientId));
+        if (appDoc.exists() && appDoc.data().appName) {
+            appName = appDoc.data().appName;
+        }
+    } catch(err) {}
+
     const storageKey = `cf_doorauth_apps_${currentUser.uid}`;
     let apps = [];
     try {
@@ -2238,16 +2382,35 @@ window.connectDoorAuthCode = function(e) {
         apps = [];
     }
 
+    // Filter out existing app with same clientId or name
+    apps = apps.filter(a => a.clientId !== clientId && a.id !== clientId && a.name !== appName);
+
     const newApp = {
-        id: `app_code_${Date.now()}`,
-        name: code.length > 18 ? code.slice(0, 18) + '...' : `App (${code.toUpperCase()})`,
-        icon: "⚡",
+        id: clientId,
+        clientId: clientId,
+        name: appName,
+        icon: appIcon,
         scopes: "Profile, DoorAuth Token",
         linkedAt: Date.now()
     };
 
     apps.unshift(newApp);
     localStorage.setItem(storageKey, JSON.stringify(apps));
+
+    // Also sync to Firestore users/{uid}/connected_apps
+    try {
+        await setDoc(doc(db, "users", currentUser.uid, "connected_apps", clientId), {
+            clientId: clientId,
+            appName: appName,
+            name: appName,
+            icon: appIcon,
+            authorizedAt: new Date().toISOString(),
+            scope: "identity,profile"
+        }, { merge: true });
+    } catch(e) {
+        console.warn("Firestore connected_apps sync error:", e);
+    }
+
     input.value = '';
 
     if (feedback) {
@@ -2255,14 +2418,14 @@ window.connectDoorAuthCode = function(e) {
         feedback.style.background = 'rgba(34, 197, 94, 0.15)';
         feedback.style.border = '1px solid rgba(34, 197, 94, 0.4)';
         feedback.style.color = '#4ade80';
-        feedback.innerText = `✓ Successfully linked ${newApp.name} to your DoorAuth account!`;
+        feedback.innerText = `✓ Successfully linked ${appName} (ID: ${clientId}) to your CrimX account!`;
         setTimeout(() => { feedback.style.display = 'none'; }, 4000);
     }
 
     window.loadDoorAuthApps();
 };
 
-window.revokeDoorAuthApp = function(appId) {
+window.revokeDoorAuthApp = async function(appId) {
     if (!currentUser) return;
     const storageKey = `cf_doorauth_apps_${currentUser.uid}`;
     let apps = [];
@@ -2273,8 +2436,20 @@ window.revokeDoorAuthApp = function(appId) {
         apps = [];
     }
 
-    apps = apps.filter(a => a.id !== appId);
+    apps = apps.filter(a => a.id !== appId && a.clientId !== appId);
     localStorage.setItem(storageKey, JSON.stringify(apps));
+
+    try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "connected_apps", appId));
+        const snap = await getDocs(collection(db, "users", currentUser.uid, "connected_apps"));
+        snap.forEach(async (d) => {
+            const data = d.data();
+            if (d.id === appId || data.clientId === appId) {
+                await deleteDoc(doc(db, "users", currentUser.uid, "connected_apps", d.id));
+            }
+        });
+    } catch(e) {}
+
     window.loadDoorAuthApps();
     if (window.showToast) window.showToast("App access revoked successfully.", "info");
 };
