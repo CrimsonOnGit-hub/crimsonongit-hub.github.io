@@ -1149,6 +1149,8 @@ function renderCIMFriends(friends) {
     if (!list) return;
 
     if (countTag) countTag.innerText = friends ? friends.length : 0;
+    const heroFriends = document.getElementById('hero-friends-stat');
+    if (heroFriends) heroFriends.innerText = friends ? friends.length : 0;
 
     if (!friends || friends.length === 0) {
         list.innerHTML = `
@@ -2183,8 +2185,10 @@ window.loadDoorAuthApps = function() {
     }
 
     const countBadge = document.getElementById('doorauth-count-badge');
+    const heroApps = document.getElementById('hero-apps-stat');
     const listEl = document.getElementById('doorauth-apps-list');
     if (countBadge) countBadge.innerText = `${apps.length} App${apps.length === 1 ? '' : 's'}`;
+    if (heroApps) heroApps.innerText = apps.length;
 
     if (!listEl) return;
     if (!apps || apps.length === 0) {

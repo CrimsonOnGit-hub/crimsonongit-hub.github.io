@@ -4712,14 +4712,16 @@ body.cim-fullscreen-active {
     padding: 8px 16px;
     font-size: 0.85rem;
     font-family: var(--font-body);
-    width: 220px;
-    transition: border-color 0.2s ease, width 0.2s ease;
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .friends-search-input:focus {
     outline: none;
     border-color: var(--crimson);
-    width: 260px;
+    box-shadow: 0 0 14px rgba(220, 38, 38, 0.3);
 }
 
 .active-friends-grid {
@@ -5546,183 +5548,352 @@ body.cim-fullscreen-active {
     box-shadow: 0 0 8px #22c55e;
 }
 
-/* ─── Reworked 2-Column Dashboard Grid ─── */
-.dash-reworked-grid {
-    display: grid;
-    grid-template-columns: 330px 1fr;
-    gap: 24px;
-    align-items: start;
+/* ═════════════════════════════════════════════════════════════════════════
+   OVERHAULED CRIMX DASHBOARD LAYOUT & DESIGN SYSTEM
+   Panoramic Hero Card, Balanced Workspace Grid, Non-Overlapping Action Bars
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Robust Non-Overlapping Input Action Groups ─── */
+.input-action-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    position: relative !important;
+    box-sizing: border-box !important;
 }
 
-@media (max-width: 960px) {
-    .dash-reworked-grid {
-        grid-template-columns: 1fr;
-    }
+.input-action-group input,
+.input-action-group .friends-search-input,
+.input-action-group .doorauth-connect-input {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    height: 40px !important;
+    padding: 0 16px !important;
+    font-size: 0.82rem !important;
 }
 
-.dash-col-identity {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.input-action-group button,
+.input-action-group .btn-action-pill,
+.input-action-group .btn-primary {
+    flex-shrink: 0 !important;
+    width: auto !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    height: 40px !important;
+    padding: 0 18px !important;
+    font-size: 0.82rem !important;
+    line-height: 1 !important;
 }
 
-/* ─── Left Column: Player Identity Showcase Card ─── */
-.dash-card-profile {
+/* ─── 1. Panoramic Hero Player Profile Card ─── */
+.dash-hero-profile-card {
     position: relative;
     overflow: hidden;
     background: rgba(18, 9, 14, 0.85) !important;
     border: 1px solid rgba(255, 255, 255, 0.09) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 28px rgba(220, 38, 38, 0.16) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 28px rgba(220, 38, 38, 0.14) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
+    margin-bottom: 24px;
 }
 
-.dash-profile-banner {
+.dash-hero-profile-card .dash-profile-banner {
     width: 100%;
-    height: 110px;
-    background: linear-gradient(135deg, #dc2626, #fb923c);
+    height: 140px;
+    background: linear-gradient(135deg, #2b0d18 0%, #dc2626 50%, #15090f 100%);
     background-size: cover;
     background-position: center;
     position: relative;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.dash-profile-body {
-    padding: 0 20px 20px 20px;
+.dash-hero-banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(10, 6, 8, 0.75) 100%);
+    pointer-events: none;
+}
+
+.dash-hero-edit-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: rgba(14, 8, 11, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #fff;
+    padding: 7px 18px;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.dash-hero-edit-btn:hover {
+    background: rgba(220, 38, 38, 0.85);
+    border-color: #ef4444;
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+}
+
+.dash-hero-profile-body {
+    padding: 0 26px 22px 26px;
     display: flex;
-    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+    flex-wrap: wrap;
 }
 
-.dash-profile-avatar-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-top: -42px;
-    margin-bottom: 12px;
+.dash-hero-avatar-col {
+    margin-top: -46px;
+    flex-shrink: 0;
+    z-index: 2;
 }
 
-.dash-profile-avatar-wrap {
+.dash-hero-avatar-wrap {
     position: relative;
-    width: 82px;
-    height: 82px;
+    width: 96px;
+    height: 96px;
 }
 
-.dash-profile-avatar-wrap img {
+.dash-hero-avatar-wrap img {
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 18px rgba(220, 38, 38, 0.4);
+    border: 3.5px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 22px rgba(220, 38, 38, 0.45);
     background: #18090f;
 }
 
-.dash-profile-avatar-wrap .cim-profile-dot {
+.dash-hero-avatar-wrap .cim-profile-dot {
     position: absolute;
     bottom: 4px;
     right: 4px;
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
     border-radius: 50%;
     background: #22c55e;
-    border: 2.5px solid #140a0f;
+    border: 3px solid #140a0f;
     box-shadow: 0 0 8px #22c55e, inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.dash-profile-user-info {
-    margin-bottom: 14px;
+.dash-hero-info-col {
+    flex: 1 1 280px;
+    min-width: 240px;
+    padding-top: 6px;
 }
 
 .dash-profile-name-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
 }
 
 .dash-profile-name-row h2 {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.35rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: #ffffff;
     margin: 0;
     line-height: 1.1;
 }
 
+.dash-profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: rgba(220, 38, 38, 0.2);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: #fca5a5;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
 .dash-profile-handle-text {
     font-family: monospace;
     font-size: 0.86rem;
     color: var(--crimson-light);
-    margin-bottom: 6px;
+    opacity: 0.9;
+}
+
+.dash-hero-status-row {
+    margin: 6px 0 8px 0;
 }
 
 .dash-profile-status-text {
+    display: inline-block;
     font-size: 0.82rem;
-    color: #e2e8f0;
+    color: #f1f5f9;
     font-weight: 600;
-    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dash-profile-bio-text {
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     color: var(--text-secondary);
     line-height: 1.45;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
-/* ─── Right Column: Unified CIM & Social Hub ─── */
-.dash-card-social-hub {
-    min-height: 640px;
+.cim-profile-socials {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-.dash-cim-split {
+.dash-hero-stats-col {
     display: flex;
-    flex: 1;
-    min-height: 520px;
-    gap: 16px;
-}
-
-@media (max-width: 768px) {
-    .dash-cim-split {
-        flex-direction: column;
-    }
-}
-
-.dash-friends-sidebar {
-    width: 270px;
-    min-width: 250px;
-    display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 12px;
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
-    padding-right: 14px;
+    padding-top: 8px;
+    flex-wrap: wrap;
 }
 
-@media (max-width: 768px) {
-    .dash-friends-sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        padding-bottom: 14px;
+.dash-hero-stat-card {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 10px 18px;
+    text-align: center;
+    min-width: 90px;
+}
+
+.dash-hero-stat-card .stat-num {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+.dash-hero-stat-card .stat-label {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 700;
+}
+
+/* ─── 2. Two-Column Balanced Workspace Grid ─── */
+.dash-workspace-grid {
+    display: grid;
+    grid-template-columns: 370px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 980px) {
+    .dash-workspace-grid {
+        grid-template-columns: 1fr;
     }
 }
 
-.dash-friends-search-row {
+.dash-col-social {
     display: flex;
-    gap: 6px;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dash-col-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ─── Friends Hub Card ─── */
+.dash-friends-hub-card {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    min-height: 600px;
+}
+
+.dash-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.dash-card-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-icon-badge {
+    width: 36px;
+    height: 36px;
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 0 14px rgba(220, 38, 38, 0.2);
+}
+
+.dash-card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.dash-card-subtitle {
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+}
+
+.dash-add-friend-wrapper {
+    margin-bottom: 6px;
+}
+
+.dash-friends-list-container {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 12px;
+    max-height: 480px;
+    padding-right: 4px;
+}
+
+/* ─── Right Column: CIM Chat Card & DoorAuth Card ─── */
+.dash-cim-card {
+    padding: 22px;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-doorauth-card {
+    padding: 22px;
 }
 
 /* ─── FRUTIGER AERO THEME CUSTOMIZATION ([data-theme="frutiger-aero"]) ─── */
-[data-theme="frutiger-aero"] body {
-    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.45) 0%, transparent 45%),
-                radial-gradient(circle at 85% 55%, rgba(16, 185, 129, 0.35) 0%, transparent 45%),
-                radial-gradient(circle at 50% 85%, rgba(56, 189, 248, 0.3) 0%, transparent 50%),
-                #021827 !important;
-}
+
 
 [data-theme="frutiger-aero"] .dash-block-friends,
 [data-theme="frutiger-aero"] .dash-block-doorauth,

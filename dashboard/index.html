@@ -113,154 +113,132 @@
                 </div>
             </header>
 
-            <!-- Reworked 2-Column Cohesive Hub Grid -->
-            <div class="dash-reworked-grid">
-                
-                <!-- LEFT COLUMN: Player Identity Showcase & DoorAuth Linked Apps -->
-                <div class="dash-col-identity">
-                    
-                    <!-- Card 1: Player Identity Showcase Card -->
-                    <div class="dash-card-profile" id="cim-sidebar-profile">
-                        <div class="dash-profile-banner cim-profile-banner" id="cim-profile-banner"></div>
-                        <div class="dash-profile-body">
-                            <div class="dash-profile-avatar-row">
-                                <div class="dash-profile-avatar-wrap cim-profile-avatar-wrap">
-                                    <img id="cim-profile-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
-                                    <span class="cim-profile-dot"></span>
-                                </div>
-                                <button type="button" class="btn-secondary" onclick="toggleSettingsStudio(true)" style="padding: 6px 14px; font-size: 0.78rem; font-weight: 700;" title="Edit Profile">
-                                    ✏️ Edit
-                                </button>
-                            </div>
-                            <div class="dash-profile-user-info">
-                                <div class="dash-profile-name-row cim-profile-name-row">
-                                    <h2 id="cim-profile-name" class="cim-profile-name">Player</h2>
-                                    <span class="cim-profile-badge" id="cim-profile-badge">🔥 Member</span>
-                                </div>
-                                <div id="cim-profile-handle" class="dash-profile-handle-text cim-profile-handle">@user</div>
-                                <div id="cim-profile-status" class="dash-profile-status-text cim-profile-status">Browsing the Website</div>
-                                <div id="cim-profile-bio" class="dash-profile-bio-text cim-profile-bio">The developer behind it all 👓</div>
-                                <div id="cim-profile-socials" class="cim-profile-socials"></div>
-                            </div>
+            <!-- 1. FULL-WIDTH PANORAMIC HERO PLAYER SHOWCASE CARD -->
+            <div class="dash-card-profile dash-hero-profile-card" id="cim-sidebar-profile">
+                <div class="dash-profile-banner cim-profile-banner" id="cim-profile-banner">
+                    <div class="dash-hero-banner-overlay"></div>
+                    <button type="button" class="dash-hero-edit-btn" onclick="toggleSettingsStudio(true)" title="Edit Profile & Avatar">
+                        ✏️ Edit Profile
+                    </button>
+                </div>
+                <div class="dash-profile-body dash-hero-profile-body">
+                    <div class="dash-hero-avatar-col">
+                        <div class="dash-profile-avatar-wrap cim-profile-avatar-wrap dash-hero-avatar-wrap">
+                            <img id="cim-profile-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
+                            <span class="cim-profile-dot"></span>
                         </div>
                     </div>
-
-                    <!-- Card 2: DoorAuth Linked Apps -->
-                    <div class="dash-block-doorauth" id="dash-doorauth-block">
-                        <div class="doorauth-header">
-                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="doorauth-icon-badge">🚪</div>
-                                    <div>
-                                        <h3 class="doorauth-title">Linked Apps</h3>
-                                    </div>
-                                </div>
-                                <a href="/developer" class="doorauth-dev-link" title="Open CF Dev Panel">
-                                    <span>Dev Hub</span>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                </a>
-                            </div>
+                    <div class="dash-hero-info-col">
+                        <div class="dash-profile-name-row cim-profile-name-row">
+                            <h2 id="cim-profile-name" class="cim-profile-name">Player</h2>
+                            <span class="cim-profile-badge" id="cim-profile-badge">🔥 Member</span>
+                            <span id="cim-profile-handle" class="dash-profile-handle-text cim-profile-handle">@user</span>
                         </div>
-
-                        <div class="doorauth-body">
-                            <div class="doorauth-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
-                                Manage third-party games and external apps linked to your CrimX account via DoorAuth.
-                            </div>
-
-                            <div class="doorauth-section-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <span class="doorauth-section-label" style="font-size: 0.76rem; font-weight: 800; color: #ef4444; letter-spacing: 0.6px;">LINKED APPS</span>
-                                <span id="doorauth-count-badge" class="doorauth-count-tag">0 Apps</span>
-                            </div>
-
-                            <div id="doorauth-apps-list" class="doorauth-apps-list">
-                                <div class="doorauth-empty-state">
-                                    <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
-                                    <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
-                                    <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
-                                        Use "Sign in with CrimX" on supported apps or link with a code below.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Quick Connect Form -->
-                            <form onsubmit="connectDoorAuthCode(event)" class="doorauth-connect-form" style="display: flex; gap: 8px; margin-top: 14px;">
-                                <input type="text" id="doorauth-code-input" placeholder="Enter App Link Code..." autocomplete="off" class="doorauth-connect-input">
-                                <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 9999px; white-space: nowrap;">
-                                    + Link App
-                                </button>
-                            </form>
-                            <div id="doorauth-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 8px;"></div>
+                        <div class="dash-hero-status-row">
+                            <div id="cim-profile-status" class="dash-profile-status-text cim-profile-status">Browsing the Website</div>
+                        </div>
+                        <div id="cim-profile-bio" class="dash-profile-bio-text cim-profile-bio">The developer behind it all 👓</div>
+                        <div id="cim-profile-socials" class="cim-profile-socials"></div>
+                    </div>
+                    <div class="dash-hero-stats-col">
+                        <div class="dash-hero-stat-card">
+                            <span class="stat-num" id="hero-friends-stat">0</span>
+                            <span class="stat-label">Friends</span>
+                        </div>
+                        <div class="dash-hero-stat-card">
+                            <span class="stat-num" id="hero-apps-stat">0</span>
+                            <span class="stat-label">Apps Linked</span>
+                        </div>
+                        <div class="dash-hero-stat-card">
+                            <span class="stat-num" style="color: #22c55e;">✓</span>
+                            <span class="stat-label">DoorAuth Protected</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- RIGHT COLUMN: Social Network & Instant Messaging Center -->
-                <div class="dash-block-cim dash-card-social-hub" id="dash-cim-block">
-                    <div class="cim-header">
-                        <div class="cim-title-wrap">
-                            <div class="cim-icon-pill">💬</div>
-                            <div>
-                                <h3 class="cim-title">CIM</h3>
-                                <span class="cim-subtitle">CrimX Instant Messager</span>
+            <!-- 2. TWO-COLUMN BALANCED WORKSPACE GRID -->
+            <div class="dash-workspace-grid">
+                
+                <!-- LEFT COLUMN: Social & Friends Hub -->
+                <div class="dash-col-social">
+                    <div class="dash-card dash-friends-hub-card">
+                        <div class="dash-card-header">
+                            <div class="dash-card-title-wrap">
+                                <span class="card-icon-badge">👥</span>
+                                <div>
+                                    <h3 class="dash-card-title">Friends</h3>
+                                    <span class="dash-card-subtitle">Connect & Chat Live</span>
+                                </div>
+                            </div>
+                            <div class="dash-card-header-badge">
+                                <span id="cim-friends-count" class="cim-count-tag">0</span>
+                                <span id="friends-count-badge" style="display: none;">0 Friends</span>
                             </div>
                         </div>
-                        <div class="cim-header-actions">
-                            <button type="button" class="cim-fullscreen-btn" onclick="toggleCIMFullscreen()" id="cim-fullscreen-btn" title="Toggle Fullscreen Chat (Esc to exit)">
-                                <svg id="cim-fullscreen-icon-expand" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
-                                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                                </svg>
-                                <svg id="cim-fullscreen-icon-compress" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display: none;">
-                                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-14v3h3v2h-5V5h2z"/>
-                                </svg>
-                                <span id="cim-fullscreen-label">Fullscreen</span>
-                            </button>
-                            <div class="cim-online-badge">
-                                <span class="cim-pulse-dot"></span> LIVE
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="cim-container dash-cim-split">
-                        <!-- Left Friends & Directory Sidebar -->
-                        <div class="cim-sidebar dash-friends-sidebar">
-                            
-                            <!-- Search & Add Friend Input -->
-                            <form onsubmit="sendFriendRequestByUsername(event)" class="dash-friends-search-row">
-                                <input type="text" id="friend-search-input" placeholder="Add @username..." required autocomplete="off" class="friends-search-input" style="padding: 7px 14px; font-size: 0.78rem;">
-                                <button type="submit" class="btn-primary" style="padding: 7px 14px; font-size: 0.76rem; font-weight: 700; width: auto; border-radius: 9999px; white-space: nowrap;">
+                        <!-- Add Friend Input Action Group (NEVER OVERLAPS!) -->
+                        <div class="dash-add-friend-wrapper">
+                            <form onsubmit="sendFriendRequestByUsername(event)" class="input-action-group dash-friends-search-row">
+                                <input type="text" id="friend-search-input" placeholder="Add @username..." required autocomplete="off" class="friends-search-input">
+                                <button type="submit" class="btn-primary btn-action-pill">
                                     + Add
                                 </button>
                             </form>
-                            <div id="friend-action-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.76rem;"></div>
-
-                            <!-- Incoming Pending Requests -->
-                            <div id="pending-requests-box" style="display: none;">
-                                <div style="font-size: 0.74rem; font-weight: 700; color: #fb923c; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                    ⏳ Requests (<span id="pending-count">0</span>)
-                                </div>
-                                <div id="pending-requests-list" class="pending-requests-grid"></div>
-                            </div>
-
-                            <div class="cim-sidebar-header" style="margin-top: 4px;">
-                                <span>FRIENDS</span>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <span id="cim-friends-count" class="cim-count-tag">0</span>
-                                    <span id="friends-count-badge" style="display: none;">0 Friends</span>
-                                </div>
-                            </div>
-
-                            <!-- Friends Directory & Conversations List -->
-                            <div id="cim-conversations-list" class="cim-conversations-list">
-                                <div style="color: var(--text-secondary); font-size: 0.74rem; text-align: center; padding: 16px 4px;">
-                                    Loading...
-                                </div>
-                            </div>
-
-                            <!-- Active Friends Feed container (hidden or supporting active list) -->
-                            <div id="active-friends-list" style="display: none;"></div>
+                            <div id="friend-action-feedback" style="display: none; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; margin-top: 8px;"></div>
                         </div>
 
-                        <!-- Right Active Chat Area -->
+                        <!-- Incoming Pending Requests -->
+                        <div id="pending-requests-box" style="display: none; margin-top: 14px;">
+                            <div style="font-size: 0.74rem; font-weight: 700; color: #fb923c; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                ⏳ Pending Requests (<span id="pending-count">0</span>)
+                            </div>
+                            <div id="pending-requests-list" class="pending-requests-grid"></div>
+                        </div>
+
+                        <!-- Friends Directory List -->
+                        <div class="dash-friends-list-container">
+                            <div id="cim-conversations-list" class="cim-conversations-list">
+                                <div style="color: var(--text-secondary); font-size: 0.76rem; text-align: center; padding: 24px 8px;">
+                                    Loading friends...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden compatibility element -->
+                        <div id="active-friends-list" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: CIM Instant Messager & DoorAuth Hub -->
+                <div class="dash-col-main">
+                    
+                    <!-- CIM Instant Messager Card -->
+                    <div class="dash-card dash-cim-card" id="dash-cim-block">
+                        <div class="cim-header">
+                            <div class="cim-title-wrap">
+                                <div class="cim-icon-pill">💬</div>
+                                <div>
+                                    <h3 class="cim-title">CIM</h3>
+                                    <span class="cim-subtitle">CrimX Instant Messager</span>
+                                </div>
+                            </div>
+                            <div class="cim-header-actions">
+                                <button type="button" class="cim-fullscreen-btn" onclick="toggleCIMFullscreen()" id="cim-fullscreen-btn" title="Toggle Fullscreen Chat (Esc to exit)">
+                                    <svg id="cim-fullscreen-icon-expand" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                                        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                                    </svg>
+                                    <svg id="cim-fullscreen-icon-compress" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display: none;">
+                                        <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-14v3h3v2h-5V5h2z"/>
+                                    </svg>
+                                    <span id="cim-fullscreen-label">Fullscreen</span>
+                                </button>
+                                <div class="cim-online-badge">
+                                    <span class="cim-pulse-dot"></span> LIVE
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="cim-chat-area" id="cim-chat-area">
                             <div id="cim-chat-header" class="cim-chat-header" style="display: none;">
                                 <div class="cim-chat-user-wrap">
@@ -285,10 +263,10 @@
 
                             <div id="cim-messages-box" class="cim-messages-box">
                                 <div id="cim-no-chat-state" class="cim-no-chat-state">
-                                    <div style="font-size: 3.2rem; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(255,255,255,0.2));">💬</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 800; color: #fff; font-size: 1.45rem; margin-bottom: 8px; letter-spacing: -0.3px;">CIM Instant Messager</div>
-                                    <div style="font-size: 0.92rem; line-height: 1.5; max-width: 260px; color: var(--text-secondary);">
-                                        Select a friend from the list on the left to start instant messaging!
+                                    <div style="font-size: 3rem; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(220,38,38,0.3));">💬</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 800; color: #fff; font-size: 1.35rem; margin-bottom: 6px; letter-spacing: -0.3px;">CrimX Instant Messager</div>
+                                    <div style="font-size: 0.88rem; line-height: 1.5; max-width: 320px; color: var(--text-secondary); margin: 0 auto;">
+                                        Pick a friend from your list on the left to start instant, real-time messaging!
                                     </div>
                                 </div>
                                 <div id="cim-messages-list" style="display: none; flex-direction: column; gap: 10px;"></div>
@@ -304,7 +282,56 @@
                             </form>
                         </div>
                     </div>
+
+                    <!-- DoorAuth Linked Apps Card -->
+                    <div class="dash-card dash-doorauth-card" id="dash-doorauth-block">
+                        <div class="doorauth-header">
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="doorauth-icon-badge">🚪</div>
+                                    <div>
+                                        <h3 class="doorauth-title">Linked Apps</h3>
+                                        <span style="font-size: 0.74rem; color: var(--text-secondary);">DoorAuth Ecosystem</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span id="doorauth-count-badge" class="doorauth-count-tag">0 Apps</span>
+                                    <a href="/developer" class="doorauth-dev-link" title="Open CF Dev Panel">
+                                        <span>Dev Hub</span>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="doorauth-body" style="margin-top: 12px;">
+                            <div class="doorauth-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+                                Manage third-party games, services, and developer access authorized through DoorAuth.
+                            </div>
+
+                            <div id="doorauth-apps-list" class="doorauth-apps-list">
+                                <div class="doorauth-empty-state">
+                                    <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
+                                        Use "Sign in with CrimX" on supported apps or link with a code below.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Connect Form with Input Action Group (NEVER OVERLAPS!) -->
+                            <form onsubmit="connectDoorAuthCode(event)" class="input-action-group doorauth-connect-form" style="margin-top: 14px;">
+                                <input type="text" id="doorauth-code-input" placeholder="Enter App Link Code..." autocomplete="off" class="doorauth-connect-input">
+                                <button type="submit" class="btn-primary btn-action-pill">
+                                    + Link App
+                                </button>
+                            </form>
+                            <div id="doorauth-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 8px;"></div>
+                        </div>
+                    </div>
+
                 </div>
+            </div>
 
                 <!-- Hidden compatibility elements for existing listeners -->
                 <div style="display: none;" aria-hidden="true">
@@ -943,8 +970,6 @@
 
                 </div>
             </div>
-
-        </div>
 
         <!-- Floating Toast Container -->
         <div id="toast-container"></div>
