@@ -71,6 +71,24 @@
     --bg-card: rgba(10, 20, 28, 0.75);
 }
 
+[data-theme="frutiger-aero"] {
+    --crimson: #0284c7;
+    --crimson-light: #38bdf8;
+    --crimson-glow: rgba(14, 165, 233, 0.35);
+    --ember: #10b981;
+    --bg: #03131e;
+    --bg-card: rgba(14, 165, 233, 0.12);
+}
+
+[data-theme="frutiger-metro"] {
+    --crimson: #e51400;
+    --crimson-light: #ff0038;
+    --crimson-glow: rgba(229, 20, 0, 0.25);
+    --ember: #0078d7;
+    --bg: #111111;
+    --bg-card: #1f1f1f;
+}
+
 
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1399,51 +1417,28 @@ body {
         height: 5px;
     }
 
-    /* Account Modal on Mobile */
-    .account-modal-overlay {
-        padding: 10px;
-    }
-
-    .account-modal-window {
-        flex-direction: column;
-        height: 94vh;
-        max-height: 94vh;
-        width: 100%;
-        border-radius: 16px;
-    }
-
-    .account-sidebar {
-        width: 100%;
-        min-width: 0;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Modal / Popups on Mobile */
+    .flappy-modal-overlay {
         padding: 12px;
     }
 
-    .account-nav-scroll {
-        display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        gap: 6px;
-        padding-bottom: 4px;
+    .flappy-cabinet {
+        width: 100%;
+        max-width: 360px;
+        border-radius: 16px;
     }
 
-    .account-nav-section-title {
-        display: none;
+    .flappy-header {
+        padding: 10px 14px;
     }
 
-    .account-nav-btn {
-        white-space: nowrap;
-        padding: 8px 12px;
-        font-size: 0.82rem;
+    .flappy-title {
+        font-size: 1rem;
     }
 
-    .account-content-header {
-        padding: 12px 16px;
-    }
-
-    .account-tab-body {
-        padding: 16px;
+    .flappy-hud-bottom {
+        padding: 8px 14px;
+        font-size: 0.75rem;
     }
 
     /* iOS Auto-Zoom Prevention */
@@ -2822,285 +2817,128 @@ body.inferno-overdrive .bg-glow-2 {
     letter-spacing: 0.6px;
 }
 
-/* ─── Floating User Account Profile FAB ─── */
-.account-fab {
+/* ─── Secret Arcade Easter Egg at Bottom of Screen ─── */
+.arcade-egg-fab {
     position: fixed;
     bottom: 22px;
     right: 22px;
     z-index: 9990;
-    width: 50px;
-    height: 50px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: rgba(20, 8, 14, 0.9);
-    border: 2px solid rgba(220, 38, 38, 0.4);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(220, 38, 38, 0.35);
+    background: rgba(22, 10, 16, 0.85);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 12px rgba(220, 38, 38, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.3rem;
     cursor: pointer;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity: 0.7;
     user-select: none;
 }
 
-.account-fab:hover {
-    transform: translateY(-3px) scale(1.08);
-    border-color: #ef4444;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 24px rgba(239, 68, 68, 0.6);
+.arcade-egg-fab:hover {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.15) rotate(12deg);
+    border-color: rgba(251, 146, 60, 0.8);
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6), 0 0 18px rgba(251, 146, 60, 0.45);
 }
 
-.account-fab-avatar-wrap {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.arcade-egg-icon {
+    line-height: 1;
+    transition: transform 0.2s ease;
 }
 
-.account-fab-avatar-wrap img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
+.arcade-egg-fab:hover .arcade-egg-icon {
+    transform: scale(1.1);
 }
 
-.account-fab-dot {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background: #22c55e;
-    border: 2px solid #14080e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
-    transition: all 0.2s ease;
-}
-
-.account-fab-dot.offline {
-    background: #6b7280;
-    box-shadow: none;
-}
-
-/* ─── CrimX Account Menu Modal (CrimsonFlame Themed) ─── */
-.account-modal-overlay {
+/* ─── Flappy Flame Arcade Modal & Cabinet ─── */
+.flappy-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(5, 2, 4, 0.82);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(6, 3, 5, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 100000;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 20px;
     animation: modalFadeIn 0.25s ease-out;
 }
 
-.account-modal-window {
-    width: 880px;
-    max-width: 96vw;
-    height: 600px;
-    max-height: 90vh;
-    background: #0e0509;
-    border: 1px solid rgba(220, 38, 38, 0.35);
-    border-radius: 22px;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.9), 0 0 45px rgba(220, 38, 38, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.flappy-cabinet {
+    width: 410px;
+    max-width: 95vw;
+    background: #140b0f;
+    border: 2px solid rgba(220, 38, 38, 0.5);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(220, 38, 38, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     overflow: hidden;
     display: flex;
+    flex-direction: column;
     animation: cabinetSlideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
-/* Sidebar */
-.account-sidebar {
-    width: 250px;
-    min-width: 230px;
-    background: rgba(18, 7, 13, 0.98);
-    border-right: 1px solid rgba(255, 255, 255, 0.07);
-    display: flex;
-    flex-direction: column;
-    padding: 18px 12px;
+@keyframes cabinetSlideUp {
+    from { transform: translateY(28px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-.account-user-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    border-radius: 14px;
-    margin-bottom: 14px;
-}
-
-.account-user-pfp-ring {
-    position: relative;
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0;
-}
-
-.account-user-pfp-ring img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1.5px solid rgba(220, 38, 38, 0.5);
-}
-
-.account-user-pfp-ring .user-status-dot {
-    position: absolute;
-    bottom: -1px;
-    right: -1px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #22c55e;
-    border: 2px solid #12070d;
-    box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
-}
-
-.account-user-pfp-ring .user-status-dot.offline {
-    background: #6b7280;
-    box-shadow: none;
-}
-
-.account-user-meta {
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.account-user-name {
-    font-family: var(--font-heading);
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.account-user-sub {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.account-nav-scroll {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.account-nav-section-title {
-    font-size: 0.68rem;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.38);
-    letter-spacing: 0.9px;
-    padding: 12px 10px 4px;
-    text-transform: uppercase;
-}
-
-.account-nav-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 9px 12px;
-    border-radius: 10px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: #cbd5e1;
-    font-family: var(--font-heading);
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-}
-
-.account-nav-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-}
-
-.account-nav-btn.active {
-    background: rgba(220, 38, 38, 0.22);
-    border-color: rgba(220, 38, 38, 0.55);
-    color: #fff;
-    box-shadow: 0 0 16px rgba(220, 38, 38, 0.25);
-}
-
-.account-sidebar-footer {
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
-    margin-top: auto;
-}
-
-.account-logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: transparent;
-    border: 1px solid rgba(239, 68, 68, 0.25);
-    color: #ef4444;
-    font-family: var(--font-heading);
-    font-size: 0.88rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.account-logout-btn:hover {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: #ef4444;
-}
-
-/* Main Content Pane */
-.account-content-pane {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #090306;
-    overflow: hidden;
-}
-
-.account-content-header {
+.flappy-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 24px;
-    background: rgba(14, 5, 9, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 14px 18px;
+    background: rgba(26, 12, 18, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.account-tab-title {
+.flappy-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.flappy-badge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #fb923c;
+    letter-spacing: 0.8px;
+}
+
+.flappy-title {
     font-family: var(--font-heading);
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    margin: 0;
 }
 
-.account-modal-close {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+.flappy-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.flappy-sound-toggle,
+.flappy-close-btn {
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
     color: #ede8ea;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3109,259 +2947,82 @@ body.inferno-overdrive .bg-glow-2 {
     transition: all 0.2s ease;
 }
 
-.account-modal-close:hover {
+.flappy-sound-toggle:hover,
+.flappy-close-btn:hover {
     background: rgba(220, 38, 38, 0.25);
     border-color: rgba(220, 38, 38, 0.6);
     color: #fff;
     transform: scale(1.05);
 }
 
-.account-tab-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-}
-
-/* Not Logged In View (matching user reference) */
-.account-empty-state {
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.account-empty-icon {
-    font-size: 3rem;
-    margin-bottom: 12px;
-    opacity: 0.85;
-}
-
-.account-empty-title {
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 6px;
-}
-
-.account-empty-desc {
-    color: var(--text-secondary);
-    font-size: 0.92rem;
-    margin-bottom: 22px;
-}
-
-.account-login-btn {
-    background: linear-gradient(135deg, #ef4444, #b91c1c);
-    color: #fff;
-    border: none;
-    padding: 10px 30px;
-    border-radius: 10px;
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    box-shadow: 0 4px 18px rgba(220, 38, 38, 0.45);
-    transition: all 0.2s ease;
-}
-
-.account-login-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(220, 38, 38, 0.65);
-}
-
-/* Logged In Cards & Controls */
-.account-section-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(220, 38, 38, 0.22);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 18px;
-}
-
-.account-card-title {
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.account-status-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    flex-wrap: wrap;
-    padding: 12px 14px;
-    background: rgba(0, 0, 0, 0.35);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.account-status-preview {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    color: #ede8ea;
-}
-
-.status-dot-indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
-}
-
-.status-dot-indicator.offline {
-    background: #6b7280;
-    box-shadow: none;
-}
-
-.account-status-toggle-btns {
-    display: flex;
-    gap: 6px;
-}
-
-.status-toggle-btn {
-    padding: 6px 14px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-    color: #94a3b8;
-    font-size: 0.82rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.status-toggle-btn.active-online {
-    background: rgba(34, 197, 94, 0.2);
-    border-color: rgba(34, 197, 94, 0.5);
-    color: #4ade80;
-}
-
-.status-toggle-btn.active-offline {
-    background: rgba(107, 114, 128, 0.2);
-    border-color: rgba(107, 114, 128, 0.5);
-    color: #d1d5db;
-}
-
-.account-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.account-info-item {
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 10px 14px;
-}
-
-.account-info-label {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-.account-info-value {
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: #fff;
-    margin-top: 4px;
-}
-
-.account-friend-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 14px;
-    background: rgba(255, 255, 255, 0.025);
-    border: 1px solid rgba(220, 38, 38, 0.18);
-    border-radius: 12px;
-    margin-bottom: 8px;
-    transition: all 0.2s;
-}
-
-.account-friend-card:hover {
-    background: rgba(220, 38, 38, 0.06);
-    border-color: rgba(220, 38, 38, 0.35);
-}
-
-.account-friend-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    overflow: hidden;
-}
-
-.account-friend-pfp {
+.flappy-canvas-wrap {
     position: relative;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-}
-
-.account-friend-pfp img {
     width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    user-select: none;
+    touch-action: none;
 }
 
-.account-friend-pfp .friend-dot {
+#flappy-canvas {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    aspect-ratio: 380 / 480;
+    cursor: pointer;
+}
+
+.flappy-scanlines {
     position: absolute;
-    bottom: -1px;
-    right: -1px;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: #22c55e;
-    border: 2px solid #090306;
-    box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+    );
+    background-size: 100% 4px;
+    opacity: 0.4;
 }
 
-.account-friend-pfp .friend-dot.offline {
-    background: #6b7280;
-    box-shadow: none;
-}
-
-.account-friend-meta {
-    overflow: hidden;
-}
-
-.account-friend-name {
-    font-weight: 700;
-    color: #fff;
-    font-size: 0.92rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.account-friend-handle {
-    font-size: 0.74rem;
+.flappy-hud-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: rgba(20, 10, 14, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.8rem;
     color: var(--text-secondary);
 }
 
-.account-friend-status {
+.flappy-hud-bottom kbd {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: monospace;
     font-size: 0.75rem;
-    color: #f87171;
-    font-weight: 500;
-    margin-top: 2px;
+    color: #fff;
+}
+
+.flappy-hud-best strong {
+    color: #fb923c;
+    font-weight: 800;
+    font-size: 0.92rem;
+}
+
+@media (max-width: 600px) {
+    .arcade-fab {
+        bottom: 16px;
+        right: 16px;
+        padding: 8px 14px;
+    }
+    .arcade-fab-text {
+        display: none;
+    }
 }
 
 /* ==========================================================================
@@ -4833,6 +4494,11 @@ body.cim-fullscreen-active {
     box-shadow: 0 6px 20px rgba(220, 38, 38, 0.65);
 }
 
+.cim-send-btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.6);
+}
+
 /* ─── Top Right Incoming Message Toast ─── */
 .cim-notification-container {
     position: fixed;
@@ -5526,6 +5192,688 @@ body.cim-fullscreen-active {
         text-align: center;
         gap: 14px;
     }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   FRUTIGER AERO (CRISTAL TRANSPARENT GLASS EDITION) DESIGN SYSTEM
+   Ultra-Translucent Acrylic Panels, Specular Curvature Highlights, 3D Gel Buttons
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Global Background Aero Lighting ─── */
+body {
+    background: radial-gradient(circle at 18% 22%, rgba(220, 38, 38, 0.28) 0%, transparent 48%),
+                radial-gradient(circle at 82% 58%, rgba(251, 146, 60, 0.2) 0%, transparent 42%),
+                radial-gradient(circle at 50% 90%, rgba(220, 38, 38, 0.22) 0%, transparent 52%),
+                #0a0507 !important;
+}
+
+/* ─── Ultra-Transparent Frutiger Aero Glass Containers ─── */
+.dash-block-friends,
+.dash-block-doorauth,
+.dash-block-cim,
+.dash-card,
+.dash-coming-soon-card,
+.settings-studio-inner {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.01) 100%), rgba(20, 8, 14, 0.28) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 24px !important;
+    box-shadow: inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75), inset 0 0 24px rgba(255, 255, 255, 0.04), 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 28px rgba(220, 38, 38, 0.2) !important;
+    backdrop-filter: blur(28px) saturate(210%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(210%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Specular Glass Reflection Top-Light Curve */
+.dash-block-friends::before,
+.dash-block-doorauth::before,
+.dash-block-cim::before,
+.settings-studio-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 44%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+    border-radius: 24px 24px 100% 100% / 24px 24px 42px 42px !important;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ─── CIM Inner Transparent Panes ─── */
+.cim-container {
+    background: transparent !important;
+}
+
+.cim-sidebar {
+    background: transparent !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+.cim-chat-area {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 18px !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.cim-chat-header {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.cim-messages-box,
+.cim-no-chat-state {
+    background: transparent !important;
+}
+
+/* ─── Frosted Aero Friend Cards & DoorAuth Items ─── */
+.friend-card,
+.doorauth-app-card,
+.cim-contact-btn {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 3px 12px rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-radius: 14px !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.friend-card:hover,
+.doorauth-app-card:hover,
+.cim-contact-btn:hover {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 100%), rgba(220, 38, 38, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    transform: translateY(-1.5px) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 6px 20px rgba(220, 38, 38, 0.35) !important;
+}
+
+.cim-contact-btn.active {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.06) 100%), rgba(220, 38, 38, 0.3) !important;
+    border-color: #ef4444 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 18px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* ─── Frutiger Aero Profile Showcase Card ─── */
+.cim-sidebar-profile {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(0, 0, 0, 0.12) 100%), rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-radius: 16px !important;
+}
+
+.cim-profile-avatar-wrap img {
+    border: 2px solid rgba(255, 255, 255, 0.65) !important;
+    box-shadow: 0 0 14px rgba(220, 38, 38, 0.5) !important;
+}
+
+.cim-profile-dot {
+    box-shadow: 0 0 8px #22c55e, inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ─── Translucent Frosted Glass Inputs ─── */
+.settings-input,
+.friends-search-input,
+.doorauth-connect-input,
+.cim-input-field {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.24) !important;
+    box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    transition: all 0.2s ease !important;
+}
+
+.settings-input:focus,
+.friends-search-input:focus,
+.doorauth-connect-input:focus,
+.cim-input-field:focus {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: #ef4444 !important;
+    box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.2), 0 0 18px rgba(239, 68, 68, 0.5) !important;
+    outline: none !important;
+}
+
+/* ─── High-Gloss Frutiger Aero 3D Gel Buttons ─── */
+.btn-primary,
+.btn-aero-primary {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.2) 48%, rgba(0, 0, 0, 0.06) 50%, rgba(0, 0, 0, 0.22) 100%), linear-gradient(135deg, rgba(239, 68, 68, 0.92), rgba(185, 28, 28, 0.92)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.65) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.95), 0 4px 18px rgba(220, 38, 38, 0.55), 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+    border-radius: 9999px !important;
+    cursor: pointer;
+    font-weight: 800 !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    user-select: none;
+}
+
+.btn-primary:hover,
+.btn-aero-primary:hover {
+    transform: translateY(-1.5px) !important;
+    box-shadow: inset 0 1px 1px #ffffff, 0 6px 24px rgba(239, 68, 68, 0.75), 0 0 20px rgba(239, 68, 68, 0.5) !important;
+    filter: brightness(1.08);
+}
+
+.btn-primary:active,
+.btn-aero-primary:active {
+    transform: translateY(1px) !important;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Secondary & Back Buttons: Crystal Frosted Glass Pills */
+.btn-secondary,
+.crimx-back-btn {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 48%, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.2) 100%), rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 3px 12px rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(12px) !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    cursor: pointer;
+    font-weight: 700 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.btn-secondary:hover,
+.crimx-back-btn:hover {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.12) 48%, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.2) 100%), rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+    color: #ffffff !important;
+    transform: translateY(-1.5px) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 5px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.btn-danger {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.12) 48%, rgba(0, 0, 0, 0.15) 100%), #991b1b !important;
+    border: 1px solid rgba(255, 255, 255, 0.45) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 3px 10px rgba(153, 27, 27, 0.4) !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 5px 16px rgba(220, 38, 38, 0.6) !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 48%, rgba(0, 0, 0, 0.15) 100%), #dc2626 !important;
+}
+
+/* ─── Frutiger Aero Social Badges & Chips ─── */
+.cim-profile-socials {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.social-chip-aero {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 8px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    user-select: none;
+}
+
+.social-chip-aero img {
+    width: 13px;
+    height: 13px;
+    object-fit: contain;
+}
+
+.social-chip-aero.discord {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 0, 0, 0.15) 100%), #5865F2;
+    color: #ffffff;
+}
+
+.social-chip-aero.discord:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 4px 14px rgba(88, 101, 242, 0.65);
+}
+
+.social-chip-aero.youtube {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 0, 0, 0.15) 100%), #dc2626;
+    color: #ffffff;
+}
+
+.social-chip-aero.youtube:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 4px 14px rgba(220, 38, 38, 0.65);
+}
+
+.preview-chip-yt {
+    background: rgba(220, 38, 38, 0.2) !important;
+    border-color: rgba(220, 38, 38, 0.5) !important;
+    color: #fca5a5 !important;
+}
+
+.badge-pill-aero {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 12px;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    border: 1px solid;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Aero Glass Scrollbars ─── */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(220, 38, 38, 0.65) 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, #ef4444 100%);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   REWORKED UNIFIED DASHBOARD LAYOUT & THEMES ENGINE
+   Cohesive Hub Architecture, Frutiger Aero Vibrant Glass, Frutiger Metro Tiles
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Top Navigation Bar ─── */
+.dash-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(20, 8, 14, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 9999px;
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dash-header-left,
+.dash-header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.dash-brand-capsule {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+}
+
+.dash-brand-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+}
+
+/* ─── Reworked 2-Column Dashboard Grid ─── */
+.dash-reworked-grid {
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 960px) {
+    .dash-reworked-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dash-col-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ─── Left Column: Player Identity Showcase Card ─── */
+.dash-card-profile {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.01) 100%), rgba(20, 8, 14, 0.28) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 24px !important;
+    box-shadow: inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75), inset 0 0 24px rgba(255, 255, 255, 0.04), 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 28px rgba(220, 38, 38, 0.2) !important;
+    backdrop-filter: blur(28px) saturate(210%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(210%) !important;
+}
+
+.dash-profile-banner {
+    width: 100%;
+    height: 110px;
+    background: linear-gradient(135deg, #dc2626, #fb923c);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dash-profile-body {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-profile-avatar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: -42px;
+    margin-bottom: 12px;
+}
+
+.dash-profile-avatar-wrap {
+    position: relative;
+    width: 82px;
+    height: 82px;
+}
+
+.dash-profile-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 18px rgba(220, 38, 38, 0.4);
+    background: #18090f;
+}
+
+.dash-profile-avatar-wrap .cim-profile-dot {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2.5px solid #140a0f;
+    box-shadow: 0 0 8px #22c55e, inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.dash-profile-user-info {
+    margin-bottom: 14px;
+}
+
+.dash-profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 3px;
+}
+
+.dash-profile-name-row h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.dash-profile-handle-text {
+    font-family: monospace;
+    font-size: 0.86rem;
+    color: var(--crimson-light);
+    margin-bottom: 6px;
+}
+
+.dash-profile-status-text {
+    font-size: 0.82rem;
+    color: #e2e8f0;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.dash-profile-bio-text {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 12px;
+}
+
+/* ─── Right Column: Unified CIM & Social Hub ─── */
+.dash-card-social-hub {
+    min-height: 640px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-cim-split {
+    display: flex;
+    flex: 1;
+    min-height: 520px;
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .dash-cim-split {
+        flex-direction: column;
+    }
+}
+
+.dash-friends-sidebar {
+    width: 270px;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    padding-right: 14px;
+}
+
+@media (max-width: 768px) {
+    .dash-friends-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        padding-bottom: 14px;
+    }
+}
+
+.dash-friends-search-row {
+    display: flex;
+    gap: 6px;
+}
+
+/* ─── FRUTIGER AERO THEME CUSTOMIZATION ([data-theme="frutiger-aero"]) ─── */
+[data-theme="frutiger-aero"] body {
+    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.45) 0%, transparent 45%),
+                radial-gradient(circle at 85% 55%, rgba(16, 185, 129, 0.35) 0%, transparent 45%),
+                radial-gradient(circle at 50% 85%, rgba(56, 189, 248, 0.3) 0%, transparent 50%),
+                #021827 !important;
+}
+
+[data-theme="frutiger-aero"] .dash-block-friends,
+[data-theme="frutiger-aero"] .dash-block-doorauth,
+[data-theme="frutiger-aero"] .dash-block-cim,
+[data-theme="frutiger-aero"] .dash-card,
+[data-theme="frutiger-aero"] .dash-card-profile,
+[data-theme="frutiger-aero"] .settings-studio-inner,
+[data-theme="frutiger-aero"] .dash-header-bar {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(14, 165, 233, 0.08) 100%), rgba(2, 24, 39, 0.35) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+    box-shadow: inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.85), inset 0 0 24px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 32px rgba(14, 165, 233, 0.3) !important;
+}
+
+[data-theme="frutiger-aero"] .btn-primary,
+[data-theme="frutiger-aero"] .btn-aero-primary {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.22) 48%, rgba(0, 0, 0, 0.06) 50%, rgba(0, 0, 0, 0.2) 100%), linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+    border-color: rgba(255, 255, 255, 0.75) !important;
+    box-shadow: inset 0 1px 1px #ffffff, 0 4px 18px rgba(14, 165, 233, 0.6) !important;
+}
+
+[data-theme="frutiger-aero"] .cim-icon-pill,
+[data-theme="frutiger-aero"] .doorauth-icon-badge {
+    background: rgba(14, 165, 233, 0.25) !important;
+    border-color: rgba(56, 189, 248, 0.6) !important;
+    box-shadow: 0 0 14px rgba(14, 165, 233, 0.4) !important;
+}
+
+/* ─── FRUTIGER METRO THEME CUSTOMIZATION ([data-theme="frutiger-metro"]) ─── */
+[data-theme="frutiger-metro"] body {
+    background: #0f0f0f !important;
+}
+
+[data-theme="frutiger-metro"] .dash-block-friends,
+[data-theme="frutiger-metro"] .dash-block-doorauth,
+[data-theme="frutiger-metro"] .dash-block-cim,
+[data-theme="frutiger-metro"] .dash-card,
+[data-theme="frutiger-metro"] .dash-card-profile,
+[data-theme="frutiger-metro"] .settings-studio-inner,
+[data-theme="frutiger-metro"] .dash-header-bar,
+[data-theme="frutiger-metro"] .friend-card,
+[data-theme="frutiger-metro"] .doorauth-app-card,
+[data-theme="frutiger-metro"] .cim-contact-btn,
+[data-theme="frutiger-metro"] .cim-chat-area {
+    border-radius: 0px !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    background: #1c1c1c !important;
+    border: 2px solid #333333 !important;
+}
+
+[data-theme="frutiger-metro"] .dash-header-bar {
+    border-top: 4px solid #e51400 !important;
+}
+
+[data-theme="frutiger-metro"] .dash-card-profile {
+    border-top: 4px solid #0078d7 !important;
+}
+
+[data-theme="frutiger-metro"] .dash-block-doorauth {
+    border-top: 4px solid #e51400 !important;
+}
+
+[data-theme="frutiger-metro"] .dash-card-social-hub {
+    border-top: 4px solid #00a4ef !important;
+}
+
+[data-theme="frutiger-metro"] .dash-block-friends::before,
+[data-theme="frutiger-metro"] .dash-block-doorauth::before,
+[data-theme="frutiger-metro"] .dash-block-cim::before,
+[data-theme="frutiger-metro"] .dash-card-profile::before,
+[data-theme="frutiger-metro"] .settings-studio-inner::before {
+    display: none !important;
+}
+
+[data-theme="frutiger-metro"] .btn-primary,
+[data-theme="frutiger-metro"] .btn-aero-primary {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    background: #e51400 !important;
+    border: 2px solid #e51400 !important;
+}
+
+[data-theme="frutiger-metro"] .btn-primary:hover,
+[data-theme="frutiger-metro"] .btn-aero-primary:hover {
+    background: #ff2a1a !important;
+    border-color: #ff2a1a !important;
+    transform: none !important;
+    filter: none !important;
+}
+
+[data-theme="frutiger-metro"] .btn-secondary,
+[data-theme="frutiger-metro"] .crimx-back-btn {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    background: #2b2b2b !important;
+    border: 2px solid #444444 !important;
+    backdrop-filter: none !important;
+}
+
+[data-theme="frutiger-metro"] .btn-secondary:hover,
+[data-theme="frutiger-metro"] .crimx-back-btn:hover {
+    background: #0078d7 !important;
+    border-color: #0078d7 !important;
+    transform: none !important;
+}
+
+[data-theme="frutiger-metro"] .settings-input,
+[data-theme="frutiger-metro"] .friends-search-input,
+[data-theme="frutiger-metro"] .doorauth-connect-input,
+[data-theme="frutiger-metro"] .cim-input-field {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    background: #0d0d0d !important;
+    border: 2px solid #3d3d3d !important;
+    backdrop-filter: none !important;
+}
+
+[data-theme="frutiger-metro"] .settings-input:focus,
+[data-theme="frutiger-metro"] .friends-search-input:focus,
+[data-theme="frutiger-metro"] .doorauth-connect-input:focus,
+[data-theme="frutiger-metro"] .cim-input-field:focus {
+    border-color: #0078d7 !important;
+    box-shadow: none !important;
+}
+
+[data-theme="frutiger-metro"] .dash-brand-capsule,
+[data-theme="frutiger-metro"] .badge-pill-aero,
+[data-theme="frutiger-metro"] .social-chip-aero {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    text-transform: uppercase !important;
 }
 
 

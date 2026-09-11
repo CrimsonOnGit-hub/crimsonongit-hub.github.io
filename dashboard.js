@@ -17,10 +17,10 @@ const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 setPersistence(auth, browserLocalPersistence);
 
-// Route password reset links to custom reset-password page
+// Route password reset and action links to /auth/action
 const searchParams = new URLSearchParams(window.location.search);
 if (searchParams.get('mode') === 'resetPassword' || searchParams.get('oobCode')) {
-    window.location.replace('/reset-password.html' + window.location.search);
+    window.location.replace('/auth/action' + window.location.search);
 }
 
 let currentUser = null;
@@ -256,6 +256,25 @@ window.updateLivePreview = function() {
     if (cimStatus) cimStatus.innerText = finalStatus;
     const cimBio = document.getElementById('cim-profile-bio');
     if (cimBio) cimBio.innerText = finalBio;
+
+    // Update live preview social chips
+    const previewDiscordChip = document.getElementById('preview-discord-chip');
+    const previewYouTubeChip = document.getElementById('preview-youtube-chip');
+    const discordToggle = document.getElementById('pref-show-discord');
+    const youtubeToggle = document.getElementById('pref-show-youtube');
+    const discordLinked = document.getElementById('discord-linked');
+    const youtubeLinked = document.getElementById('youtube-linked');
+
+    if (previewDiscordChip) {
+        const isDiscVisible = discordToggle ? discordToggle.checked : true;
+        const isDiscLinked = discordLinked && discordLinked.style.display !== 'none';
+        previewDiscordChip.style.display = (isDiscLinked && isDiscVisible) ? 'inline-flex' : 'none';
+    }
+    if (previewYouTubeChip) {
+        const isYtVisible = youtubeToggle ? youtubeToggle.checked : true;
+        const isYtLinked = youtubeLinked && youtubeLinked.style.display !== 'none';
+        previewYouTubeChip.style.display = (isYtLinked && isYtVisible) ? 'inline-flex' : 'none';
+    }
 };
 
 // ── Banner Preset Picker ──
@@ -473,7 +492,7 @@ window.copyCrimXUID = function() {
 window.triggerPasswordReset = async function() {
     if (!currentUser || !currentUser.email) return;
     try {
-        const resetUrl = `${window.location.origin}/reset-password.html`;
+        const resetUrl = `${window.location.origin}/auth/action`;
         const actionCodeSettings = {
             url: resetUrl,
             handleCodeInApp: true
@@ -703,7 +722,7 @@ window.submitForgotPasswordFromLogin = async function(e) {
     if (feedback) feedback.style.display = 'none';
 
     try {
-        const resetUrl = `${window.location.origin}/reset-password.html`;
+        const resetUrl = `${window.location.origin}/auth/action`;
         const actionCodeSettings = {
             url: resetUrl,
             handleCodeInApp: true
@@ -733,23 +752,169 @@ window.submitForgotPasswordFromLogin = async function(e) {
     }
 };
 
-// ── Discord Integration ──
+// ── Social & Gaming Integrations (Discord & YouTube with Profile Visibility) ──
+window.linkDiscordHandle = async function() {
+    if (!currentUser) return;
+    const input = document.getElementById('discord-handle-input');
+    const raw = (input ? input.value : '').trim();
+    if (!raw) {
+        playSfx('error');
+        window.showToast("Please enter your Discord username or tag.", "error");
+        return;
+    }
+    const clean = raw.replace(/^@/, '');
+    const showOnProfile = document.getElementById('pref-show-discord')?.checked ?? true;
+
+    try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+            discordUsername: clean,
+            discordId: 'manual_' + clean,
+            discordAvatar: 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png',
+            discordShowOnProfile: showOnProfile
+        }, { merge: true });
+
+        if (input) input.value = '';
+        playSfx('success');
+        window.showToast(`✓ Discord linked as @${clean}!`, "success");
+    } catch (err) {
+        playSfx('error');
+        window.showToast("Failed to link Discord: " + err.message, "error");
+    }
+};
+
 window.generateDiscordLinkCode = async function() {
     if(!currentUser) return;
     const code = Math.floor(100000 + Math.random() * 900000).toString(); 
     await setDoc(doc(db, "users", currentUser.uid), { linkCode: code }, { merge: true });
     const display = document.getElementById('discord-link-code-display');
-    display.style.display = 'block'; 
-    display.innerText = `DM the bot: !link ${code}`;
+    if (display) {
+        display.style.display = 'block'; 
+        display.innerText = `DM the bot: !link ${code}`;
+    }
     playSfx('click');
     window.showToast("Link code generated! DM the CrimsonFlame bot on Discord.", "info");
 };
 
 window.unlinkDiscord = async function() {
     if(!currentUser) return;
-    await updateDoc(doc(db, "users", currentUser.uid), { discordId: null, discordUsername: null, discordAvatar: null, linkCode: null });
-    playSfx('click');
-    window.showToast("Discord account unlinked.", "info");
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), { 
+            discordId: null, 
+            discordUsername: null, 
+            discordAvatar: null, 
+            linkCode: null,
+            discordShowOnProfile: false
+        });
+        playSfx('click');
+        window.showToast("Discord account unlinked.", "info");
+    } catch(err) {
+        window.showToast("Error unlinking Discord: " + err.message, "error");
+    }
+};
+
+window.linkYouTubeHandle = async function() {
+    if (!currentUser) return;
+    const input = document.getElementById('youtube-handle-input');
+    const raw = (input ? input.value : '').trim();
+    if (!raw) {
+        playSfx('error');
+        window.showToast("Please enter your YouTube handle or channel link.", "error");
+        return;
+    }
+
+    let cleanHandle = raw;
+    let channelUrl = '';
+
+    if (raw.includes('youtube.com/') || raw.includes('youtu.be/')) {
+        channelUrl = raw.startsWith('http') ? raw : `https://${raw}`;
+        const match = raw.match(/@([a-zA-Z0-9_\-\.]+)/);
+        cleanHandle = match ? `@${match[1]}` : (raw.split('/').pop() || raw);
+    } else {
+        cleanHandle = raw.startsWith('@') ? raw : `@${raw}`;
+        channelUrl = `https://www.youtube.com/${cleanHandle}`;
+    }
+
+    const showOnProfile = document.getElementById('pref-show-youtube')?.checked ?? true;
+
+    try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+            youtubeHandle: cleanHandle,
+            youtubeUrl: channelUrl,
+            youtubeShowOnProfile: showOnProfile
+        }, { merge: true });
+
+        if (input) input.value = '';
+        playSfx('success');
+        window.showToast(`✓ YouTube linked as ${cleanHandle}!`, "success");
+    } catch(err) {
+        playSfx('error');
+        window.showToast("Failed to link YouTube: " + err.message, "error");
+    }
+};
+
+window.unlinkYouTube = async function() {
+    if (!currentUser) return;
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), {
+            youtubeHandle: null,
+            youtubeUrl: null,
+            youtubeShowOnProfile: false
+        });
+        playSfx('click');
+        window.showToast("YouTube channel unlinked.", "info");
+    } catch(err) {
+        window.showToast("Error unlinking YouTube: " + err.message, "error");
+    }
+};
+
+window.saveSocialVisibilityPreferences = async function() {
+    if (!currentUser) return;
+    const showDiscord = document.getElementById('pref-show-discord')?.checked ?? true;
+    const showYouTube = document.getElementById('pref-show-youtube')?.checked ?? true;
+
+    try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+            discordShowOnProfile: showDiscord,
+            youtubeShowOnProfile: showYouTube
+        }, { merge: true });
+
+        playSfx('click');
+        window.showToast("Profile social visibility updated!", "info");
+        window.updateLivePreview();
+    } catch(err) {
+        console.warn("Failed to update visibility preferences:", err);
+    }
+};
+
+window.renderCIMProfileSocials = function(userData) {
+    const container = document.getElementById('cim-profile-socials');
+    if (!container) return;
+
+    const showDiscord = userData?.discordShowOnProfile !== false;
+    const showYouTube = userData?.youtubeShowOnProfile !== false;
+
+    const hasDiscord = userData?.discordUsername && showDiscord;
+    const hasYouTube = userData?.youtubeHandle && showYouTube;
+
+    let html = '';
+    if (hasDiscord) {
+        html += `
+            <div class="social-chip-aero discord" title="Discord: @${escapeHtml(userData.discordUsername)}">
+                <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" alt="Discord">
+                <span>@${escapeHtml(userData.discordUsername)}</span>
+            </div>
+        `;
+    }
+    if (hasYouTube) {
+        const url = userData.youtubeUrl || `https://www.youtube.com/${escapeHtml(userData.youtubeHandle)}`;
+        html += `
+            <a href="${escapeHtml(url)}" target="_blank" class="social-chip-aero youtube" title="YouTube: ${escapeHtml(userData.youtubeHandle)}">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                <span>${escapeHtml(userData.youtubeHandle)}</span>
+            </a>
+        `;
+    }
+    container.innerHTML = html;
 };
 
 // ── Connected CrimX Applications ──
@@ -1044,11 +1209,10 @@ function saveCIMLocalMessage(myUid, friendUid, msg) {
     try {
         const key = `cim_chat_${myUid}_${friendUid}`;
         const msgs = getCIMLocalMessages(myUid, friendUid);
-        const sId = msg.senderId || msg.senderUid;
         // Avoid duplicate message
         const isDuplicate = msgs.some(m => 
             (m.id && msg.id && m.id === msg.id) ||
-            ((m.senderId || m.senderUid) === sId && m.text === msg.text && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 4000)
+            ((m.senderId || m.senderUid) === (msg.senderId || msg.senderUid) && m.text === msg.text && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 4000)
         );
         if (isDuplicate) return false;
         msgs.push(msg);
@@ -1306,6 +1470,10 @@ function updateCIMProfileCard(userData) {
     if (bioEl) bioEl.innerText = bio;
     if (pfpEl) pfpEl.src = pfp;
     if (bannerEl) applyBannerStyle(bannerEl, banner);
+
+    if (window.renderCIMProfileSocials) {
+        window.renderCIMProfileSocials(userData);
+    }
 }
 
 let cimEventSource = null;
@@ -1878,18 +2046,89 @@ onAuthStateChanged(auth, user => {
                 // Discord Integration status
                 const previewDiscordChip = document.getElementById('preview-discord-chip');
                 const previewDiscordText = document.getElementById('preview-discord-text');
-                if(data.discordId) {
-                    document.getElementById('discord-unlinked').style.display = 'none';
-                    document.getElementById('discord-linked').style.display = 'flex';
-                    document.getElementById('discord-username').innerText = `@${data.discordUsername}`;
-                    document.getElementById('discord-avatar').src = data.discordAvatar || DEFAULT_PFP;
-                    if (previewDiscordChip) previewDiscordChip.classList.add('active');
-                    if (previewDiscordText) previewDiscordText.innerText = `Discord: @${data.discordUsername}`;
+                const discordStatusBadge = document.getElementById('discord-status-badge');
+                const discordToggle = document.getElementById('pref-show-discord');
+
+                const showDiscord = data.discordShowOnProfile !== false;
+                if (discordToggle) discordToggle.checked = showDiscord;
+
+                if (data.discordUsername) {
+                    const dUnlinked = document.getElementById('discord-unlinked');
+                    const dLinked = document.getElementById('discord-linked');
+                    if (dUnlinked) dUnlinked.style.display = 'none';
+                    if (dLinked) dLinked.style.display = 'flex';
+                    const uName = document.getElementById('discord-username');
+                    if (uName) uName.innerText = `@${data.discordUsername}`;
+                    const dAvatar = document.getElementById('discord-avatar');
+                    if (dAvatar) dAvatar.src = data.discordAvatar || 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png';
+                    if (discordStatusBadge) {
+                        discordStatusBadge.innerText = "Linked";
+                        discordStatusBadge.style.background = "rgba(88, 101, 242, 0.35)";
+                        discordStatusBadge.style.color = "#c7d2fe";
+                    }
+
+                    if (previewDiscordChip) {
+                        previewDiscordChip.style.display = showDiscord ? 'inline-flex' : 'none';
+                        previewDiscordChip.classList.add('active');
+                    }
+                    if (previewDiscordText) previewDiscordText.innerText = `@${data.discordUsername}`;
                 } else {
-                    document.getElementById('discord-unlinked').style.display = 'block';
-                    document.getElementById('discord-linked').style.display = 'none';
-                    if (previewDiscordChip) previewDiscordChip.classList.remove('active');
-                    if (previewDiscordText) previewDiscordText.innerText = "Discord: Unlinked";
+                    const dUnlinked = document.getElementById('discord-unlinked');
+                    const dLinked = document.getElementById('discord-linked');
+                    if (dUnlinked) dUnlinked.style.display = 'block';
+                    if (dLinked) dLinked.style.display = 'none';
+                    if (discordStatusBadge) {
+                        discordStatusBadge.innerText = "Unlinked";
+                        discordStatusBadge.style.background = "rgba(88, 101, 242, 0.15)";
+                        discordStatusBadge.style.color = "#818cf8";
+                    }
+                    if (previewDiscordChip) previewDiscordChip.style.display = 'none';
+                }
+
+                // YouTube Integration status
+                const previewYouTubeChip = document.getElementById('preview-youtube-chip');
+                const previewYouTubeText = document.getElementById('preview-youtube-text');
+                const youtubeStatusBadge = document.getElementById('youtube-status-badge');
+                const youtubeToggle = document.getElementById('pref-show-youtube');
+
+                const showYouTube = data.youtubeShowOnProfile !== false;
+                if (youtubeToggle) youtubeToggle.checked = showYouTube;
+
+                if (data.youtubeHandle) {
+                    const ytUnlinked = document.getElementById('youtube-unlinked');
+                    const ytLinked = document.getElementById('youtube-linked');
+                    if (ytUnlinked) ytUnlinked.style.display = 'none';
+                    if (ytLinked) ytLinked.style.display = 'flex';
+                    const cName = document.getElementById('youtube-channel-name');
+                    if (cName) cName.innerText = data.youtubeHandle;
+                    const cLink = document.getElementById('youtube-channel-link');
+                    if (cLink) cLink.href = data.youtubeUrl || `https://www.youtube.com/${data.youtubeHandle}`;
+                    if (youtubeStatusBadge) {
+                        youtubeStatusBadge.innerText = "Linked";
+                        youtubeStatusBadge.style.background = "rgba(220, 38, 38, 0.35)";
+                        youtubeStatusBadge.style.color = "#fecaca";
+                    }
+
+                    if (previewYouTubeChip) {
+                        previewYouTubeChip.style.display = showYouTube ? 'inline-flex' : 'none';
+                        previewYouTubeChip.classList.add('active');
+                    }
+                    if (previewYouTubeText) previewYouTubeText.innerText = data.youtubeHandle;
+                } else {
+                    const ytUnlinked = document.getElementById('youtube-unlinked');
+                    const ytLinked = document.getElementById('youtube-linked');
+                    if (ytUnlinked) ytUnlinked.style.display = 'block';
+                    if (ytLinked) ytLinked.style.display = 'none';
+                    if (youtubeStatusBadge) {
+                        youtubeStatusBadge.innerText = "Unlinked";
+                        youtubeStatusBadge.style.background = "rgba(239, 68, 68, 0.15)";
+                        youtubeStatusBadge.style.color = "#fca5a5";
+                    }
+                    if (previewYouTubeChip) previewYouTubeChip.style.display = 'none';
+                }
+
+                if (window.renderCIMProfileSocials) {
+                    window.renderCIMProfileSocials(data);
                 }
 
                 window.updateLivePreview();

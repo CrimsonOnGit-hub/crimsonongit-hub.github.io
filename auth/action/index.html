@@ -362,6 +362,20 @@
             color: #00e5ff;
             letter-spacing: 0.5px;
         }
+
+        .crimxid-error-msg {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.6);
+            color: #fecaca;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+            line-height: 1.4;
+            animation: fadeIn 0.2s ease;
+        }
     </style>
 </head>
 <body>
@@ -513,34 +527,102 @@
             <a href="/dashboard" class="btn-secondary" style="display: block; width: 100%; text-decoration: none; padding: 12px; font-weight: 700; text-align: center;">
                 ← Back to Sign In
             </a>
+        </div>
     </main>
 
     <!-- ─── GOOGLE-STYLE "SIGN IN WITH YOUR CRIMXID" (Untitled.png) ─── -->
     <div id="crimxid-view" class="crimxid-auth-wrapper">
-        <div class="crimxid-header-title">
-            Sign in with your <strong>CrimXID</strong>
+        <div class="crimxid-header-title" id="crimxid-main-title">
+            Sign in with your <strong>CrimX ID</strong>
         </div>
 
         <div class="crimxid-card">
             <div class="crimxid-avatar-circle" id="oauth-avatar">
                 <svg viewBox="0 0 24 24">
-                    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
+                    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
                 </svg>
             </div>
 
-            <div class="crimxid-greeting" id="oauth-greeting">Hey there, User!</div>
-            <div class="crimxid-app-prompt" id="oauth-prompt">
-                <strong id="oauth-app-name" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
+            <!-- STEP 1: EMAIL / CRIMX ID INPUT -->
+            <div id="oauth-step-email" style="width: 100%;">
+                <div class="crimxid-greeting" id="oauth-email-greeting">Sign In</div>
+                <div class="crimxid-app-prompt">
+                    <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
+                </div>
+
+                <form onsubmit="handleOAuthEmailSubmit(event)" style="width: 100%;">
+                    <input type="text" id="oauth-email-input" class="crimxid-input-box" placeholder="Enter your email or CrimX ID" required autocomplete="username" autofocus>
+                    
+                    <div id="oauth-email-error" class="crimxid-error-msg" style="display: none;">CrimX ID Doesnt exist</div>
+
+                    <div class="crimxid-actions">
+                        <button type="button" class="crimxid-btn-cancel" onclick="handleOAuthCancel()">Cancel</button>
+                        <button type="submit" id="btn-oauth-email-next" class="crimxid-btn-submit">Next →</button>
+                    </div>
+                </form>
+
+                <div style="margin-top: 24px; font-size: 0.88rem; color: #fca5a5; text-align: center;">
+                    Don't have an account? 
+                    <a href="javascript:void(0)" onclick="switchOAuthView('register')" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-left: 4px;">Create a CrimX ID</a>
+                </div>
             </div>
 
-            <form onsubmit="handleOAuthAuthorizeSubmit(event)" style="width: 100%;">
-                <input type="password" id="oauth-password-input" class="crimxid-input-box" placeholder="Enter CrimX Password." autocomplete="current-password">
-
-                <div class="crimxid-actions">
-                    <button type="button" class="crimxid-btn-cancel" onclick="handleOAuthCancel()">Cancel</button>
-                    <button type="submit" id="btn-oauth-submit" class="crimxid-btn-submit">Authorize with CrimX</button>
+            <!-- STEP 2: PASSWORD AUTHENTICATION -->
+            <div id="oauth-step-password" style="display: none; width: 100%;">
+                <div class="crimxid-greeting" id="oauth-greeting">Hey there, User!</div>
+                <div class="crimxid-app-prompt">
+                    <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
                 </div>
-            </form>
+
+                <div id="oauth-user-badge-container" style="margin-bottom: 20px;">
+                    <div id="oauth-user-badge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 999px; padding: 5px 14px; font-size: 0.85rem; color: #fca5a5;">
+                        <span id="oauth-active-email-display">user@example.com</span>
+                        <a href="javascript:void(0)" onclick="handleOAuthSwitchAccount()" style="color: #38bdf8; font-weight: 700; text-decoration: none; font-size: 0.8rem; margin-left: 4px;">(Change)</a>
+                    </div>
+                </div>
+
+                <form onsubmit="handleOAuthAuthorizeSubmit(event)" style="width: 100%;">
+                    <input type="password" id="oauth-password-input" class="crimxid-input-box" placeholder="Enter CrimX Password." autocomplete="current-password">
+
+                    <div id="oauth-password-error" class="crimxid-error-msg" style="display: none;"></div>
+
+                    <div class="crimxid-actions">
+                        <button type="button" class="crimxid-btn-cancel" onclick="handleOAuthCancel()">Cancel</button>
+                        <button type="submit" id="btn-oauth-submit" class="crimxid-btn-submit">Authorize with CrimX</button>
+                    </div>
+                </form>
+
+                <div style="margin-top: 20px; font-size: 0.85rem; text-align: center;">
+                    <a href="javascript:void(0)" onclick="handleOAuthSwitchAccount()" style="color: #cbd5e1; text-decoration: none;">Use a different CrimX ID</a>
+                </div>
+            </div>
+
+            <!-- STEP 3: CREATE ACCOUNT / REGISTER -->
+            <div id="oauth-step-register" style="display: none; width: 100%;">
+                <div class="crimxid-greeting">Create CrimX ID</div>
+                <div class="crimxid-app-prompt">
+                    <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
+                </div>
+
+                <form onsubmit="handleOAuthRegisterSubmit(event)" style="width: 100%;">
+                    <input type="text" id="reg-username" class="crimxid-input-box" placeholder="Username (min 3 characters)" required autocomplete="username">
+                    <input type="email" id="reg-email" class="crimxid-input-box" placeholder="Email Address" required autocomplete="email">
+                    <input type="password" id="reg-password" class="crimxid-input-box" placeholder="Password (min 6 characters)" required autocomplete="new-password">
+                    <input type="password" id="reg-confirm-password" class="crimxid-input-box" placeholder="Confirm Password" required autocomplete="new-password">
+
+                    <div id="oauth-reg-error" class="crimxid-error-msg" style="display: none;"></div>
+
+                    <div class="crimxid-actions">
+                        <button type="button" class="crimxid-btn-cancel" onclick="switchOAuthView('email')">← Back</button>
+                        <button type="submit" id="btn-oauth-reg-submit" class="crimxid-btn-submit">Create & Authorize</button>
+                    </div>
+                </form>
+
+                <div style="margin-top: 20px; font-size: 0.88rem; color: #fca5a5; text-align: center;">
+                    Already have an account? 
+                    <a href="javascript:void(0)" onclick="switchOAuthView('email')" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-left: 4px;">Sign in here</a>
+                </div>
+            </div>
         </div>
 
         <div class="crimxid-footer">
@@ -551,7 +633,29 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, verifyPasswordResetCode, confirmPasswordReset, applyActionCode } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { 
+            getAuth, 
+            verifyPasswordResetCode, 
+            confirmPasswordReset, 
+            applyActionCode,
+            fetchSignInMethodsForEmail,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            updateProfile,
+            sendEmailVerification,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            collection, 
+            query, 
+            where, 
+            getDocs, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBSSJKDrFJ1_qlliZqgw34CY2TSaKOxxxM",
@@ -564,6 +668,7 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // State Machine Switcher
         function showState(stateName) {
@@ -611,6 +716,9 @@
 
         const { type, code, clientId, redirectUri, stateParam, responseType, scope } = parseAuthParams();
         let verifiedEmail = "";
+        let activeAuthEmail = "";
+        let activeAuthUsername = "";
+        let activeAuthPhoto = "";
 
         // Display Token snippet for user verification
         if (code) {
@@ -627,7 +735,7 @@
             // Normalization of action types
             const action = (type || '').toLowerCase();
 
-            // 0. DOORAUTH / OAUTH AUTHORIZATION FLOW (Google-style CrimXID from Untitled.png)
+            // 0. DOORAUTH / OAUTH AUTHORIZATION FLOW (Google-style CrimXID)
             if (action === 'authorize' || action === 'oauth' || action === 'doorauth' || clientId) {
                 const gatewayCard = document.querySelector('.gateway-card');
                 if (gatewayCard) gatewayCard.style.display = 'none';
@@ -635,23 +743,94 @@
                 const crimxidView = document.getElementById('crimxid-view');
                 if (crimxidView) crimxidView.style.display = 'flex';
 
-                const appNameEl = document.getElementById('oauth-app-name');
-                if (appNameEl && clientId) {
-                    appNameEl.innerText = clientId;
+                // Display application name
+                let friendlyAppName = clientId || 'Application';
+                const updateAppLabels = (name) => {
+                    document.querySelectorAll('.oauth-app-name-display').forEach(el => {
+                        el.innerText = name;
+                    });
+                };
+                updateAppLabels(friendlyAppName);
+
+                // Attempt to resolve friendly app name from Firestore registry if clientId exists
+                if (clientId) {
+                    try {
+                        const appSnap = await getDoc(doc(db, "sso_links", clientId));
+                        if (appSnap.exists() && appSnap.data().appName) {
+                            friendlyAppName = appSnap.data().appName;
+                            updateAppLabels(friendlyAppName);
+                        }
+                    } catch(e) {
+                        console.warn("Could not fetch app info:", e);
+                    }
                 }
+
+                // Switch OAuth Sub-views ('email', 'password', 'register')
+                window.switchOAuthView = function(viewName) {
+                    const stepEmail = document.getElementById('oauth-step-email');
+                    const stepPass = document.getElementById('oauth-step-password');
+                    const stepReg = document.getElementById('oauth-step-register');
+                    const title = document.getElementById('crimxid-main-title');
+
+                    if (stepEmail) stepEmail.style.display = (viewName === 'email') ? 'block' : 'none';
+                    if (stepPass) stepPass.style.display = (viewName === 'password') ? 'block' : 'none';
+                    if (stepReg) stepReg.style.display = (viewName === 'register') ? 'block' : 'none';
+
+                    if (title) {
+                        if (viewName === 'register') {
+                            title.innerHTML = 'Create your <strong>CrimX ID</strong>';
+                        } else {
+                            title.innerHTML = 'Sign in with your <strong>CrimX ID</strong>';
+                        }
+                    }
+
+                    // Reset errors
+                    const errEmail = document.getElementById('oauth-email-error');
+                    const errPass = document.getElementById('oauth-password-error');
+                    const errReg = document.getElementById('oauth-reg-error');
+                    if (errEmail) errEmail.style.display = 'none';
+                    if (errPass) errPass.style.display = 'none';
+                    if (errReg) errReg.style.display = 'none';
+
+                    // Prefill email in registration if user had typed one
+                    if (viewName === 'register') {
+                        const typed = document.getElementById('oauth-email-input')?.value.trim();
+                        const regEmail = document.getElementById('reg-email');
+                        if (typed && regEmail && !regEmail.value && typed.includes('@')) {
+                            regEmail.value = typed;
+                        }
+                    }
+                };
 
                 // Check logged in user state
                 auth.onAuthStateChanged((user) => {
                     if (user) {
+                        activeAuthEmail = user.email || "";
+                        activeAuthUsername = user.displayName || user.email?.split('@')[0] || 'User';
+                        activeAuthPhoto = user.photoURL || "";
+
+                        const emailDisplay = document.getElementById('oauth-active-email-display');
+                        if (emailDisplay) emailDisplay.innerText = activeAuthEmail;
+
                         const greeting = document.getElementById('oauth-greeting');
-                        if (greeting) greeting.innerText = `Hey there, ${user.displayName || user.email?.split('@')[0] || 'User'}!`;
-                        if (user.photoURL) {
-                            const avatar = document.getElementById('oauth-avatar');
-                            if (avatar) avatar.innerHTML = `<img src="${user.photoURL}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                        if (greeting) greeting.innerText = `Hey there, ${activeAuthUsername}!`;
+
+                        const avatar = document.getElementById('oauth-avatar');
+                        if (avatar) {
+                            if (activeAuthPhoto) {
+                                avatar.innerHTML = `<img src="${activeAuthPhoto}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                            } else {
+                                avatar.innerHTML = `<div style="font-size: 2.2rem; font-weight: 800; color: #fff;">${(activeAuthUsername || 'U')[0].toUpperCase()}</div>`;
+                            }
                         }
+                        window.switchOAuthView('password');
+                    } else {
+                        // Not signed in yet -> start on Email step
+                        window.switchOAuthView('email');
                     }
                 });
 
+                // Cancel authorization
                 window.handleOAuthCancel = function() {
                     if (window.opener) {
                         window.close();
@@ -663,27 +842,313 @@
                     }
                 };
 
-                window.handleOAuthAuthorizeSubmit = function(e) {
+                // Switch / Log out account to enter a different CrimX ID
+                window.handleOAuthSwitchAccount = async function() {
+                    try {
+                        await signOut(auth);
+                    } catch(e) {}
+                    activeAuthEmail = "";
+                    activeAuthUsername = "";
+                    activeAuthPhoto = "";
+                    const passInput = document.getElementById('oauth-password-input');
+                    if (passInput) passInput.value = "";
+                    const avatar = document.getElementById('oauth-avatar');
+                    if (avatar) {
+                        avatar.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>`;
+                    }
+                    window.switchOAuthView('email');
+                    setTimeout(() => {
+                        const inp = document.getElementById('oauth-email-input');
+                        if (inp) { inp.focus(); inp.select(); }
+                    }, 100);
+                };
+
+                // Step 1: Submit Email / CrimX ID to check existence
+                window.handleOAuthEmailSubmit = async function(e) {
+                    e.preventDefault();
+                    const inputVal = document.getElementById('oauth-email-input').value.trim();
+                    const errEl = document.getElementById('oauth-email-error');
+                    const nextBtn = document.getElementById('btn-oauth-email-next');
+
+                    errEl.style.display = 'none';
+                    errEl.innerText = '';
+
+                    if (!inputVal) return;
+
+                    nextBtn.disabled = true;
+                    nextBtn.innerText = "Checking...";
+
+                    try {
+                        let matchedEmail = "";
+                        let matchedName = "";
+                        let matchedPhoto = "";
+                        let userExists = false;
+
+                        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputVal);
+
+                        if (isEmail) {
+                            // 1. Check with Firebase Auth fetchSignInMethodsForEmail
+                            try {
+                                const methods = await fetchSignInMethodsForEmail(auth, inputVal);
+                                if (methods && methods.length > 0) {
+                                    userExists = true;
+                                    matchedEmail = inputVal;
+                                }
+                            } catch(fetchErr) {
+                                console.warn("fetchSignInMethods notice:", fetchErr);
+                            }
+
+                            // 2. Query Firestore users collection for profile details
+                            try {
+                                const q = query(collection(db, "users"), where("email", "==", inputVal.toLowerCase()));
+                                const snap = await getDocs(q);
+                                if (!snap.empty) {
+                                    userExists = true;
+                                    matchedEmail = inputVal;
+                                    const uData = snap.docs[0].data();
+                                    matchedName = uData.displayName || uData.username || "";
+                                    matchedPhoto = uData.photoURL || uData.pfp || "";
+                                }
+                            } catch(dbErr) {
+                                console.warn("Firestore email query notice:", dbErr);
+                            }
+                        } else {
+                            // Input is a username (e.g. "CrimsonOnVR")
+                            try {
+                                const q = query(collection(db, "users"), where("username", "==", inputVal.toLowerCase()));
+                                const snap = await getDocs(q);
+                                if (!snap.empty) {
+                                    const uData = snap.docs[0].data();
+                                    if (uData.email) {
+                                        userExists = true;
+                                        matchedEmail = uData.email;
+                                        matchedName = uData.displayName || uData.username || "";
+                                        matchedPhoto = uData.photoURL || uData.pfp || "";
+                                    }
+                                }
+                            } catch(dbErr) {
+                                console.warn("Firestore username query notice:", dbErr);
+                            }
+                        }
+
+                        // If user doesn't exist, display requested error: "CrimX ID Doesnt exist"
+                        if (!userExists) {
+                            errEl.style.display = 'block';
+                            errEl.innerText = "CrimX ID Doesnt exist";
+                            return;
+                        }
+
+                        // Real email verified! Advance to password menu
+                        activeAuthEmail = matchedEmail;
+                        activeAuthUsername = matchedName || matchedEmail.split('@')[0];
+                        activeAuthPhoto = matchedPhoto;
+
+                        document.getElementById('oauth-active-email-display').innerText = matchedEmail;
+                        document.getElementById('oauth-greeting').innerText = `Hey there, ${activeAuthUsername}!`;
+
+                        const avatar = document.getElementById('oauth-avatar');
+                        if (avatar) {
+                            if (activeAuthPhoto) {
+                                avatar.innerHTML = `<img src="${activeAuthPhoto}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                            } else {
+                                avatar.innerHTML = `<div style="font-size: 2.2rem; font-weight: 800; color: #fff;">${(activeAuthUsername || 'U')[0].toUpperCase()}</div>`;
+                            }
+                        }
+
+                        window.switchOAuthView('password');
+                        setTimeout(() => {
+                            const passInp = document.getElementById('oauth-password-input');
+                            if (passInp) passInp.focus();
+                        }, 100);
+
+                    } catch(err) {
+                        console.error("Email existence check error:", err);
+                        errEl.style.display = 'block';
+                        errEl.innerText = "CrimX ID Doesnt exist";
+                    } finally {
+                        nextBtn.disabled = false;
+                        nextBtn.innerText = "Next →";
+                    }
+                };
+
+                // Step 2: Submit Password to sign in & authorize
+                window.handleOAuthAuthorizeSubmit = async function(e) {
                     e.preventDefault();
                     const btn = document.getElementById('btn-oauth-submit');
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.innerText = "Authorizing...";
+                    const passInp = document.getElementById('oauth-password-input');
+                    const errEl = document.getElementById('oauth-password-error');
+
+                    if (errEl) {
+                        errEl.style.display = 'none';
+                        errEl.innerText = '';
                     }
 
+                    const password = passInp ? passInp.value : '';
+                    if (!password) {
+                        if (errEl) {
+                            errEl.style.display = 'block';
+                            errEl.innerText = 'Please enter your password.';
+                        }
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    btn.innerText = "Authorizing...";
+
+                    try {
+                        let user = auth.currentUser;
+                        // If not signed in or signed in as a different user, sign in with email and password
+                        if (!user || (activeAuthEmail && user.email?.toLowerCase() !== activeAuthEmail.toLowerCase())) {
+                            const cred = await signInWithEmailAndPassword(auth, activeAuthEmail, password);
+                            user = cred.user;
+                        }
+
+                        // Complete authorization flow
+                        await finishOAuthFlow(user);
+                    } catch(err) {
+                        console.error("Sign-in authorization error:", err);
+                        btn.disabled = false;
+                        btn.innerText = "Authorize with CrimX";
+                        if (errEl) {
+                            errEl.style.display = 'block';
+                            if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                                errEl.innerText = "Incorrect password. Please try again.";
+                            } else {
+                                errEl.innerText = err.message || "Failed to authorize.";
+                            }
+                        }
+                    }
+                };
+
+                // Step 3: Create New CrimX ID & Authorize
+                window.handleOAuthRegisterSubmit = async function(e) {
+                    e.preventDefault();
+                    const username = document.getElementById('reg-username').value.trim();
+                    const email = document.getElementById('reg-email').value.trim();
+                    const password = document.getElementById('reg-password').value;
+                    const confirmPassword = document.getElementById('reg-confirm-password').value;
+                    const errEl = document.getElementById('oauth-reg-error');
+                    const btn = document.getElementById('btn-oauth-reg-submit');
+
+                    errEl.style.display = 'none';
+                    errEl.innerText = '';
+
+                    if (username.length < 3) {
+                        errEl.style.display = 'block';
+                        errEl.innerText = 'Username must be at least 3 characters.';
+                        return;
+                    }
+
+                    const cleanUser = username.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                    if (!cleanUser) {
+                        errEl.style.display = 'block';
+                        errEl.innerText = 'Username contains invalid characters.';
+                        return;
+                    }
+
+                    if (password.length < 6) {
+                        errEl.style.display = 'block';
+                        errEl.innerText = 'Password must be at least 6 characters.';
+                        return;
+                    }
+
+                    if (password !== confirmPassword) {
+                        errEl.style.display = 'block';
+                        errEl.innerText = 'Passwords do not match.';
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    btn.innerText = "Creating CrimX ID...";
+
+                    try {
+                        // Check if username is already claimed in Firestore
+                        const q = query(collection(db, "users"), where("username", "==", cleanUser));
+                        const userSnap = await getDocs(q);
+                        if (!userSnap.empty) {
+                            errEl.style.display = 'block';
+                            errEl.innerText = `@${cleanUser} is already taken. Please pick another.`;
+                            btn.disabled = false;
+                            btn.innerText = "Create & Authorize";
+                            return;
+                        }
+
+                        // Create user in Firebase Auth
+                        const cred = await createUserWithEmailAndPassword(auth, email, password);
+                        const defaultPfp = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+                        await updateProfile(cred.user, {
+                            displayName: username,
+                            photoURL: defaultPfp
+                        });
+
+                        // Create profile doc in Firestore
+                        try {
+                            await setDoc(doc(db, "users", cred.user.uid), {
+                                uid: cred.user.uid,
+                                username: cleanUser,
+                                displayName: username,
+                                email: email.toLowerCase(),
+                                photoURL: defaultPfp,
+                                pfp: defaultPfp,
+                                createdAt: serverTimestamp(),
+                                online: true,
+                                statusText: "Active on CrimX"
+                            });
+                        } catch(dbErr) {
+                            console.warn("Could not save user profile doc:", dbErr);
+                        }
+
+                        // Dispatch verification email
+                        try {
+                            await sendEmailVerification(cred.user);
+                        } catch(vErr) {
+                            console.warn("Verification email dispatch warning:", vErr);
+                        }
+
+                        // Finish OAuth flow with newly registered account
+                        await finishOAuthFlow(cred.user);
+
+                    } catch(err) {
+                        console.error("Registration error:", err);
+                        errEl.style.display = 'block';
+                        if (err.code === 'auth/email-already-in-use') {
+                            errEl.innerText = "An account with this email already exists. Please sign in.";
+                        } else {
+                            errEl.innerText = err.message || "Failed to create account.";
+                        }
+                        btn.disabled = false;
+                        btn.innerText = "Create & Authorize";
+                    }
+                };
+
+                // Helper: Finish OAuth code emission & redirect / postMessage
+                async function finishOAuthFlow(user) {
                     const randHex = (len) => Array.from(crypto.getRandomValues(new Uint8Array(len)), b => ('0' + b.toString(16)).slice(-2)).join('');
                     const authCode = `cf_code_${randHex(12)}`;
-                    const currentUser = auth.currentUser;
+
+                    if (clientId && user) {
+                        try {
+                            await setDoc(doc(db, "users", user.uid, "connected_apps", clientId), {
+                                clientId: clientId,
+                                appName: friendlyAppName || clientId,
+                                authorizedAt: serverTimestamp(),
+                                scope: scope || "identity,profile"
+                            }, { merge: true });
+                        } catch(appErr) {
+                            console.warn("Connected apps update warning:", appErr);
+                        }
+                    }
 
                     const userPayload = {
-                        uid: currentUser ? currentUser.uid : `cf_usr_${randHex(5)}`,
-                        username: currentUser ? (currentUser.displayName || currentUser.email?.split('@')[0] || 'CrimXUser') : 'CrimXUser',
-                        displayName: currentUser ? (currentUser.displayName || 'CrimXUser') : 'CrimXUser',
-                        email: currentUser ? (currentUser.email || '') : '',
-                        photoURL: (currentUser && currentUser.photoURL) ? currentUser.photoURL : 'https://crimsonflame.net/assets/crimx-logo.png'
+                        uid: user ? user.uid : `cf_usr_${randHex(5)}`,
+                        username: user ? (user.displayName || user.email?.split('@')[0] || 'CrimXUser') : 'CrimXUser',
+                        displayName: user ? (user.displayName || 'CrimXUser') : 'CrimXUser',
+                        email: user ? (user.email || '') : '',
+                        photoURL: (user && user.photoURL) ? user.photoURL : 'https://crimsonflame.net/assets/crimx-logo.png'
                     };
 
-                    // Send postMessage to opener
+                    // Send postMessage to opener window if popup
                     if (window.opener) {
                         window.opener.postMessage({
                             type: 'CRIMX_AUTH_SUCCESS',
@@ -694,7 +1159,7 @@
                         return;
                     }
 
-                    // Redirect if redirectUri
+                    // Redirect if redirectUri provided
                     if (redirectUri) {
                         const sep = redirectUri.includes('?') ? '&' : '?';
                         window.location.href = redirectUri + sep + 'code=' + encodeURIComponent(authCode) + (stateParam ? '&state=' + encodeURIComponent(stateParam) : '');
@@ -702,7 +1167,7 @@
                     }
 
                     alert("✓ Successfully authorized with CrimX!");
-                };
+                }
 
                 return;
             }

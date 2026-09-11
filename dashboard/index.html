@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | CrimsonFlame</title>
-    <link rel="stylesheet" href="/style.css?v=8">
+    <title>CrimX | Account Dashboard</title>
+    <link rel="stylesheet" href="/style.css?v=12">
     <script src="/theme.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
     <!-- Global Custom Crimson Loading Animation -->
     <div id="page-loader">
         <img src="/assets/loading.gif" alt="Loading..." class="loader-video">
-        <div class="loader-title">CrimsonFlame</div>
+        <div class="loader-title">CrimX</div>
     </div>
     <script>
         function hidePageLoader() {
@@ -89,124 +89,111 @@
         <!-- Settings Studio & Dashboard Hub Container -->
         <div id="dashboard-container" style="display: none;">
             
-            <!-- CrimX Dashboard 2-Column Layout matching untitled.png -->
-            <div class="dash-4block-grid">
+            <!-- Top Dashboard Navigation Glass Bar -->
+            <header class="dash-header-bar">
+                <div class="dash-header-left">
+                    <a href="https://crimsonflame.net/" class="crimx-back-btn" onclick="exitCrimX(event)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Back to Website</span>
+                    </a>
+                    <div class="dash-brand-capsule">
+                        <span class="dash-brand-dot"></span>
+                        <span>CrimX Dashboard</span>
+                    </div>
+                </div>
+                <div class="dash-header-right">
+                    <button type="button" class="btn-primary btn-aero-primary" onclick="toggleSettingsStudio(true)" style="padding: 8px 20px; font-size: 0.85rem; font-weight: 800;">
+                        ⚙️ Settings Studio
+                    </button>
+                </div>
+            </header>
+
+            <!-- Reworked 2-Column Cohesive Hub Grid -->
+            <div class="dash-reworked-grid">
                 
-                <!-- LEFT COLUMN: Friends (top) + Coming Soon (bottom) -->
-                <div class="dash-grid-left-col">
-                    <div>
-                        <div class="crimx-top-bar" style="margin-bottom: 10px;">
-                            <a href="https://crimsonflame.net/" class="crimx-back-btn" onclick="exitCrimX(event)">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                                    <polyline points="12 19 5 12 12 5"></polyline>
-                                </svg>
-                                <span>Back</span>
-                            </a>
-                        </div>
-
-                        <!-- Friends Block -->
-                        <div class="dash-block-friends">
-                            <div class="dash-friends-header">
-                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">
-                                        👥 Friends
-                                    </h3>
-                                    <span id="friends-count-badge" class="friends-count-badge">0 Friends</span>
+                <!-- LEFT COLUMN: Player Identity Showcase & DoorAuth Linked Apps -->
+                <div class="dash-col-identity">
+                    
+                    <!-- Card 1: Player Identity Showcase Card -->
+                    <div class="dash-card-profile" id="cim-sidebar-profile">
+                        <div class="dash-profile-banner cim-profile-banner" id="cim-profile-banner"></div>
+                        <div class="dash-profile-body">
+                            <div class="dash-profile-avatar-row">
+                                <div class="dash-profile-avatar-wrap cim-profile-avatar-wrap">
+                                    <img id="cim-profile-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
+                                    <span class="cim-profile-dot"></span>
                                 </div>
-                                <!-- Search bar -->
-                                <form onsubmit="sendFriendRequestByUsername(event)" class="friends-search-form">
-                                    <input type="text" id="friend-search-input" placeholder="Search by @username..." required autocomplete="off" class="friends-search-input">
-                                    <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; width: auto; border-radius: 9999px; white-space: nowrap;">
-                                        + Add
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-secondary" onclick="toggleSettingsStudio(true)" style="padding: 6px 14px; font-size: 0.78rem; font-weight: 700;" title="Edit Profile">
+                                    ✏️ Edit
+                                </button>
                             </div>
-                            <div id="friend-action-feedback" style="display: none; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 0.82rem;"></div>
-
-                            <!-- Incoming Pending Requests -->
-                            <div id="pending-requests-box" style="display: none; margin-bottom: 16px;">
-                                <div style="font-size: 0.78rem; font-weight: 700; color: #fb923c; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                    ⏳ Incoming Requests (<span id="pending-count">0</span>)
+                            <div class="dash-profile-user-info">
+                                <div class="dash-profile-name-row cim-profile-name-row">
+                                    <h2 id="cim-profile-name" class="cim-profile-name">Player</h2>
+                                    <span class="cim-profile-badge" id="cim-profile-badge">🔥 Member</span>
                                 </div>
-                                <div id="pending-requests-list" class="pending-requests-grid"></div>
-                            </div>
-
-                            <!-- Active Friends Feed -->
-                            <div id="active-friends-list" class="active-friends-grid">
-                                <div class="friends-empty-state">
-                                    <div style="font-size: 2rem; margin-bottom: 6px;">🎮</div>
-                                    <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 4px;">No friends connected yet</div>
-                                    <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4;">
-                                        Search any player's @username above to send a request!
-                                    </div>
-                                </div>
+                                <div id="cim-profile-handle" class="dash-profile-handle-text cim-profile-handle">@user</div>
+                                <div id="cim-profile-status" class="dash-profile-status-text cim-profile-status">Browsing the Website</div>
+                                <div id="cim-profile-bio" class="dash-profile-bio-text cim-profile-bio">The developer behind it all 👓</div>
+                                <div id="cim-profile-socials" class="cim-profile-socials"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DoorAuth: Linked Apps & Auth System (With Back Button) -->
-                    <div style="margin-top: 6px;">
-                        <div class="crimx-top-bar" style="margin-bottom: 10px;">
-                            <a href="https://crimsonflame.net/" class="crimx-back-btn" onclick="exitCrimX(event)">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                                    <polyline points="12 19 5 12 12 5"></polyline>
-                                </svg>
-                                <span>Back</span>
-                            </a>
+                    <!-- Card 2: DoorAuth Linked Apps -->
+                    <div class="dash-block-doorauth" id="dash-doorauth-block">
+                        <div class="doorauth-header">
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="doorauth-icon-badge">🚪</div>
+                                    <div>
+                                        <h3 class="doorauth-title">Linked Apps</h3>
+                                    </div>
+                                </div>
+                                <a href="/developer" class="doorauth-dev-link" title="Open CF Dev Panel">
+                                    <span>Dev Hub</span>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                </a>
+                            </div>
                         </div>
-                        <div class="dash-block-doorauth" id="dash-doorauth-block">
-                            <div class="doorauth-header">
-                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div class="doorauth-icon-badge">🚪</div>
-                                        <div>
-                                            <h3 class="doorauth-title">Linked Apps</h3>
-                                        </div>
+
+                        <div class="doorauth-body">
+                            <div class="doorauth-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+                                Manage third-party games and external apps linked to your CrimX account via DoorAuth.
+                            </div>
+
+                            <div class="doorauth-section-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span class="doorauth-section-label" style="font-size: 0.76rem; font-weight: 800; color: #ef4444; letter-spacing: 0.6px;">LINKED APPS</span>
+                                <span id="doorauth-count-badge" class="doorauth-count-tag">0 Apps</span>
+                            </div>
+
+                            <div id="doorauth-apps-list" class="doorauth-apps-list">
+                                <div class="doorauth-empty-state">
+                                    <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
+                                        Use "Sign in with CrimX" on supported apps or link with a code below.
                                     </div>
-                                    <a href="/developer" class="doorauth-dev-link" title="Open CF Dev Panel">
-                                        <span>Dev Hub</span>
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                    </a>
                                 </div>
                             </div>
 
-                            <div class="doorauth-body">
-                                <div class="doorauth-desc">
-                                    Manage third-party games and external apps linked to your CrimX account via DoorAuth.
-                                </div>
-
-                                <div class="doorauth-section-row">
-                                    <span class="doorauth-section-label">LINKED APPS</span>
-                                    <span id="doorauth-count-badge" class="doorauth-count-tag">0 Apps</span>
-                                </div>
-
-                                <div id="doorauth-apps-list" class="doorauth-apps-list">
-                                    <div class="doorauth-empty-state">
-                                        <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
-                                        <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
-                                        <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
-                                            Use "Sign in with CrimX" on supported apps or link with a code below.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Quick Connect Form -->
-                                <form onsubmit="connectDoorAuthCode(event)" class="doorauth-connect-form">
-                                    <input type="text" id="doorauth-code-input" placeholder="Enter App Link Code..." autocomplete="off" class="doorauth-connect-input">
-                                    <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 9999px; white-space: nowrap;">
-                                        + Link App
-                                    </button>
-                                </form>
-                                <div id="doorauth-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 8px;"></div>
-                            </div>
+                            <!-- Quick Connect Form -->
+                            <form onsubmit="connectDoorAuthCode(event)" class="doorauth-connect-form" style="display: flex; gap: 8px; margin-top: 14px;">
+                                <input type="text" id="doorauth-code-input" placeholder="Enter App Link Code..." autocomplete="off" class="doorauth-connect-input">
+                                <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 9999px; white-space: nowrap;">
+                                    + Link App
+                                </button>
+                            </form>
+                            <div id="doorauth-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 8px;"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN: CIM (Tall Full-Height Block matching untitled.png) -->
-                <div class="dash-block-cim" id="dash-cim-block">
+                <!-- RIGHT COLUMN: Social Network & Instant Messaging Center -->
+                <div class="dash-block-cim dash-card-social-hub" id="dash-cim-block">
                     <div class="cim-header">
                         <div class="cim-title-wrap">
                             <div class="cim-icon-pill">💬</div>
@@ -231,47 +218,48 @@
                         </div>
                     </div>
 
-                    <div class="cim-container">
-                        <!-- Left Chat Selection -->
-                        <div class="cim-sidebar">
-                            <div class="cim-sidebar-header">
-                                <span>FRIENDS</span>
-                                <span id="cim-friends-count" class="cim-count-tag">0</span>
+                    <div class="cim-container dash-cim-split">
+                        <!-- Left Friends & Directory Sidebar -->
+                        <div class="cim-sidebar dash-friends-sidebar">
+                            
+                            <!-- Search & Add Friend Input -->
+                            <form onsubmit="sendFriendRequestByUsername(event)" class="dash-friends-search-row">
+                                <input type="text" id="friend-search-input" placeholder="Add @username..." required autocomplete="off" class="friends-search-input" style="padding: 7px 14px; font-size: 0.78rem;">
+                                <button type="submit" class="btn-primary" style="padding: 7px 14px; font-size: 0.76rem; font-weight: 700; width: auto; border-radius: 9999px; white-space: nowrap;">
+                                    + Add
+                                </button>
+                            </form>
+                            <div id="friend-action-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.76rem;"></div>
+
+                            <!-- Incoming Pending Requests -->
+                            <div id="pending-requests-box" style="display: none;">
+                                <div style="font-size: 0.74rem; font-weight: 700; color: #fb923c; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    ⏳ Requests (<span id="pending-count">0</span>)
+                                </div>
+                                <div id="pending-requests-list" class="pending-requests-grid"></div>
                             </div>
+
+                            <div class="cim-sidebar-header" style="margin-top: 4px;">
+                                <span>FRIENDS</span>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <span id="cim-friends-count" class="cim-count-tag">0</span>
+                                    <span id="friends-count-badge" style="display: none;">0 Friends</span>
+                                </div>
+                            </div>
+
+                            <!-- Friends Directory & Conversations List -->
                             <div id="cim-conversations-list" class="cim-conversations-list">
                                 <div style="color: var(--text-secondary); font-size: 0.74rem; text-align: center; padding: 16px 4px;">
                                     Loading...
                                 </div>
                             </div>
 
-                            <!-- User Profile Showcase Card (matches untitled.png) -->
-                            <div class="cim-sidebar-profile" id="cim-sidebar-profile">
-                                <div class="cim-profile-banner" id="cim-profile-banner"></div>
-                                <div class="cim-profile-content">
-                                    <div class="cim-profile-avatar-wrap">
-                                        <img id="cim-profile-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
-                                        <span class="cim-profile-dot"></span>
-                                    </div>
-                                    <div class="cim-profile-info">
-                                        <div class="cim-profile-name-row">
-                                            <span id="cim-profile-name" class="cim-profile-name">Player</span>
-                                            <span class="cim-profile-badge" id="cim-profile-badge">🔥 Member</span>
-                                        </div>
-                                        <div id="cim-profile-handle" class="cim-profile-handle">@user</div>
-                                        <div id="cim-profile-status" class="cim-profile-status">Browsing the Website</div>
-                                        <div id="cim-profile-bio" class="cim-profile-bio">The developer behind it all 👾</div>
-                                    </div>
-                                    <button type="button" class="cim-profile-settings-btn" onclick="toggleSettingsStudio(true)" title="Account Settings">
-                                        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
-                                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                            <!-- Active Friends Feed container (hidden or supporting active list) -->
+                            <div id="active-friends-list" style="display: none;"></div>
                         </div>
 
                         <!-- Right Active Chat Area -->
-                        <div class="cim-chat-area">
+                        <div class="cim-chat-area" id="cim-chat-area">
                             <div id="cim-chat-header" class="cim-chat-header" style="display: none;">
                                 <div class="cim-chat-user-wrap">
                                     <div class="cim-chat-avatar-wrap">
@@ -609,35 +597,119 @@
                         </div>
                     </div>
 
-                    <!-- TAB 3: Gaming Integrations -->
+                    <!-- TAB 3: Gaming & Social Integrations -->
                     <div id="tab-integrations" class="settings-tab-pane">
                         <div class="settings-tab-header">
-                            <h2>Gaming Integrations</h2>
-                            <p>Link your external gaming profiles to sync achievements, inventories, and community ranks.</p>
+                            <h2>Gaming & Social Integrations</h2>
+                            <p>Connect your Discord and YouTube accounts to showcase them on your CrimsonFlame player profile.</p>
                         </div>
 
-                        <!-- Discord Integration -->
+                        <!-- Discord Integration Card -->
                         <div class="settings-section-block">
-                            <div class="section-header" style="color: #5865F2; margin-bottom: 12px;">
-                                <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" style="width: 22px;"> 
-                                <h3 style="margin: 0; font-family: var(--font-heading); font-size: 1.1rem; color: #fff;">Discord Integration</h3>
-                            </div>
-                            
-                            <div id="discord-unlinked" style="display: none;">
-                                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px; line-height: 1.5;">Link your Discord account via the official CrimsonFlame Bot to sync server roles and verify membership.</p>
-                                <button class="btn-secondary" onclick="generateDiscordLinkCode()" style="background: #5865F2; color: white; border-color: #5865F2; width: auto; padding: 10px 22px; font-weight: 700;">
-                                    Generate Link Code
-                                </button>
-                                <p id="discord-link-code-display" style="display: none; text-align: center; font-size: 1.1rem; font-family: monospace; background: rgba(12,6,8,0.6); padding: 12px; border-radius: 8px; color: #4ade80; border: 1px dashed #5865F2; margin-top: 12px;"></p>
-                            </div>
-                            
-                            <div id="discord-linked" class="linked-card" style="display: none;">
-                                <img id="discord-avatar" src="" style="border: 2px solid #5865F2; width: 44px; height: 44px; border-radius: 50%;">
-                                <div style="flex: 1;">
-                                    <div class="linked-label">Linked Discord Account</div>
-                                    <div id="discord-username" class="linked-name" style="font-size: 1rem;"></div>
+                            <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" style="width: 24px; height: 24px;"> 
+                                    <h3 style="margin: 0; font-family: var(--font-heading); font-size: 1.15rem; color: #fff;">Discord Integration</h3>
                                 </div>
-                                <button class="btn-danger" style="width: auto; padding: 6px 14px; font-size: 0.8rem;" onclick="unlinkDiscord()">Unlink</button>
+                                <span id="discord-status-badge" class="badge-pill-aero" style="background: rgba(88, 101, 242, 0.2); color: #818cf8; border-color: rgba(88, 101, 242, 0.4);">
+                                    Unlinked
+                                </span>
+                            </div>
+
+                            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px; line-height: 1.5;">
+                                Link your Discord account to display your handle on your profile and unlock community perks.
+                            </p>
+
+                            <!-- Unlinked State -->
+                            <div id="discord-unlinked" style="display: block;">
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                                    <input type="text" id="discord-handle-input" class="settings-input" placeholder="Enter Discord username (e.g. crimson_player)" style="flex: 1; min-width: 220px;">
+                                    <button type="button" class="btn-primary btn-aero-primary" onclick="linkDiscordHandle()" style="background: #5865F2; border-color: #5865F2; width: auto; padding: 10px 22px; font-weight: 700;">
+                                        Link Discord
+                                    </button>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button type="button" class="btn-secondary" onclick="generateDiscordLinkCode()" style="font-size: 0.78rem; padding: 6px 14px; width: auto;">
+                                        Or Link via Bot Code
+                                    </button>
+                                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Direct username linking is fastest</span>
+                                </div>
+                                <p id="discord-link-code-display" style="display: none; text-align: center; font-size: 1rem; font-family: monospace; background: rgba(12,6,8,0.6); padding: 12px; border-radius: 8px; color: #4ade80; border: 1px dashed #5865F2; margin-top: 12px;"></p>
+                            </div>
+
+                            <!-- Linked State -->
+                            <div id="discord-linked" class="linked-card" style="display: none; background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.3); padding: 14px 18px; border-radius: 12px; margin-bottom: 14px;">
+                                <img id="discord-avatar" src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" style="border: 2px solid #5865F2; width: 44px; height: 44px; border-radius: 50%;">
+                                <div style="flex: 1;">
+                                    <div class="linked-label" style="color: #818cf8; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Linked Discord Account</div>
+                                    <div id="discord-username" class="linked-name" style="font-size: 1.05rem; font-weight: 700; color: #fff;">@username</div>
+                                </div>
+                                <button type="button" class="btn-danger" style="width: auto; padding: 6px 14px; font-size: 0.8rem;" onclick="unlinkDiscord()">Unlink</button>
+                            </div>
+
+                            <!-- Privacy Toggle -->
+                            <div class="toggle-row" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+                                <div class="toggle-info">
+                                    <h4 style="font-size: 0.9rem; color: #fff;">Show Discord on my public profile</h4>
+                                    <p style="font-size: 0.78rem; color: var(--text-secondary);">When enabled, visitors and friends can see your Discord badge on your profile.</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-show-discord" checked onchange="saveSocialVisibilityPreferences()">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- YouTube Integration Card -->
+                        <div class="settings-section-block">
+                            <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <svg viewBox="0 0 24 24" width="26" height="26" fill="#ef4444"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                    <h3 style="margin: 0; font-family: var(--font-heading); font-size: 1.15rem; color: #fff;">YouTube Integration</h3>
+                                </div>
+                                <span id="youtube-status-badge" class="badge-pill-aero" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: rgba(239, 68, 68, 0.4);">
+                                    Unlinked
+                                </span>
+                            </div>
+
+                            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px; line-height: 1.5;">
+                                Link your YouTube channel to feature your content and videos directly on your CrimX player profile.
+                            </p>
+
+                            <!-- Unlinked State -->
+                            <div id="youtube-unlinked" style="display: block;">
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                                    <input type="text" id="youtube-handle-input" class="settings-input" placeholder="Enter channel handle or link (e.g. @CrimsonFlame or youtube.com/@...)" style="flex: 1; min-width: 240px;">
+                                    <button type="button" class="btn-primary btn-aero-primary" onclick="linkYouTubeHandle()" style="background: #dc2626; border-color: #dc2626; width: auto; padding: 10px 22px; font-weight: 700;">
+                                        Link YouTube
+                                    </button>
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Works with handles (@channel), custom URLs, or channel IDs.</div>
+                            </div>
+
+                            <!-- Linked State -->
+                            <div id="youtube-linked" class="linked-card" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 14px 18px; border-radius: 12px; margin-bottom: 14px;">
+                                <div style="width: 44px; height: 44px; border-radius: 50%; background: #dc2626; display: flex; align-items: center; justify-content: center; color: white;">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 15l5-3-5-3v6z"/><path d="M21.58 7.19c-.23-.86-.91-1.54-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.91-1.77 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.54 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23 1.54-.91 1.77-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15l5-3-5-3v6z"/></svg>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div class="linked-label" style="color: #f87171; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Linked YouTube Channel</div>
+                                    <div id="youtube-channel-name" class="linked-name" style="font-size: 1.05rem; font-weight: 700; color: #fff;">@channel</div>
+                                    <a id="youtube-channel-link" href="#" target="_blank" style="font-size: 0.78rem; color: #fca5a5; text-decoration: none;">View Channel ↗</a>
+                                </div>
+                                <button type="button" class="btn-danger" style="width: auto; padding: 6px 14px; font-size: 0.8rem;" onclick="unlinkYouTube()">Unlink</button>
+                            </div>
+
+                            <!-- Privacy Toggle -->
+                            <div class="toggle-row" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+                                <div class="toggle-info">
+                                    <h4 style="font-size: 0.9rem; color: #fff;">Show YouTube on my public profile</h4>
+                                    <p style="font-size: 0.78rem; color: var(--text-secondary);">When enabled, visitors and friends can see your YouTube channel badge on your profile.</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-show-youtube" checked onchange="saveSocialVisibilityPreferences()">
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -720,6 +792,20 @@
                                     <div class="theme-option-info">
                                         <div class="theme-option-name">Glacier Cyan</div>
                                         <div class="theme-option-desc">Sub-zero arctic frost</div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-option" data-theme-val="frutiger-aero" onclick="window.setCrimXTheme('frutiger-aero')">
+                                    <div class="theme-preview-swatch" style="background: linear-gradient(135deg, #0ea5e9 0%, #10b981 50%, #38bdf8 100%); box-shadow: inset 0 2px 4px rgba(255,255,255,0.8), 0 0 12px rgba(14,165,233,0.5);"></div>
+                                    <div class="theme-option-info">
+                                        <div class="theme-option-name">Frutiger Aero</div>
+                                        <div class="theme-option-desc">Glossy crystal glass & sky vibrancy</div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-option" data-theme-val="frutiger-metro" onclick="window.setCrimXTheme('frutiger-metro')">
+                                    <div class="theme-preview-swatch" style="background: linear-gradient(90deg, #e51400 50%, #0078d7 50%); border-radius: 0;"></div>
+                                    <div class="theme-option-info">
+                                        <div class="theme-option-name">Frutiger Metro</div>
+                                        <div class="theme-option-desc">Bold typography & flat dynamic tiles</div>
                                     </div>
                                 </div>
                             </div>
@@ -836,10 +922,14 @@
                                 Welcome to my CrimsonFlame player profile!
                             </div>
 
-                            <div class="preview-card-integrations">
-                                <div id="preview-discord-chip" class="preview-integration-chip">
+                            <div class="preview-card-integrations" id="preview-integrations-container">
+                                <div id="preview-discord-chip" class="preview-integration-chip" style="display: none;">
                                     <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" style="width: 14px;">
                                     <span id="preview-discord-text">Discord: Unlinked</span>
+                                </div>
+                                <div id="preview-youtube-chip" class="preview-integration-chip preview-chip-yt" style="display: none;">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="#ef4444"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                    <span id="preview-youtube-text">YouTube: Unlinked</span>
                                 </div>
                             </div>
                         </div>

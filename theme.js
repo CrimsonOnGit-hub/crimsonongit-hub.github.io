@@ -5,7 +5,7 @@
 })();
 
 window.setCrimXTheme = function(themeName) {
-    const validThemes = ['crimson', 'emerald', 'void', 'solar', 'glacier'];
+    const validThemes = ['crimson', 'emerald', 'void', 'solar', 'glacier', 'frutiger-aero', 'frutiger-metro'];
     if (!validThemes.includes(themeName)) themeName = 'crimson';
     
     document.documentElement.setAttribute('data-theme', themeName);
@@ -16,8 +16,9 @@ window.setCrimXTheme = function(themeName) {
         card.classList.toggle('active', card.getAttribute('data-theme-val') === themeName);
     });
 
+    const formattedName = themeName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     if (window.playSfx) window.playSfx('click');
-    if (window.showToast) window.showToast(`Theme set to ${themeName.charAt(0).toUpperCase() + themeName.slice(1)}!`, 'info');
+    if (window.showToast) window.showToast(`Theme set to ${formattedName}!`, 'info');
 };
 
 document.addEventListener('DOMContentLoaded', () => {
