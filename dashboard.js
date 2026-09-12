@@ -2622,7 +2622,7 @@ window.connectDoorAuthCode = async function(e) {
         clientId: clientId,
         name: appName,
         icon: appIcon,
-        scopes: "Profile, DoorAuth Token",
+        scopes: "Profile Access, Identity",
         linkedAt: Date.now()
     };
 

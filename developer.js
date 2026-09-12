@@ -17,292 +17,799 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentUser = null;
+let projectsList = [];
+let currentProject = null;
+let activeCodeLang = 'js';
+let projectUsersData = [];
+
 const IMGBB_API_KEY = "d5fd4e3e9fedc18b9bed075f980f12b7";
 
-window.showCustomAlert = function(message) {
-    const overlay = document.getElementById('custom-alert'); 
-    if(!overlay) { alert(message); return; }
-    document.getElementById('custom-alert-message').innerText = message; 
-    overlay.classList.add('active');
-};
-
-window.handleSSOLogoUpload = async function(file) {
-    if (!file || !file.type.startsWith('image/')) return window.showCustomAlert("Not a valid image.");
-    const sEl = document.getElementById('sso-logo-status');
-    sEl.style.display = 'block'; sEl.innerText = 'Uploading logo...';
-    try {
-        const fd = new FormData(); fd.append("image", file);
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
-        const json = await res.json(); if (!json.success) throw new Error("Upload Failed");
-        document.getElementById('sso-app-logo').value = json.data.url;
-        sEl.innerText = "Logo uploaded successfully!";
-    } catch (err) { sEl.innerText = "Error uploading logo."; }
-    setTimeout(() => { sEl.style.display = 'none'; }, 3000);
-};
-
+// ─── UTILITY HELPERS ───
 function generateSecureRandomHex(bytesCount = 16) {
     const rand = new Uint8Array(bytesCount);
     crypto.getRandomValues(rand);
     return Array.from(rand, b => ('0' + b.toString(16)).slice(-2)).join('');
 }
 
-window.createSSOLink = async function(e) {
-    e.preventDefault();
-    if (!currentUser) return;
-    const btn = document.getElementById('btn-create-sso');
-    btn.disabled = true; btn.innerText = "Generating CrimX App...";
-
-    try {
-        const appName = document.getElementById('sso-app-name').value.trim();
-        const appLogo = document.getElementById('sso-app-logo').value.trim() || "https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png";
-        
-        // Allowed Redirect URIs (split by commas or newlines)
-        const redirectRaw = document.getElementById('sso-redirect-url').value.trim();
-        const redirectUris = redirectRaw ? redirectRaw.split(/[\n,]+/).map(u => u.trim()).filter(Boolean) : [];
-        const primaryRedirect = redirectUris[0] || "";
-
-        const perms = [];
-        if (document.getElementById('perm-profile').checked) perms.push("Access your display name & profile picture");
-        if (document.getElementById('perm-email').checked) perms.push("View your email address");
-        if (document.getElementById('perm-sso').checked) perms.push("Authenticate via CrimX Auth");
-
-        const customPermsStr = document.getElementById('sso-custom-perms').value.trim();
-        if (customPermsStr) {
-            customPermsStr.split(',').map(p => p.trim()).filter(Boolean).forEach(p => perms.push(p));
-        }
-
-        const clientId = `crimx_client_${generateSecureRandomHex(8)}`;
-        const clientSecret = `crimx_secret_${generateSecureRandomHex(18)}`;
-
-        const ssoData = {
-            linkkey: clientId,
-            clientId: clientId,
-            clientSecret: clientSecret,
-            ownerUid: currentUser.uid,
-            appName: appName,
-            appLogo: appLogo,
-            redirectUrl: primaryRedirect,
-            redirectUris: redirectUris,
-            permissions: perms,
-            createdAt: new Date().toISOString()
-        };
-
-        // Save to sso_links collection (and cached locally)
-        await setDoc(doc(db, "sso_links", clientId), ssoData);
-
-        try {
-            localStorage.setItem('cf_sso_key_' + clientId, JSON.stringify(ssoData));
-        } catch(err) {}
-
-        document.getElementById('sso-app-name').value = '';
-        document.getElementById('sso-app-logo').value = '';
-        document.getElementById('sso-redirect-url').value = '';
-        document.getElementById('sso-custom-perms').value = '';
-
-        window.showCustomAlert(`CrimX App Registered!\nClient ID: ${clientId}\nClient Secret: ${clientSecret}\n(Keep your secret safe!)`);
-        window.loadSSOLinks();
-    } catch(err) {
-        console.error("Error creating CrimX App:", err);
-        window.showCustomAlert("Failed to register CrimX App: " + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "✨ Register CrimX App";
-    }
+window.showToast = function(msg) {
+    const t = document.getElementById('dev-toast');
+    const m = document.getElementById('dev-toast-msg');
+    if (!t || !m) return;
+    m.innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); }, 3000);
 };
 
-window.loadSSOLinks = async function() {
-    if (!currentUser) return;
-    const container = document.getElementById('sso-links-list');
-    if (!container) return;
-
-    try {
-        const q = query(collection(db, "sso_links"), where("ownerUid", "==", currentUser.uid));
-        const snap = await getDocs(q);
-        const ssoItems = [];
-
-        snap.forEach(docSnap => {
-            ssoItems.push({ id: docSnap.id, ...docSnap.data() });
-        });
-
-        if (ssoItems.length === 0) {
-            container.innerHTML = `<p style="color: var(--text-secondary); font-size: 0.88rem; text-align: center; padding: 24px; background: rgba(0,0,0,0.25); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">No CrimX Apps created yet. Fill out the form above to register your first game or app!</p>`;
-            return;
-        }
-
-        container.innerHTML = ssoItems.map(item => {
-            const currentOrigin = window.location.origin;
-            const cId = item.clientId || item.linkkey || item.id;
-            const linkUrl = `${currentOrigin}/link?client_id=${cId}`;
-            const permsList = (item.permissions || []).map(p => `<li style="font-size: 0.8rem; color: #ede8ea;">✓ ${p}</li>`).join('');
-            
-            const totalAuths = item.totalAuthorizations || 0;
-            const uniqueUsers = item.authorizedUserUids ? Object.keys(item.authorizedUserUids).length : 0;
-            const lastUsed = item.lastAuthorizedAt ? new Date(item.lastAuthorizedAt).toLocaleDateString() + ' ' + new Date(item.lastAuthorizedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never';
-
-            const redirectUrisList = item.redirectUris && item.redirectUris.length > 0 
-                ? item.redirectUris.join(', ') 
-                : (item.redirectUrl || 'None specified');
-
-            return `
-                <div style="background: rgba(22, 12, 16, 0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="${item.appLogo}" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 700; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                                ${item.appName}
-                                <span style="font-size: 0.7rem; background: rgba(217, 4, 41, 0.2); color: #ff8597; border: 1px solid rgba(217, 4, 41, 0.3); padding: 2px 6px; border-radius: 4px;">CrimX Auth</span>
-                            </div>
-                            <div style="font-size: 0.78rem; color: var(--text-secondary);">Allowed URIs: <code style="color: #cbd5e1;">${redirectUrisList}</code></div>
-                        </div>
-                        <button onclick="window.deleteSSOLink('${cId}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-weight: 600;">Delete</button>
-                    </div>
-
-                    <!-- Analytics Stats Bar -->
-                    <div style="background: rgba(0,0,0,0.4); padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 10px; text-align: center;">
-                        <div>
-                            <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Unique Players</div>
-                            <div style="font-size: 1.1rem; font-weight: 800; color: #4ade80;">${uniqueUsers} Users</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Authorizations</div>
-                            <div style="font-size: 1.1rem; font-weight: 800; color: var(--crimson-light);">${totalAuths} Times</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Last Active</div>
-                            <div style="font-size: 0.82rem; font-weight: 600; color: #ede8ea;">${lastUsed}</div>
-                        </div>
-                    </div>
-
-                    <!-- Client ID Box -->
-                    <div style="background: rgba(0,0,0,0.4); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Client ID (Public)</div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                            <code style="color: #4ade80; font-family: monospace; font-size: 0.88rem; word-break: break-all;">${cId}</code>
-                            <button onclick="window.copyToClipboard('${cId}', this)" style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.78rem; cursor: pointer; white-space: nowrap;">📋 Copy ID</button>
-                        </div>
-                    </div>
-
-                    <!-- Client Secret Box -->
-                    <div style="background: rgba(0,0,0,0.4); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 0.72rem; color: #f87171; text-transform: uppercase; font-weight: 700;">Client Secret (Confidential)</span>
-                            <button onclick="window.regenerateSecret('${cId}')" style="background: none; border: none; color: var(--text-secondary); font-size: 0.72rem; text-decoration: underline; cursor: pointer;">Regenerate</button>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                            <code id="secret-text-${cId}" style="color: #cbd5e1; font-family: monospace; font-size: 0.85rem; word-break: break-all;">••••••••••••••••••••••••••••••••</code>
-                            <div style="display: flex; gap: 6px; white-space: nowrap;">
-                                <button onclick="window.toggleSecretVisibility('${cId}', '${item.clientSecret || ''}')" style="padding: 4px 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.76rem; cursor: pointer;">👁️ Show</button>
-                                <button onclick="window.copyToClipboard('${item.clientSecret || ''}', this)" style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.76rem; cursor: pointer;">📋 Copy</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Authorization Link Box -->
-                    <div style="background: rgba(0,0,0,0.4); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">CrimX Authorization URL</div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                            <code style="color: var(--crimson-light); font-family: monospace; font-size: 0.8rem; word-break: break-all;">${linkUrl}</code>
-                            <button onclick="window.copyToClipboard('${linkUrl}', this)" style="padding: 4px 10px; background: var(--crimson); border: none; border-radius: 6px; color: #fff; font-size: 0.78rem; cursor: pointer; font-weight: 600; white-space: nowrap;">🔗 Copy URL</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } catch(err) {
-        console.error("Error loading CrimX Apps:", err);
-    }
-};
-
-window.toggleSecretVisibility = function(id, secret) {
-    const el = document.getElementById(`secret-text-${id}`);
-    if (!el) return;
-    if (el.innerText.includes('•')) {
-        el.innerText = secret || "None generated yet";
-        el.style.color = '#f59e0b';
-    } else {
-        el.innerText = '••••••••••••••••••••••••••••••••';
-        el.style.color = '#cbd5e1';
-    }
-};
-
-window.regenerateSecret = async function(clientId) {
-    if (!confirm("Regenerating the secret will invalidate your current secret immediately. Continue?")) return;
-    try {
-        const newSecret = `crimx_secret_${generateSecureRandomHex(18)}`;
-        await updateDoc(doc(db, "sso_links", clientId), {
-            clientSecret: newSecret
-        });
-        window.showCustomAlert(`New Client Secret Generated:\n${newSecret}`);
-        window.loadSSOLinks();
-    } catch(err) {
-        window.showCustomAlert("Failed to regenerate secret: " + err.message);
-    }
-};
-
-window.deleteSSOLink = async function(key) {
-    if (!confirm("Are you sure you want to delete this CrimX Application? Active user sessions may be affected.")) return;
-    try {
-        await deleteDoc(doc(db, "sso_links", key));
-        try { localStorage.removeItem('cf_sso_key_' + key); } catch(e) {}
-        window.showCustomAlert("CrimX Application deleted.");
-        window.loadSSOLinks();
-    } catch(err) {
-        window.showCustomAlert("Failed to delete application: " + err.message);
-    }
-};
-
-window.copyToClipboard = function(text, btnEl) {
-    if (!text) return window.showCustomAlert("No value to copy.");
-    navigator.clipboard.writeText(text).then(() => {
-        const origText = btnEl.innerText;
-        btnEl.innerText = "✓ Copied!";
-        setTimeout(() => { btnEl.innerText = origText; }, 2000);
-    }).catch(err => {
-        window.showCustomAlert("Copy failed: " + err);
+window.copyInputVal = function(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value) return;
+    navigator.clipboard.writeText(el.value).then(() => {
+        window.showToast("✓ Copied to clipboard");
+    }).catch(() => {
+        window.showToast("Copy failed");
     });
 };
 
-// LIVE TESTER: Token Exchange Playground
-window.testLiveExchange = async function(e) {
-    e.preventDefault();
-    const code = document.getElementById('test-exchange-code').value.trim();
-    const clientId = document.getElementById('test-client-id').value.trim();
-    const clientSecret = document.getElementById('test-client-secret').value.trim();
-    const outputEl = document.getElementById('test-exchange-output');
-
-    if (!code || !clientId) {
-        outputEl.innerText = "Error: Code and Client ID are required.";
-        outputEl.style.color = "#f87171";
-        return;
-    }
-
-    outputEl.innerText = "Exchanging code with CrimX Server...";
-    outputEl.style.color = "#fbbf24";
-
+function getStarredProjects() {
     try {
-        const response = await CrimX.exchangeCode({
-            code: code,
-            clientId: clientId,
-            clientSecret: clientSecret || null
-        });
+        const raw = localStorage.getItem('dev_starred_projects');
+        return raw ? JSON.parse(raw) : {};
+    } catch(e) { return {}; }
+}
 
-        outputEl.innerText = JSON.stringify(response, null, 2);
-        outputEl.style.color = "#4ade80";
-    } catch(err) {
-        outputEl.innerText = `Exchange Failed:\n${err.message}`;
-        outputEl.style.color = "#f87171";
+function toggleStarredProject(id, e) {
+    if (e) e.stopPropagation();
+    const starred = getStarredProjects();
+    starred[id] = !starred[id];
+    localStorage.setItem('dev_starred_projects', JSON.stringify(starred));
+    window.renderProjectsList();
+}
+
+// ─── HOMEPAGE CONTROLLER ───
+window.openCreateModal = function() {
+    const m = document.getElementById('modal-create-project');
+    const inp = document.getElementById('new-project-name');
+    if (m) m.classList.add('active');
+    if (inp) {
+        inp.value = '';
+        setTimeout(() => inp.focus(), 50);
     }
 };
 
+window.closeCreateModal = function() {
+    const m = document.getElementById('modal-create-project');
+    if (m) m.classList.remove('active');
+};
+
+const createCardBtn = document.getElementById('btn-open-create-modal');
+if (createCardBtn) {
+    createCardBtn.addEventListener('click', window.openCreateModal);
+    createCardBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            window.openCreateModal();
+        }
+    });
+}
+
+window.submitNewProject = async function(e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    const btn = document.getElementById('btn-submit-new-project');
+    const nameInput = document.getElementById('new-project-name');
+    const appName = nameInput.value.trim();
+    if (!appName) return;
+
+    btn.disabled = true;
+    btn.innerText = "Creating...";
+
+    try {
+        const clientId = `crimx_client_${generateSecureRandomHex(8)}`;
+        const clientSecret = `crimx_secret_${generateSecureRandomHex(18)}`;
+        const defaultLogo = "https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png";
+
+        const projectData = {
+            clientId: clientId,
+            linkkey: clientId,
+            appName: appName,
+            appLogo: defaultLogo,
+            ownerUid: currentUser.uid,
+            redirectUrl: "",
+            redirectUris: [],
+            permissions: ["Access player profile & avatar", "View verified email address"],
+            totalAuthorizations: 0,
+            authorizedUserUids: {},
+            createdAt: new Date().toISOString()
+        };
+
+        // Real Firestore creation
+        await setDoc(doc(db, "sso_links", clientId), projectData);
+
+        try {
+            localStorage.setItem('cf_sso_key_' + clientId, JSON.stringify(projectData));
+        } catch(err) {}
+
+        window.closeCreateModal();
+        window.showToast(`✓ Project "${appName}" created!`);
+
+        await window.loadProjects();
+
+    } catch(err) {
+        console.error("Error creating project:", err);
+        alert("Failed to create project: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Create Project";
+    }
+};
+
+window.loadProjects = async function() {
+    if (!currentUser) return;
+    try {
+        const q = query(collection(db, "sso_links"), where("ownerUid", "==", currentUser.uid));
+        const snap = await getDocs(q);
+        const list = [];
+        snap.forEach(d => {
+            list.push({ id: d.id, ...d.data() });
+        });
+
+        // Sort by creation date descending
+        list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        projectsList = list;
+        window.renderProjectsList();
+        window.renderProjectDropdownList();
+
+        // Check if query param specifies an active project
+        const params = new URLSearchParams(window.location.search);
+        const projectIdParam = params.get('project');
+        if (projectIdParam) {
+            const match = projectsList.find(p => p.clientId === projectIdParam || p.id === projectIdParam);
+            if (match) {
+                window.openProject(match.clientId || match.id);
+            }
+        }
+    } catch(err) {
+        console.error("Error loading projects:", err);
+    }
+};
+
+window.renderProjectsList = function() {
+    const container = document.getElementById('home-projects-list');
+    const countEl = document.getElementById('home-projects-count');
+    const searchInp = document.getElementById('dev-project-search');
+    const queryTerm = searchInp ? searchInp.value.trim().toLowerCase() : '';
+
+    if (!container) return;
+
+    let filtered = projectsList;
+    if (queryTerm) {
+        filtered = projectsList.filter(p => 
+            (p.appName && p.appName.toLowerCase().includes(queryTerm)) ||
+            (p.clientId && p.clientId.toLowerCase().includes(queryTerm))
+        );
+    }
+
+    const starred = getStarredProjects();
+
+    if (countEl) {
+        countEl.innerText = `${filtered.length} of ${projectsList.length} projects`;
+    }
+
+    if (filtered.length === 0) {
+        if (projectsList.length === 0) {
+            container.innerHTML = `
+                <div class="dev-empty-state">
+                    <div style="font-size: 1.8rem; margin-bottom: 6px;">📂</div>
+                    <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">No projects yet</div>
+                    <div style="color: var(--dev-text-muted); font-size: 0.82rem;">Click "Create a new project" to register your first app.</div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="dev-empty-state">
+                    No projects matching "${queryTerm}".
+                </div>
+            `;
+        }
+        return;
+    }
+
+    container.innerHTML = filtered.map(p => {
+        const id = p.clientId || p.id;
+        const icon = p.appLogo || "https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png";
+        const usersCount = p.authorizedUserUids ? Object.keys(p.authorizedUserUids).length : 0;
+        const isStarred = !!starred[id];
+
+        return `
+            <div class="dev-project-row" onclick="window.openProject('${id}')">
+                <div class="dev-project-row-left">
+                    <img src="${icon}" alt="${p.appName}" class="dev-project-icon" onerror="this.src='https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png'">
+                    <div class="dev-project-info">
+                        <div class="dev-project-name">${p.appName || 'Untitled Project'}</div>
+                        <div class="dev-project-id">${id}</div>
+                    </div>
+                </div>
+                <div class="dev-project-row-right">
+                    <span class="dev-project-users-badge">${usersCount} Players</span>
+                    <button type="button" class="dev-star-btn ${isStarred ? 'active' : ''}" title="Star project" onclick="window.toggleStar('${id}', event)">
+                        ${isStarred ? '★' : '☆'}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+window.toggleStar = function(id, e) {
+    toggleStarredProject(id, e);
+};
+
+const searchInputEl = document.getElementById('dev-project-search');
+if (searchInputEl) {
+    searchInputEl.addEventListener('input', window.renderProjectsList);
+}
+
+// ─── CONSOLE WORKSPACE CONTROLLER ───
+window.openProject = function(id) {
+    const proj = projectsList.find(p => p.clientId === id || p.id === id);
+    if (!proj) return;
+    currentProject = proj;
+
+    // Update URL query string
+    const url = new URL(window.location);
+    url.searchParams.set('project', id);
+    window.history.pushState({}, '', url);
+
+    // Switch Views
+    document.getElementById('dev-homepage-view').style.display = 'none';
+    document.getElementById('dev-project-view').style.display = 'flex';
+
+    // Populate Top Bar
+    document.getElementById('topbar-project-name').innerText = proj.appName;
+    document.getElementById('topbar-client-id').innerText = `ID: ${proj.clientId || proj.id}`;
+
+    // Switch default nav to Overview
+    window.switchConsoleNav('overview');
+
+    // Populate views with project data
+    populateProjectData();
+    window.loadProjectUsers();
+};
+
+window.backToHomepage = function() {
+    currentProject = null;
+    const url = new URL(window.location);
+    url.searchParams.delete('project');
+    window.history.pushState({}, '', url);
+
+    document.getElementById('dev-project-view').style.display = 'none';
+    document.getElementById('dev-homepage-view').style.display = 'flex';
+    const drop = document.getElementById('project-dropdown-menu');
+    if (drop) drop.classList.remove('active');
+
+    window.renderProjectsList();
+};
+
+// Project Switcher Dropdown
+const switcherBtn = document.getElementById('project-switcher-btn');
+if (switcherBtn) {
+    switcherBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const drop = document.getElementById('project-dropdown-menu');
+        if (drop) drop.classList.toggle('active');
+    });
+}
+document.addEventListener('click', () => {
+    const drop = document.getElementById('project-dropdown-menu');
+    if (drop) drop.classList.remove('active');
+});
+
+window.renderProjectDropdownList = function() {
+    const listEl = document.getElementById('project-dropdown-items-list');
+    if (!listEl) return;
+    listEl.innerHTML = projectsList.map(p => {
+        const id = p.clientId || p.id;
+        return `
+            <div class="dev-dropdown-item" onclick="window.openProject('${id}')">
+                <span>🔥</span> ${p.appName}
+            </div>
+        `;
+    }).join('');
+};
+
+// Console Sidebar Navigation
+window.switchConsoleNav = function(section, subtab = null) {
+    // Update sidebar active state
+    document.querySelectorAll('.dev-nav-item').forEach(el => el.classList.remove('active'));
+    const activeNav = document.getElementById(`nav-${section}`);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Hide all panes
+    document.querySelectorAll('.dev-console-pane').forEach(p => p.style.display = 'none');
+
+    // Show target pane
+    const targetPane = document.getElementById(`pane-${section}`);
+    if (targetPane) targetPane.style.display = 'block';
+
+    // Update breadcrumb label
+    const sectionNames = {
+        overview: 'Project Overview',
+        auth: 'Authentication',
+        analytics: 'Analytics',
+        settings: 'Project Settings'
+    };
+    const breadcrumbLabel = document.getElementById('topbar-section-label');
+    if (breadcrumbLabel) breadcrumbLabel.innerText = sectionNames[section] || 'Console';
+
+    if (subtab && section === 'auth') {
+        window.switchAuthTab(subtab);
+    }
+};
+
+// Authentication Sub-tabs
+window.switchAuthTab = function(tabName) {
+    document.querySelectorAll('.dev-tab-btn').forEach(b => {
+        if (b.id && b.id.startsWith('tab-btn-')) b.classList.remove('active');
+    });
+    const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    document.querySelectorAll('.dev-auth-subtab').forEach(el => el.style.display = 'none');
+    const targetTab = document.getElementById(`auth-tab-${tabName}`);
+    if (targetTab) targetTab.style.display = 'block';
+
+    if (tabName === 'users') {
+        window.loadProjectUsers();
+    } else if (tabName === 'sdk') {
+        updateSdkSnippets();
+    }
+};
+
+function populateProjectData() {
+    if (!currentProject) return;
+    const cId = currentProject.clientId || currentProject.id;
+    const authUrl = `${window.location.origin}/link?client_id=${cId}`;
+
+    // Overview pane
+    const uniqueUsersCount = currentProject.authorizedUserUids ? Object.keys(currentProject.authorizedUserUids).length : 0;
+    const totalAuthsCount = currentProject.totalAuthorizations || 0;
+
+    document.getElementById('overview-unique-users').innerText = uniqueUsersCount;
+    document.getElementById('overview-total-auths').innerText = totalAuthsCount;
+    document.getElementById('overview-client-id').value = cId;
+    document.getElementById('overview-auth-url').value = authUrl;
+
+    // OAuth pane
+    document.getElementById('oauth-client-id').value = cId;
+    document.getElementById('oauth-client-secret').value = currentProject.clientSecret || '';
+    
+    const uris = currentProject.redirectUris && currentProject.redirectUris.length > 0
+        ? currentProject.redirectUris.join('\n')
+        : (currentProject.redirectUrl || '');
+    document.getElementById('oauth-redirect-uris').value = uris;
+
+    // Analytics pane
+    document.getElementById('analytics-total-auths').innerText = totalAuthsCount;
+    document.getElementById('analytics-unique-users').innerText = uniqueUsersCount;
+    document.getElementById('analytics-last-active').innerText = currentProject.lastAuthorizedAt 
+        ? new Date(currentProject.lastAuthorizedAt).toLocaleString() 
+        : 'Never';
+
+    // Settings pane
+    document.getElementById('settings-project-name').value = currentProject.appName || '';
+    document.getElementById('settings-project-logo').value = currentProject.appLogo || '';
+    document.getElementById('settings-created-at').value = currentProject.createdAt 
+        ? new Date(currentProject.createdAt).toLocaleString() 
+        : 'Unknown';
+
+    updateSdkSnippets();
+}
+
+// ─── REAL WORKING USERS DIRECTORY ───
+window.loadProjectUsers = async function() {
+    if (!currentProject) return;
+    const tbody = document.getElementById('users-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--dev-text-dim); padding: 24px;">Loading real player records...</td></tr>`;
+
+    try {
+        // Fetch fresh project document to get latest authorizedUserUids
+        const cId = currentProject.clientId || currentProject.id;
+        const appDoc = await getDoc(doc(db, "sso_links", cId));
+        if (appDoc.exists()) {
+            currentProject = { id: appDoc.id, ...appDoc.data() };
+        }
+
+        const userUidsMap = currentProject.authorizedUserUids || {};
+        const uids = Object.keys(userUidsMap);
+
+        if (uids.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--dev-text-dim); padding: 36px;">
+                        <div style="font-size: 1.6rem; margin-bottom: 6px;">👥</div>
+                        <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">No authenticated users yet</div>
+                        <div style="font-size: 0.8rem;">Players will automatically appear here once they log into your app with CrimX.</div>
+                    </td>
+                </tr>
+            `;
+            projectUsersData = [];
+            return;
+        }
+
+        // Fetch user profiles in parallel
+        const userPromises = uids.map(async (uid) => {
+            try {
+                const uDoc = await getDoc(doc(db, "users", uid));
+                if (uDoc.exists()) {
+                    const uData = uDoc.data();
+                    return {
+                        uid: uid,
+                        displayName: uData.username || uData.displayName || `Player ${uid.slice(0, 6)}`,
+                        email: uData.email || 'Private / Hidden',
+                        avatar: uData.photoURL || uData.avatarUrl || 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png',
+                        authorizedAt: userUidsMap[uid]?.authorizedAt || currentProject.lastAuthorizedAt || currentProject.createdAt
+                    };
+                }
+            } catch(e) {
+                console.warn("Could not fetch user profile:", uid, e);
+            }
+            return {
+                uid: uid,
+                displayName: `Player ${uid.slice(0, 6)}`,
+                email: 'Protected',
+                avatar: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png',
+                authorizedAt: currentProject.lastAuthorizedAt || currentProject.createdAt
+            };
+        });
+
+        projectUsersData = await Promise.all(userPromises);
+        window.renderUsersTable();
+
+    } catch(err) {
+        console.error("Error loading project users:", err);
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #f87171; padding: 24px;">Failed to load player records: ${err.message}</td></tr>`;
+    }
+};
+
+window.renderUsersTable = function() {
+    const tbody = document.getElementById('users-table-body');
+    const searchInp = document.getElementById('users-search-input');
+    const filterTerm = searchInp ? searchInp.value.trim().toLowerCase() : '';
+
+    if (!tbody) return;
+
+    let filtered = projectUsersData;
+    if (filterTerm) {
+        filtered = projectUsersData.filter(u => 
+            u.displayName.toLowerCase().includes(filterTerm) ||
+            u.email.toLowerCase().includes(filterTerm) ||
+            u.uid.toLowerCase().includes(filterTerm)
+        );
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--dev-text-dim); padding: 24px;">No players match "${filterTerm}".</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(u => {
+        const dateStr = u.authorizedAt ? new Date(u.authorizedAt).toLocaleDateString() : 'Active';
+        return `
+            <tr>
+                <td>
+                    <div class="dev-user-cell">
+                        <img src="${u.avatar}" alt="${u.displayName}" class="dev-table-avatar" onerror="this.src='https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png'">
+                        <span class="dev-user-name">${u.displayName}</span>
+                    </div>
+                </td>
+                <td style="color: var(--dev-text-muted); font-family: monospace; font-size: 0.8rem;">${u.email}</td>
+                <td style="color: var(--dev-text-dim); font-family: monospace; font-size: 0.76rem;">${u.uid}</td>
+                <td style="color: var(--dev-text-muted); font-size: 0.82rem;">${dateStr}</td>
+                <td>
+                    <button type="button" class="dev-btn-revoke" onclick="window.revokePlayerAccess('${u.uid}', '${u.displayName}')">Revoke Access</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.filterUsersTable = function() {
+    window.renderUsersTable();
+};
+
+window.revokePlayerAccess = async function(uid, name) {
+    if (!currentProject) return;
+    if (!confirm(`Are you sure you want to revoke ${name}'s access to ${currentProject.appName}?`)) return;
+
+    const cId = currentProject.clientId || currentProject.id;
+
+    try {
+        // 1. Remove user from app's authorizedUserUids map
+        const userMap = { ...(currentProject.authorizedUserUids || {}) };
+        delete userMap[uid];
+
+        await updateDoc(doc(db, "sso_links", cId), {
+            authorizedUserUids: userMap
+        });
+        currentProject.authorizedUserUids = userMap;
+
+        // 2. Remove app from user's connected_apps collection
+        try {
+            await deleteDoc(doc(db, "users", uid, "connected_apps", cId));
+        } catch(e) {
+            console.warn("Could not delete connected_apps doc:", e);
+        }
+
+        window.showToast(`✓ Access revoked for ${name}`);
+        await window.loadProjectUsers();
+        populateProjectData();
+
+    } catch(err) {
+        console.error("Error revoking access:", err);
+        alert("Failed to revoke player access: " + err.message);
+    }
+};
+
+// ─── OAUTH & SETTINGS ACTIONS ───
+window.toggleSecretVisibility = function() {
+    const input = document.getElementById('oauth-client-secret');
+    const btn = document.getElementById('btn-toggle-secret');
+    if (!input || !btn) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerText = 'Hide';
+    } else {
+        input.type = 'password';
+        btn.innerText = 'Show';
+    }
+};
+
+window.copySecretVal = function() {
+    if (!currentProject || !currentProject.clientSecret) return;
+    navigator.clipboard.writeText(currentProject.clientSecret).then(() => {
+        window.showToast("✓ Client Secret copied");
+    });
+};
+
+window.regenerateSecret = async function() {
+    if (!currentProject) return;
+    if (!confirm("Regenerating the secret will immediately invalidate your current secret. Continue?")) return;
+    const cId = currentProject.clientId || currentProject.id;
+    const newSecret = `crimx_secret_${generateSecureRandomHex(18)}`;
+
+    try {
+        await updateDoc(doc(db, "sso_links", cId), {
+            clientSecret: newSecret
+        });
+        currentProject.clientSecret = newSecret;
+        document.getElementById('oauth-client-secret').value = newSecret;
+        window.showToast("✓ New Client Secret generated!");
+    } catch(err) {
+        alert("Failed to regenerate secret: " + err.message);
+    }
+};
+
+window.saveProjectOAuth = async function(e) {
+    e.preventDefault();
+    if (!currentProject) return;
+    const btn = document.getElementById('btn-save-oauth');
+    btn.disabled = true;
+    btn.innerText = "Saving...";
+
+    const cId = currentProject.clientId || currentProject.id;
+    const redirectRaw = document.getElementById('oauth-redirect-uris').value.trim();
+    const redirectUris = redirectRaw ? redirectRaw.split(/[\n,]+/).map(u => u.trim()).filter(Boolean) : [];
+
+    const perms = [];
+    if (document.getElementById('scope-profile').checked) perms.push("Access player profile & avatar");
+    if (document.getElementById('scope-email').checked) perms.push("View verified email address");
+
+    try {
+        await updateDoc(doc(db, "sso_links", cId), {
+            redirectUris: redirectUris,
+            redirectUrl: redirectUris[0] || "",
+            permissions: perms
+        });
+        currentProject.redirectUris = redirectUris;
+        currentProject.permissions = perms;
+        window.showToast("✓ OAuth settings saved successfully!");
+        updateSdkSnippets();
+    } catch(err) {
+        alert("Failed to save settings: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Save Changes";
+    }
+};
+
+window.saveProjectSettings = async function(e) {
+    e.preventDefault();
+    if (!currentProject) return;
+    const btn = document.getElementById('btn-save-settings');
+    btn.disabled = true;
+    btn.innerText = "Saving...";
+
+    const cId = currentProject.clientId || currentProject.id;
+    const appName = document.getElementById('settings-project-name').value.trim();
+    const appLogo = document.getElementById('settings-project-logo').value.trim() || currentProject.appLogo;
+
+    try {
+        await updateDoc(doc(db, "sso_links", cId), {
+            appName: appName,
+            appLogo: appLogo
+        });
+        currentProject.appName = appName;
+        currentProject.appLogo = appLogo;
+
+        document.getElementById('topbar-project-name').innerText = appName;
+        document.getElementById('overview-title').innerText = appName;
+
+        window.showToast("✓ Project settings updated!");
+        window.loadProjects();
+    } catch(err) {
+        alert("Failed to update project: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Save Settings";
+    }
+};
+
+window.uploadProjectLogo = async function(file) {
+    if (!file || !file.type.startsWith('image/')) return alert("Not a valid image file.");
+    window.showToast("Uploading logo...");
+    try {
+        const fd = new FormData();
+        fd.append("image", file);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+        const json = await res.json();
+        if (!json.success) throw new Error("Upload Failed");
+        document.getElementById('settings-project-logo').value = json.data.url;
+        window.showToast("✓ Logo uploaded!");
+    } catch(e) {
+        alert("Upload error: " + e.message);
+    }
+};
+
+window.deleteCurrentProject = async function() {
+    if (!currentProject) return;
+    const cId = currentProject.clientId || currentProject.id;
+    const confirmation = prompt(`To confirm deletion, type the project name "${currentProject.appName}":`);
+    if (confirmation !== currentProject.appName) {
+        alert("Deletion cancelled. Project name did not match.");
+        return;
+    }
+
+    try {
+        await deleteDoc(doc(db, "sso_links", cId));
+        window.showToast(`✓ Project "${currentProject.appName}" deleted.`);
+        window.backToHomepage();
+        await window.loadProjects();
+    } catch(err) {
+        alert("Failed to delete project: " + err.message);
+    }
+};
+
+window.testOpenAuthUrl = function() {
+    if (!currentProject) return;
+    const cId = currentProject.clientId || currentProject.id;
+    window.open(`/link?client_id=${cId}`, '_blank');
+};
+
+// ─── SDK CODE SNIPPETS ───
+window.switchCodeLang = function(lang) {
+    activeCodeLang = lang;
+    ['js', 'node', 'py', 'curl'].forEach(l => {
+        const btn = document.getElementById(`code-tab-${l}`);
+        if (btn) btn.classList.toggle('active', l === lang);
+    });
+    updateSdkSnippets();
+};
+
+function updateSdkSnippets() {
+    const el = document.getElementById('sdk-code-display');
+    if (!el || !currentProject) return;
+
+    const origin = window.location.origin;
+    const cId = currentProject.clientId || currentProject.id;
+    const redirectUri = (currentProject.redirectUris && currentProject.redirectUris[0]) || 'https://yourgame.com/callback';
+
+    const snippets = {
+        js: `// 1. Include CrimX SDK:
+import { CrimX } from "${origin}/crimx.js";
+
+// 2. Launch player sign-in:
+const loginUrl = CrimX.getAuthUrl({
+  clientId: "${cId}",
+  redirectUri: "${redirectUri}",
+  scope: "profile email"
+});
+window.location.href = loginUrl;
+
+// 3. On your callback page, parse token:
+const callback = CrimX.parseCallback();
+if (callback.success) {
+  const session = await CrimX.exchangeCode({
+    code: callback.code,
+    clientId: "${cId}"
+  });
+  console.log("Player Authenticated:", session.user.name, session.user.uid);
+}`,
+        node: `// Node.js Backend Verification:
+import { CrimX } from "${origin}/crimx.js";
+
+app.get('/callback', async (req, res) => {
+  const { code } = req.query;
+  try {
+    const session = await CrimX.exchangeCode({
+      code: code,
+      clientId: "${cId}",
+      clientSecret: process.env.CRIMX_CLIENT_SECRET
+    });
+
+    // Verified player profile:
+    req.session.player = session.user;
+    res.redirect('/game');
+  } catch (err) {
+    res.status(401).send("Verification failed: " + err.message);
+  }
+});`,
+        py: `# Python / FastAPI backend exchange:
+from fastapi import FastAPI, Request
+from crimx import CrimX
+
+@app.get("/callback")
+async def callback(code: str):
+    session = await CrimX.exchange_code(
+        code=code,
+        client_id="${cId}",
+        client_secret="YOUR_CLIENT_SECRET"
+    )
+    return {"status": "authenticated", "player": session["user"]}`,
+        curl: `# Exchange an authorization code:
+curl -X POST "${origin}/auth/token" \\
+  -d "grant_type=authorization_code" \\
+  -d "code=crimx_code_abc123" \\
+  -d "client_id=${cId}" \\
+  -d "client_secret=YOUR_CLIENT_SECRET"`
+    };
+
+    el.textContent = snippets[activeCodeLang] || snippets.js;
+}
+
+window.copyActiveCode = function() {
+    const el = document.getElementById('sdk-code-display');
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(() => {
+        window.showToast("✓ Integration code copied");
+    });
+};
+
+// ─── AUTH STATE INITIALIZATION ───
 onAuthStateChanged(auth, user => {
     if (user && (user.emailVerified || user.providerData.some(p => p.providerId === 'google.com'))) {
         currentUser = user;
         document.getElementById('dev-auth-notice').style.display = 'none';
-        document.getElementById('dev-dashboard-container').style.display = 'block';
-        window.loadSSOLinks();
+
+        const name = user.displayName || user.email.split('@')[0] || 'Developer';
+        const avatar = user.photoURL || 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png';
+
+        const greetingEl = document.getElementById('home-greeting-name');
+        if (greetingEl) greetingEl.innerText = name;
+
+        const homeAvatar = document.getElementById('home-user-avatar');
+        if (homeAvatar) homeAvatar.src = avatar;
+
+        const consoleAvatar = document.getElementById('console-user-avatar');
+        if (consoleAvatar) consoleAvatar.src = avatar;
+
+        document.getElementById('dev-homepage-view').style.display = 'flex';
+        window.loadProjects();
     } else {
         currentUser = null;
-        document.getElementById('dev-auth-notice').style.display = 'block';
-        document.getElementById('dev-dashboard-container').style.display = 'none';
+        document.getElementById('dev-auth-notice').style.display = 'flex';
+        document.getElementById('dev-homepage-view').style.display = 'none';
+        document.getElementById('dev-project-view').style.display = 'none';
     }
 });

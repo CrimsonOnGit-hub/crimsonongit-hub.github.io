@@ -1045,7 +1045,7 @@ function renderModalSecurity(pane) {
                     </div>
                 </div>
                 <div class="account-info-item">
-                    <div class="account-info-label">DoorAuth Protected</div>
+                    <div class="account-info-label">CrimX Verified</div>
                     <div class="account-info-value" style="color: #4ade80;">Active</div>
                 </div>
                 <div class="account-info-item">
