@@ -197,170 +197,289 @@
             display: inline-block;
         }
 
-        /* ─── GOOGLE-STYLE "SIGN IN WITH YOUR CRIMXID" (Untitled.png) ─── */
+        /* ─── MODERN CRIMX AUTH & SIGN-IN REWORK ─── */
         .crimxid-auth-wrapper {
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             margin: 0 auto;
             position: relative;
             z-index: 10;
+            animation: crimxPopIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes crimxPopIn {
+            from { opacity: 0; transform: scale(0.96) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .crimxid-brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 999px;
+            padding: 6px 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+        }
+
+        .crimxid-brand-badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+            animation: cfPulse 2s infinite ease-in-out;
+        }
+
+        .crimxid-brand-badge-text {
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #fca5a5;
         }
 
         .crimxid-header-title {
-            font-size: 1.55rem;
-            font-weight: 400;
-            color: #cbd5e1;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 500;
+            color: #e2e8f0;
             margin-bottom: 22px;
             text-align: center;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.4px;
         }
 
         .crimxid-header-title strong {
             font-weight: 800;
-            color: #ffffff;
+            background: linear-gradient(135deg, #ffffff 0%, #fca5a5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .crimxid-card {
             width: 100%;
-            background: #46090e;
-            background: linear-gradient(180deg, #4f0b11 0%, #360509 100%);
-            border: 1px solid #680e16;
-            border-radius: 6px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
-            padding: 40px 34px 34px;
+            background: rgba(18, 9, 14, 0.92);
+            background: linear-gradient(180deg, rgba(28, 12, 20, 0.95) 0%, rgba(14, 6, 10, 0.96) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.28);
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 45px rgba(239, 68, 68, 0.18);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            padding: 38px 32px 32px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-sizing: border-box;
+        }
+
+        .crimxid-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ef4444, transparent);
+            opacity: 0.8;
         }
 
         .crimxid-avatar-circle {
-            width: 104px;
-            height: 104px;
+            width: 96px;
+            height: 96px;
             border-radius: 50%;
-            background: #0099ff;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 2px solid rgba(239, 68, 68, 0.45);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 22px;
-            box-shadow: 0 6px 20px rgba(0, 153, 255, 0.4);
+            margin-bottom: 20px;
+            box-shadow: 0 8px 26px rgba(0, 0, 0, 0.6), 0 0 24px rgba(239, 68, 68, 0.3);
             overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .crimxid-avatar-circle:hover {
+            transform: scale(1.04);
         }
 
         .crimxid-avatar-circle svg {
-            width: 72px;
-            height: 72px;
-            fill: #ffffff;
+            width: 58px;
+            height: 58px;
+            fill: #ef4444;
+            opacity: 0.9;
         }
 
         .crimxid-greeting {
-            font-size: 1.85rem;
-            font-weight: 700;
+            font-size: 1.7rem;
+            font-weight: 800;
             color: #ffffff;
             font-family: 'Outfit', sans-serif;
             margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.4px;
         }
 
         .crimxid-app-prompt {
-            font-size: 0.85rem;
+            font-size: 0.92rem;
+            color: #cbd5e1;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .crimxid-app-prompt strong {
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        .oauth-client-id-badge {
+            margin-top: 8px;
+        }
+
+        .oauth-client-id-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: monospace;
+            font-size: 0.72rem;
             color: #fca5a5;
-            margin-bottom: 26px;
-            line-height: 1.45;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            padding: 2px 8px;
+            border-radius: 6px;
         }
 
         .crimxid-input-box {
             width: 100%;
-            border: 2px solid #ef4444;
-            background: #240406;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.45);
             color: #ffffff;
-            border-radius: 4px;
+            border-radius: 12px;
             padding: 14px 18px;
-            font-size: 1rem;
+            font-size: 0.98rem;
             font-family: inherit;
             outline: none;
-            margin-bottom: 20px;
-            transition: all 0.2s ease;
+            margin-bottom: 18px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             text-align: left;
+            box-sizing: border-box;
         }
 
         .crimxid-input-box::placeholder {
-            color: #ef4444;
-            opacity: 0.9;
+            color: #94a3b8;
+            opacity: 0.75;
         }
 
         .crimxid-input-box:focus {
-            border-color: #f87171;
-            background: #2c0508;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            background: rgba(0, 0, 0, 0.65);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25), 0 0 20px rgba(239, 68, 68, 0.15);
+        }
+
+        .crimxid-error-msg {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #fca5a5;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 18px;
+            text-align: center;
+            animation: crimxShake 0.3s ease;
+        }
+
+        @keyframes crimxShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
         }
 
         .crimxid-actions {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .crimxid-btn-cancel {
-            background: transparent;
-            border: 1px solid #7f1d1d;
-            color: #fca5a5;
-            padding: 10px 22px;
-            border-radius: 4px;
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            padding: 12px 20px;
+            border-radius: 12px;
             font-size: 0.92rem;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .crimxid-btn-cancel:hover {
-            background: rgba(239, 68, 68, 0.15);
-            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transform: translateY(-1px);
         }
 
         .crimxid-btn-submit {
-            background: #ef4444;
+            flex: 1.3;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: #ffffff;
             border: none;
-            padding: 11px 26px;
-            border-radius: 4px;
-            font-size: 0.95rem;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.96rem;
             font-weight: 700;
+            font-family: 'Outfit', sans-serif;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
-            transition: all 0.2s;
+            box-shadow: 0 4px 18px rgba(239, 68, 68, 0.4);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .crimxid-btn-submit:hover {
-            background: #dc2626;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(239, 68, 68, 0.6);
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+        }
+
+        .crimxid-btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .crimxid-btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
         }
 
         .crimxid-footer {
-            margin-top: 36px;
+            margin-top: 32px;
             text-align: center;
         }
 
         .crimxid-footer-tagline {
-            font-size: 1.25rem;
-            font-weight: 400;
-            color: #cbd5e1;
-            margin-bottom: 4px;
-            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            color: #94a3b8;
+            margin-bottom: 6px;
         }
 
         .crimxid-footer-hashtag {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #00e5ff;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #38bdf8;
             letter-spacing: 0.5px;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
 
         .crimxid-error-msg {
@@ -530,8 +649,13 @@
         </div>
     </main>
 
-    <!-- ─── GOOGLE-STYLE "SIGN IN WITH YOUR CRIMXID" (Untitled.png) ─── -->
+    <!-- ─── GOOGLE-STYLE "SIGN IN WITH YOUR CRIMXID" ─── -->
     <div id="crimxid-view" class="crimxid-auth-wrapper">
+        <div class="crimxid-brand-badge">
+            <span class="crimxid-brand-badge-dot"></span>
+            <span class="crimxid-brand-badge-text">CrimX DoorAuth</span>
+        </div>
+
         <div class="crimxid-header-title" id="crimxid-main-title">
             Sign in with your <strong>CrimX ID</strong>
         </div>
@@ -547,7 +671,10 @@
             <div id="oauth-step-email" style="width: 100%;">
                 <div class="crimxid-greeting" id="oauth-email-greeting">Sign In</div>
                 <div class="crimxid-app-prompt">
-                    <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
+                    <strong class="oauth-app-name-display" style="color: #ffffff;">This application</strong> is requesting for a sign in.
+                    <div class="oauth-client-id-badge" style="display: none;">
+                        <span class="oauth-client-id-pill">ID: <span class="oauth-client-id-val"></span></span>
+                    </div>
                 </div>
 
                 <form onsubmit="handleOAuthEmailSubmit(event)" style="width: 100%;">
@@ -561,7 +688,7 @@
                     </div>
                 </form>
 
-                <div style="margin-top: 24px; font-size: 0.88rem; color: #fca5a5; text-align: center;">
+                <div style="margin-top: 24px; font-size: 0.88rem; color: #cbd5e1; text-align: center;">
                     Don't have an account? 
                     <a href="javascript:void(0)" onclick="switchOAuthView('register')" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-left: 4px;">Create a CrimX ID</a>
                 </div>
@@ -571,14 +698,14 @@
             <div id="oauth-step-password" style="display: none; width: 100%;">
                 <div class="crimxid-greeting" id="oauth-greeting">Hey there, User!</div>
                 <div class="crimxid-app-prompt">
-                    <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
-                    <div class="oauth-client-id-badge" style="display: none; margin-top: 6px; font-size: 0.74rem; color: #fca5a5; font-family: monospace;">
-                        ID: <span class="oauth-client-id-val"></span>
+                    <strong class="oauth-app-name-display" style="color: #ffffff;">This application</strong> is requesting for a sign in.
+                    <div class="oauth-client-id-badge" style="display: none;">
+                        <span class="oauth-client-id-pill">ID: <span class="oauth-client-id-val"></span></span>
                     </div>
                 </div>
 
                 <div id="oauth-user-badge-container" style="margin-bottom: 20px;">
-                    <div id="oauth-user-badge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 999px; padding: 5px 14px; font-size: 0.85rem; color: #fca5a5;">
+                    <div id="oauth-user-badge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.45); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 999px; padding: 6px 16px; font-size: 0.85rem; color: #fca5a5;">
                         <span id="oauth-active-email-display">user@example.com</span>
                         <a href="javascript:void(0)" onclick="handleOAuthSwitchAccount()" style="color: #38bdf8; font-weight: 700; text-decoration: none; font-size: 0.8rem; margin-left: 4px;">(Change)</a>
                     </div>
@@ -596,7 +723,7 @@
                 </form>
 
                 <div style="margin-top: 20px; font-size: 0.85rem; text-align: center;">
-                    <a href="javascript:void(0)" onclick="handleOAuthSwitchAccount()" style="color: #cbd5e1; text-decoration: none;">Use a different CrimX ID</a>
+                    <a href="javascript:void(0)" onclick="handleOAuthSwitchAccount()" style="color: #94a3b8; text-decoration: none;">Use a different CrimX ID</a>
                 </div>
             </div>
 
@@ -604,9 +731,9 @@
             <div id="oauth-step-register" style="display: none; width: 100%;">
                 <div class="crimxid-greeting">Create CrimX ID</div>
                 <div class="crimxid-app-prompt">
-                    <strong class="oauth-app-name-display" style="color: #ffffff;">Application</strong> is requesting access to your CrimX account.
-                    <div class="oauth-client-id-badge" style="display: none; margin-top: 6px; font-size: 0.74rem; color: #fca5a5; font-family: monospace;">
-                        ID: <span class="oauth-client-id-val"></span>
+                    <strong class="oauth-app-name-display" style="color: #ffffff;">This application</strong> is requesting for a sign in.
+                    <div class="oauth-client-id-badge" style="display: none;">
+                        <span class="oauth-client-id-pill">ID: <span class="oauth-client-id-val"></span></span>
                     </div>
                 </div>
 
@@ -624,7 +751,7 @@
                     </div>
                 </form>
 
-                <div style="margin-top: 20px; font-size: 0.88rem; color: #fca5a5; text-align: center;">
+                <div style="margin-top: 20px; font-size: 0.88rem; color: #cbd5e1; text-align: center;">
                     Already have an account? 
                     <a href="javascript:void(0)" onclick="switchOAuthView('email')" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-left: 4px;">Sign in here</a>
                 </div>
@@ -662,11 +789,17 @@
             getDocs, 
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { 
+            getDatabase, 
+            ref as dbRef, 
+            get as dbGet 
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBSSJKDrFJ1_qlliZqgw34CY2TSaKOxxxM",
             authDomain: "crimsonflame-8169e.firebaseapp.com",
             projectId: "crimsonflame-8169e",
+            databaseURL: "https://crimsonflame-8169e-default-rtdb.firebaseio.com",
             storageBucket: "crimsonflame-8169e.appspot.com",
             messagingSenderId: "406321213530",
             appId: "1:406321213530:web:443ca203117578ce8ca616"
@@ -675,6 +808,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const rtdb = getDatabase(app, "https://crimsonflame-8169e-default-rtdb.firebaseio.com");
 
         // State Machine Switcher
         function showState(stateName) {
@@ -733,10 +867,33 @@
 
         // Known DoorAuth Applications Dictionary
         const KNOWN_DOORAUTH_APPS = {
-            'cf_client_843fbbf7d0caba': { name: 'PluhMath', icon: '∑' },
-            'pluhmath': { name: 'PluhMath', icon: '∑' },
-            'cf_client_pluhmath': { name: 'PluhMath', icon: '∑' }
+            'cf_client_843fbbf7d0caba': { name: 'PluhMath', icon: '🧮' },
+            'pluhmath': { name: 'PluhMath', icon: '🧮' },
+            'cf_client_pluhmath': { name: 'PluhMath', icon: '🧮' }
         };
+
+        function sanitizeFriendlyAppName(rawName, rawClientId) {
+            const raw = String(rawName || '').trim();
+            const cid = String(rawClientId || '').trim().toLowerCase();
+
+            // Match known app markers
+            if (cid.includes('843fbbf7d0caba') || cid.includes('pluh') || raw.toLowerCase().includes('pluh')) {
+                return 'PluhMath';
+            }
+            if (rawClientId && KNOWN_DOORAUTH_APPS[rawClientId]) {
+                return KNOWN_DOORAUTH_APPS[rawClientId].name;
+            }
+            if (raw && KNOWN_DOORAUTH_APPS[raw]) {
+                return KNOWN_DOORAUTH_APPS[raw].name;
+            }
+
+            // If raw looks like a client ID (e.g. cf_client-..., cf_client_..., crimx_client..., app_code..., cf_code...) or hash
+            if (!raw || /^cf_client|^crimx_client|^app_code|^cf_code|^client[-_]/i.test(raw) || /^[a-z0-9_-]{16,}$/i.test(raw)) {
+                return 'This application';
+            }
+
+            return raw;
+        }
 
         // Display Token snippet for user verification
         if (code) {
@@ -757,21 +914,13 @@
                 const crimxidView = document.getElementById('crimxid-view');
                 if (crimxidView) crimxidView.style.display = 'flex';
 
-                // Display application name (Prioritize real name over raw ID)
-                let friendlyAppName = appName || (KNOWN_DOORAUTH_APPS[clientId] ? KNOWN_DOORAUTH_APPS[clientId].name : '');
-                if (!friendlyAppName) {
-                    if (clientId && clientId.toLowerCase().includes('pluh')) {
-                        friendlyAppName = 'PluhMath';
-                    } else if (clientId && !clientId.startsWith('cf_client') && !clientId.startsWith('crimx_client') && !clientId.startsWith('app_')) {
-                        friendlyAppName = clientId;
-                    } else {
-                        friendlyAppName = 'Connected App';
-                    }
-                }
+                // Display application name (NEVER show raw client ID as the app name)
+                let friendlyAppName = sanitizeFriendlyAppName(appName, clientId);
 
                 const updateAppLabels = (name) => {
+                    const cleanName = sanitizeFriendlyAppName(name, clientId);
                     document.querySelectorAll('.oauth-app-name-display').forEach(el => {
-                        el.innerText = name;
+                        el.innerText = cleanName;
                     });
                     if (clientId) {
                         document.querySelectorAll('.oauth-client-id-val').forEach(el => {
@@ -784,15 +933,30 @@
                 };
                 updateAppLabels(friendlyAppName);
 
-                // Attempt to resolve friendly app name from Firestore registry if clientId exists
+                // Attempt to resolve friendly app name from Realtime Database & Firestore registry
                 if (clientId) {
+                    // 1. Realtime Database check
+                    try {
+                        const rtdbSnap = await dbGet(dbRef(rtdb, `sso_links/${clientId}`));
+                        if (rtdbSnap.exists()) {
+                            const val = rtdbSnap.val();
+                            const rtdbName = (val && (val.appName || val.name)) ? val.appName || val.name : '';
+                            if (rtdbName) {
+                                friendlyAppName = sanitizeFriendlyAppName(rtdbName, clientId);
+                                updateAppLabels(friendlyAppName);
+                            }
+                        }
+                    } catch(rtdbErr) {
+                        console.debug("RTDB lookup notice:", rtdbErr);
+                    }
+
+                    // 2. Firestore check
                     try {
                         const appSnap = await getDoc(doc(db, "sso_links", clientId));
                         if (appSnap.exists() && appSnap.data().appName) {
-                            friendlyAppName = appSnap.data().appName;
+                            friendlyAppName = sanitizeFriendlyAppName(appSnap.data().appName, clientId);
                             updateAppLabels(friendlyAppName);
-                        } else if (friendlyAppName && friendlyAppName !== 'Connected App' && friendlyAppName !== clientId) {
-                            // Register friendly app metadata in sso_links if missing
+                        } else if (friendlyAppName && friendlyAppName !== 'This application') {
                             setDoc(doc(db, "sso_links", clientId), {
                                 clientId: clientId,
                                 appName: friendlyAppName,
@@ -1168,10 +1332,11 @@
 
                     if (clientId && user) {
                         try {
+                            const cleanName = sanitizeFriendlyAppName(friendlyAppName, clientId);
                             await setDoc(doc(db, "users", user.uid, "connected_apps", clientId), {
                                 clientId: clientId,
-                                appName: friendlyAppName || 'PluhMath',
-                                name: friendlyAppName || 'PluhMath',
+                                appName: cleanName,
+                                name: cleanName,
                                 authorizedAt: serverTimestamp(),
                                 scope: scope || "identity,profile"
                             }, { merge: true });
