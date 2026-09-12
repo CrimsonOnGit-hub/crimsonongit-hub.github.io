@@ -1,7 +1,15 @@
-// ─── CrimX Global Theme Engine ───
+// ─── CrimX Theme Engine (CrimX Only) ───
 (function() {
-    const savedTheme = localStorage.getItem('crimx-theme') || 'crimson';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    // Only apply custom themes on CrimX surfaces
+    const path = window.location.pathname.toLowerCase();
+    const isCrimX = path.includes('/crimx') || path.includes('/dashboard') || path.includes('/auth') || path.includes('/link');
+
+    if (isCrimX) {
+        const savedTheme = localStorage.getItem('crimx-theme') || 'crimson';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
     document.documentElement.removeAttribute('data-animated-bg');
     document.documentElement.removeAttribute('data-cool-bg');
     localStorage.removeItem('crimx-animated-bg');
@@ -12,11 +20,15 @@ window.setCrimXTheme = function(themeName) {
     const validThemes = ['crimson', 'emerald', 'void', 'solar', 'glacier', 'frutiger-aero', 'frutiger-metro'];
     if (!validThemes.includes(themeName)) themeName = 'crimson';
     
-    document.documentElement.setAttribute('data-theme', themeName);
     localStorage.setItem('crimx-theme', themeName);
 
-    // Dispatch global event so 3D planet and dynamic elements update live across the entire site
-    window.dispatchEvent(new CustomEvent('crimx-theme-changed', { detail: { theme: themeName } }));
+    const path = window.location.pathname.toLowerCase();
+    const isCrimX = path.includes('/crimx') || path.includes('/dashboard') || path.includes('/auth') || path.includes('/link');
+
+    if (isCrimX) {
+        document.documentElement.setAttribute('data-theme', themeName);
+        window.dispatchEvent(new CustomEvent('crimx-theme-changed', { detail: { theme: themeName } }));
+    }
 
     // Update UI active card if present
     document.querySelectorAll('.theme-card-option').forEach(card => {
@@ -25,7 +37,7 @@ window.setCrimXTheme = function(themeName) {
 
     const formattedName = themeName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     if (window.playSfx) window.playSfx('click');
-    if (window.showToast) window.showToast(`Theme set to ${formattedName}!`, 'info');
+    if (window.showToast) window.showToast(`CrimX theme set to ${formattedName}!`, 'info');
 };
 
 document.addEventListener('DOMContentLoaded', () => {

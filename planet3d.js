@@ -163,8 +163,7 @@
                 }
             };
 
-            const initialTheme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('crimx-theme') || 'crimson';
-            const currentPalette = THEME_PALETTES[initialTheme] || THEME_PALETTES['crimson'];
+            const currentPalette = THEME_PALETTES['crimson'];
 
             // Procedural Theme-Aware Canvas Texture Generator
             function generateLavaTexture(palette) {
@@ -466,17 +465,6 @@
                 backLight.color.setHex(palette.lightBack);
                 ambientLight.color.setHex(palette.lightAmbient);
             }
-
-            if (initialTheme !== 'crimson') {
-                applyPlanetTheme(initialTheme);
-            }
-
-            window.addEventListener('crimx-theme-changed', function(e) {
-                if (e.detail && e.detail.theme) {
-                    applyPlanetTheme(e.detail.theme);
-                }
-            });
-            window.setPlanetTheme = applyPlanetTheme;
 
             animate();
 
