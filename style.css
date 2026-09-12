@@ -81,12 +81,14 @@
 }
 
 [data-theme="frutiger-metro"] {
-    --crimson: #e51400;
-    --crimson-light: #ff0038;
-    --crimson-glow: rgba(229, 20, 0, 0.25);
-    --ember: #0078d7;
-    --bg: #111111;
-    --bg-card: #1f1f1f;
+    --crimson: #0078d7;
+    --crimson-light: #00a4ef;
+    --crimson-glow: rgba(0, 164, 239, 0.35);
+    --ember: #d80073;
+    --bg: #000000;
+    --bg-card: #141414;
+    --font-heading: 'Segoe UI', 'Trebuchet MS', 'Outfit', sans-serif;
+    --font-body: 'Segoe UI', 'Trebuchet MS', 'Inter', sans-serif;
 }
 
 
@@ -5921,11 +5923,184 @@ body.cim-fullscreen-active {
     box-shadow: 0 0 14px rgba(14, 165, 233, 0.4) !important;
 }
 
-/* ─── FRUTIGER METRO THEME CUSTOMIZATION ([data-theme="frutiger-metro"]) ─── */
-[data-theme="frutiger-metro"] body {
-    background: #0f0f0f !important;
+/* ─── ULTRA FRUTIGER METRO THEME EXPERIENCE ([data-theme="frutiger-metro"]) ─── */
+[data-theme="frutiger-metro"] {
+    font-family: 'Segoe UI', 'Trebuchet MS', 'Inter', -apple-system, sans-serif !important;
 }
 
+[data-theme="frutiger-metro"] body {
+    background: #000000 !important;
+    color: #ffffff !important;
+    font-family: 'Segoe UI', 'Trebuchet MS', 'Inter', -apple-system, sans-serif !important;
+}
+
+/* Sharp Tile Geometry Everywhere */
+[data-theme="frutiger-metro"] .pill-nav,
+[data-theme="frutiger-metro"] .pill-link,
+[data-theme="frutiger-metro"] .pill-cta,
+[data-theme="frutiger-metro"] .btn-explore,
+[data-theme="frutiger-metro"] .btn-outline,
+[data-theme="frutiger-metro"] .btn-primary,
+[data-theme="frutiger-metro"] .btn-secondary,
+[data-theme="frutiger-metro"] .btn-status-selector,
+[data-theme="frutiger-metro"] .btn-aero-primary,
+[data-theme="frutiger-metro"] .crimx-back-btn,
+[data-theme="frutiger-metro"] .dash-card,
+[data-theme="frutiger-metro"] .dash-card-profile,
+[data-theme="frutiger-metro"] .dash-block-friends,
+[data-theme="frutiger-metro"] .dash-block-doorauth,
+[data-theme="frutiger-metro"] .dash-block-cim,
+[data-theme="frutiger-metro"] .friend-card,
+[data-theme="frutiger-metro"] .doorauth-app-card,
+[data-theme="frutiger-metro"] .cim-contact-btn,
+[data-theme="frutiger-metro"] .cim-chat-area,
+[data-theme="frutiger-metro"] .floating-badge,
+[data-theme="frutiger-metro"] .hero-tag,
+[data-theme="frutiger-metro"] .social-icon,
+[data-theme="frutiger-metro"] .status-picker-dropdown,
+[data-theme="frutiger-metro"] .status-picker-option,
+[data-theme="frutiger-metro"] .settings-studio-inner,
+[data-theme="frutiger-metro"] .project-mini-card,
+[data-theme="frutiger-metro"] .featured-card,
+[data-theme="frutiger-metro"] .feature-box,
+[data-theme="frutiger-metro"] .hero-current-game-box,
+[data-theme="frutiger-metro"] .dash-hero-stat-card,
+[data-theme="frutiger-metro"] .dash-profile-avatar-wrap img,
+[data-theme="frutiger-metro"] .cim-contact-avatar-wrap img,
+[data-theme="frutiger-metro"] .friend-avatar-wrap img,
+[data-theme="frutiger-metro"] .settings-input,
+[data-theme="frutiger-metro"] .friends-search-input,
+[data-theme="frutiger-metro"] .doorauth-connect-input,
+[data-theme="frutiger-metro"] .cim-input-field {
+    border-radius: 0px !important;
+}
+
+/* Metro App Bar (Navigation) */
+[data-theme="frutiger-metro"] .pill-nav {
+    background: #000000 !important;
+    border: none !important;
+    border-bottom: 3px solid #0078d7 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 4px 20px rgba(0, 120, 215, 0.25) !important;
+}
+
+[data-theme="frutiger-metro"] .pill-link {
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    color: #cccccc !important;
+}
+
+[data-theme="frutiger-metro"] .pill-link:hover,
+[data-theme="frutiger-metro"] .pill-link.active {
+    color: #00a4ef !important;
+    background: transparent !important;
+}
+
+[data-theme="frutiger-metro"] .pill-cta {
+    background: #d80073 !important;
+    color: #ffffff !important;
+    border: none !important;
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    box-shadow: none !important;
+}
+
+[data-theme="frutiger-metro"] .pill-cta:hover {
+    background: #ff007f !important;
+    transform: scale(0.98) !important;
+}
+
+/* Metro Main Site Buttons */
+[data-theme="frutiger-metro"] .btn-explore {
+    background: #0078d7 !important;
+    border: 2px solid #0078d7 !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.1em !important;
+    box-shadow: none !important;
+}
+
+[data-theme="frutiger-metro"] .btn-explore:hover {
+    background: #0086f0 !important;
+    border-color: #0086f0 !important;
+    transform: scale(0.98) !important;
+    box-shadow: 0 4px 15px rgba(0, 164, 239, 0.4) !important;
+}
+
+[data-theme="frutiger-metro"] .btn-outline {
+    background: transparent !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.1em !important;
+    backdrop-filter: none !important;
+}
+
+[data-theme="frutiger-metro"] .btn-outline:hover {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+    transform: scale(0.98) !important;
+}
+
+/* Metro Hero Tag & Typography */
+[data-theme="frutiger-metro"] .hero-tag {
+    background: #0078d7 !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    box-shadow: none !important;
+}
+
+[data-theme="frutiger-metro"] .hero-title {
+    font-weight: 300 !important;
+    letter-spacing: -0.02em !important;
+}
+
+[data-theme="frutiger-metro"] .hero-title .gradient-word {
+    font-weight: 900 !important;
+    color: #00a4ef !important;
+    background: none !important;
+    -webkit-text-fill-color: #00a4ef !important;
+}
+
+/* Metro Floating Live-Tile Badges */
+[data-theme="frutiger-metro"] .floating-badge {
+    background: #121212 !important;
+    border: 1px solid #242424 !important;
+    border-left: 5px solid #00a4ef !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6) !important;
+}
+
+[data-theme="frutiger-metro"] .floating-badge.badge-2 {
+    border-left-color: #d80073 !important;
+}
+
+[data-theme="frutiger-metro"] .floating-badge.badge-3 {
+    border-left-color: #008a00 !important;
+}
+
+/* Metro Social Icons */
+[data-theme="frutiger-metro"] .social-icon {
+    border-radius: 0px !important;
+    background: #181818 !important;
+    border: 1px solid #333333 !important;
+}
+
+[data-theme="frutiger-metro"] .social-icon:hover {
+    background: #0078d7 !important;
+    border-color: #0078d7 !important;
+    color: #fff !important;
+}
+
+/* Metro Live Tiles (Cards & Dashboard) */
 [data-theme="frutiger-metro"] .dash-block-friends,
 [data-theme="frutiger-metro"] .dash-block-doorauth,
 [data-theme="frutiger-metro"] .dash-block-cim,
@@ -5936,37 +6111,40 @@ body.cim-fullscreen-active {
 [data-theme="frutiger-metro"] .friend-card,
 [data-theme="frutiger-metro"] .doorauth-app-card,
 [data-theme="frutiger-metro"] .cim-contact-btn,
-[data-theme="frutiger-metro"] .cim-chat-area {
-    border-radius: 0px !important;
+[data-theme="frutiger-metro"] .cim-chat-area,
+[data-theme="frutiger-metro"] .feature-box,
+[data-theme="frutiger-metro"] .project-mini-card {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     box-shadow: none !important;
-    background: #1c1c1c !important;
-    border: 2px solid #333333 !important;
-}
-
-[data-theme="frutiger-metro"] .dash-header-bar {
-    border-top: 4px solid #e51400 !important;
+    background: #141414 !important;
+    border: 2px solid #242424 !important;
+    transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.12s ease !important;
 }
 
 [data-theme="frutiger-metro"] .dash-card-profile {
-    border-top: 4px solid #0078d7 !important;
+    border-top: 5px solid #0078d7 !important;
+}
+
+[data-theme="frutiger-metro"] .dash-block-friends {
+    border-top: 5px solid #d80073 !important;
 }
 
 [data-theme="frutiger-metro"] .dash-block-doorauth {
-    border-top: 4px solid #e51400 !important;
+    border-top: 5px solid #00a4ef !important;
 }
 
-[data-theme="frutiger-metro"] .dash-card-social-hub {
-    border-top: 4px solid #00a4ef !important;
+[data-theme="frutiger-metro"] .dash-block-cim {
+    border-top: 5px solid #008a00 !important;
 }
 
-[data-theme="frutiger-metro"] .dash-block-friends::before,
-[data-theme="frutiger-metro"] .dash-block-doorauth::before,
-[data-theme="frutiger-metro"] .dash-block-cim::before,
-[data-theme="frutiger-metro"] .dash-card-profile::before,
-[data-theme="frutiger-metro"] .settings-studio-inner::before {
-    display: none !important;
+/* Metro Live-Tile Press Feedback */
+[data-theme="frutiger-metro"] .friend-card:hover,
+[data-theme="frutiger-metro"] .doorauth-app-card:hover,
+[data-theme="frutiger-metro"] .project-mini-card:hover,
+[data-theme="frutiger-metro"] .cim-contact-btn:hover {
+    border-color: #00a4ef !important;
+    transform: scale(0.98) !important;
 }
 
 [data-theme="frutiger-metro"] .btn-primary,
@@ -5975,17 +6153,16 @@ body.cim-fullscreen-active {
     box-shadow: none !important;
     text-shadow: none !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.8px !important;
-    background: #e51400 !important;
-    border: 2px solid #e51400 !important;
+    letter-spacing: 0.08em !important;
+    background: #0078d7 !important;
+    border: 2px solid #0078d7 !important;
 }
 
 [data-theme="frutiger-metro"] .btn-primary:hover,
 [data-theme="frutiger-metro"] .btn-aero-primary:hover {
-    background: #ff2a1a !important;
-    border-color: #ff2a1a !important;
-    transform: none !important;
-    filter: none !important;
+    background: #0086f0 !important;
+    border-color: #0086f0 !important;
+    transform: scale(0.98) !important;
 }
 
 [data-theme="frutiger-metro"] .btn-secondary,
@@ -5993,17 +6170,18 @@ body.cim-fullscreen-active {
     border-radius: 0px !important;
     box-shadow: none !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.8px !important;
-    background: #2b2b2b !important;
-    border: 2px solid #444444 !important;
-    backdrop-filter: none !important;
+    letter-spacing: 0.08em !important;
+    background: #1f1f1f !important;
+    border: 2px solid #383838 !important;
+    color: #ffffff !important;
 }
 
 [data-theme="frutiger-metro"] .btn-secondary:hover,
 [data-theme="frutiger-metro"] .crimx-back-btn:hover {
     background: #0078d7 !important;
     border-color: #0078d7 !important;
-    transform: none !important;
+    color: #ffffff !important;
+    transform: scale(0.98) !important;
 }
 
 [data-theme="frutiger-metro"] .settings-input,
@@ -6021,7 +6199,7 @@ body.cim-fullscreen-active {
 [data-theme="frutiger-metro"] .friends-search-input:focus,
 [data-theme="frutiger-metro"] .doorauth-connect-input:focus,
 [data-theme="frutiger-metro"] .cim-input-field:focus {
-    border-color: #0078d7 !important;
+    border-color: #00a4ef !important;
     box-shadow: none !important;
 }
 
@@ -6034,6 +6212,190 @@ body.cim-fullscreen-active {
 }
 
 
+/* ── Dynamic Rich Presence & Status Modes ── */
+.cim-profile-dot.online,
+.friend-online-dot.online,
+.cim-contact-dot.online {
+    background: #22c55e !important;
+    box-shadow: 0 0 8px #22c55e !important;
+    border-color: #140a0f !important;
+}
 
+.cim-profile-dot.idle,
+.friend-online-dot.idle,
+.cim-contact-dot.idle {
+    background: #eab308 !important;
+    box-shadow: 0 0 8px #eab308 !important;
+    border-color: #140a0f !important;
+}
 
+.cim-profile-dot.afk,
+.friend-online-dot.afk,
+.cim-contact-dot.afk {
+    background: #f97316 !important;
+    box-shadow: 0 0 8px #f97316 !important;
+    border-color: #140a0f !important;
+}
+
+.cim-profile-dot.dnd,
+.friend-online-dot.dnd,
+.cim-contact-dot.dnd {
+    background: #ef4444 !important;
+    box-shadow: 0 0 8px #ef4444 !important;
+    border-color: #140a0f !important;
+}
+
+.cim-profile-dot.offline,
+.friend-online-dot.offline,
+.cim-contact-dot.offline {
+    background: #6b7280 !important;
+    box-shadow: none !important;
+    border-color: #140a0f !important;
+}
+
+/* Status Quick Selector Pill Button */
+.btn-status-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+}
+
+.btn-status-selector:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.status-badge-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.status-badge-dot.online { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.status-badge-dot.idle { background: #eab308; box-shadow: 0 0 6px #eab308; }
+.status-badge-dot.afk { background: #f97316; box-shadow: 0 0 6px #f97316; }
+.status-badge-dot.dnd { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.status-badge-dot.offline { background: #6b7280; }
+
+/* Status Picker Dropdown Menu */
+.status-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 1000;
+    width: 280px;
+    background: rgba(20, 10, 16, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    padding: 8px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 25px rgba(220, 38, 38, 0.25);
+    backdrop-filter: blur(24px);
+    animation: statusMenuFadeIn 0.18s ease-out;
+}
+
+@keyframes statusMenuFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.status-picker-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.status-picker-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(2px);
+}
+
+.status-picker-option.active {
+    background: rgba(220, 38, 38, 0.18);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+}
+
+.status-picker-icon-badge {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.status-picker-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+
+.status-picker-title {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+.status-picker-desc {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.25;
+}
+
+/* Friend In-Game Presence Styling */
+.friend-game-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(220, 38, 38, 0.22));
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #e9d5ff;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    margin-top: 4px;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+}
+
+.friend-game-badge .game-icon {
+    font-size: 0.85rem;
+    animation: gamePulse 2s infinite ease-in-out;
+}
+
+@keyframes gamePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+.hero-current-game-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(220, 38, 38, 0.2));
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+}
 

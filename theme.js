@@ -15,6 +15,9 @@ window.setCrimXTheme = function(themeName) {
     document.documentElement.setAttribute('data-theme', themeName);
     localStorage.setItem('crimx-theme', themeName);
 
+    // Dispatch global event so 3D planet and dynamic elements update live across the entire site
+    window.dispatchEvent(new CustomEvent('crimx-theme-changed', { detail: { theme: themeName } }));
+
     // Update UI active card if present
     document.querySelectorAll('.theme-card-option').forEach(card => {
         card.classList.toggle('active', card.getAttribute('data-theme-val') === themeName);

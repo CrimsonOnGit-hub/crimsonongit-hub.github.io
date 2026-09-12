@@ -31,6 +31,172 @@ const IMGBB_API_KEY = "d5fd4e3e9fedc18b9bed075f980f12b7";
 let currentBannerStyle = "linear-gradient(135deg, #2b0d18 0%, #dc2626 50%, #15090f 100%)";
 let currentBannerIsImage = false;
 
+// ── Dynamic Rich Presence & Status Modes ──
+let currentUserStatusMode = 'online';
+let userChosenStatusMode = 'online';
+let isAutoAfk = false;
+let afkTimeout = null;
+const AFK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes inactivity threshold
+let currentUserCurrentGame = null;
+
+window.updatePresenceUI = function(mode, customStatus, currentGame) {
+    if (mode) currentUserStatusMode = mode;
+    if (currentGame !== undefined) currentUserCurrentGame = currentGame;
+
+    const dot = document.getElementById('current-status-picker-dot');
+    const label = document.getElementById('current-status-picker-label');
+    const heroDot = document.getElementById('cim-profile-status-dot');
+    const heroStatus = document.getElementById('cim-profile-status');
+    const gameContainer = document.getElementById('hero-current-game-container');
+
+    const modeLabels = {
+        online: 'Online',
+        idle: 'Idle',
+        afk: 'AFK',
+        dnd: 'Do Not Disturb'
+    };
+
+    if (dot) dot.className = `status-badge-dot ${currentUserStatusMode}`;
+    if (label) label.innerText = modeLabels[currentUserStatusMode] || 'Online';
+    if (heroDot) heroDot.className = `cim-profile-dot ${currentUserStatusMode}`;
+
+    if (heroStatus) {
+        if (currentUserCurrentGame && currentUserCurrentGame.title) {
+            heroStatus.innerText = `🎮 Playing ${currentUserCurrentGame.title}`;
+        } else if (currentUserStatusMode === 'idle') {
+            heroStatus.innerText = `🌙 Idle${customStatus ? ' · ' + customStatus : ''}`;
+        } else if (currentUserStatusMode === 'afk') {
+            heroStatus.innerText = `⌨️ AFK${customStatus ? ' · ' + customStatus : ''}`;
+        } else if (currentUserStatusMode === 'dnd') {
+            heroStatus.innerText = `⛔ Do Not Disturb${customStatus ? ' · ' + customStatus : ''}`;
+        } else {
+            heroStatus.innerText = customStatus || "Browsing the Website";
+        }
+    }
+
+    document.querySelectorAll('.status-picker-option').forEach(opt => opt.classList.remove('active'));
+    const activeOpt = document.getElementById(`opt-status-${currentUserStatusMode}`);
+    if (activeOpt) activeOpt.classList.add('active');
+
+    if (gameContainer) {
+        if (currentUserCurrentGame && currentUserCurrentGame.title) {
+            gameContainer.style.display = 'block';
+            gameContainer.innerHTML = `
+                <div class="hero-current-game-box">
+                    <span style="font-size: 1.5rem; animation: gamePulse 2s infinite ease-in-out;">🎮</span>
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #c084fc; letter-spacing: 0.05em;">Currently Playing</div>
+                        <div style="font-weight: 800; color: #fff; font-size: 0.95rem;">${escapeHtml(currentUserCurrentGame.title)}</div>
+                        ${currentUserCurrentGame.details ? `<div style="font-size: 0.78rem; color: #e9d5ff;">${escapeHtml(currentUserCurrentGame.details)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        } else {
+            gameContainer.style.display = 'none';
+            gameContainer.innerHTML = '';
+        }
+    }
+};
+
+window.toggleStatusPicker = function(e) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    const menu = document.getElementById('status-picker-dropdown');
+    if (!menu) return;
+    const isVisible = menu.style.display !== 'none';
+    menu.style.display = isVisible ? 'none' : 'block';
+    playSfx('click');
+};
+
+window.selectStatusMode = async function(mode) {
+    if (!currentUser) return;
+    currentUserStatusMode = mode;
+    userChosenStatusMode = mode;
+    isAutoAfk = false;
+
+    const menu = document.getElementById('status-picker-dropdown');
+    if (menu) menu.style.display = 'none';
+
+    playSfx('success');
+    window.updatePresenceUI(mode, document.getElementById('status-text-input')?.value.trim() || "");
+
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), {
+            statusMode: mode,
+            online: true,
+            lastActive: serverTimestamp()
+        });
+        window.showToast(`Presence status updated to ${mode.toUpperCase()}`, "success");
+    } catch(err) {
+        console.warn("[CrimX] Could not sync statusMode:", err);
+    }
+};
+
+window.addEventListener('click', (e) => {
+    const menu = document.getElementById('status-picker-dropdown');
+    const btn = document.getElementById('status-picker-toggle-btn');
+    const avatar = document.getElementById('status-picker-avatar-trigger');
+    if (menu && menu.style.display !== 'none') {
+        if (!menu.contains(e.target) && !btn?.contains(e.target) && !avatar?.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    }
+});
+
+function resetAfkTimer() {
+    if (isAutoAfk) {
+        isAutoAfk = false;
+        if (currentUser && userChosenStatusMode === 'online') {
+            currentUserStatusMode = 'online';
+            window.updatePresenceUI('online', document.getElementById('status-text-input')?.value.trim() || "");
+            updateDoc(doc(db, "users", currentUser.uid), {
+                statusMode: 'online',
+                lastActive: serverTimestamp()
+            }).catch(() => {});
+        }
+    }
+    clearTimeout(afkTimeout);
+    afkTimeout = setTimeout(() => {
+        if (currentUser && userChosenStatusMode === 'online') {
+            isAutoAfk = true;
+            currentUserStatusMode = 'afk';
+            window.updatePresenceUI('afk', document.getElementById('status-text-input')?.value.trim() || "");
+            updateDoc(doc(db, "users", currentUser.uid), {
+                statusMode: 'afk',
+                lastActive: serverTimestamp()
+            }).catch(() => {});
+        }
+    }, AFK_TIMEOUT_MS);
+}
+
+['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+    window.addEventListener(evt, resetAfkTimer, { passive: true });
+});
+resetAfkTimer();
+
+setInterval(() => {
+    if (currentUser && document.visibilityState === 'visible') {
+        updateDoc(doc(db, "users", currentUser.uid), {
+            lastActive: serverTimestamp(),
+            online: true
+        }).catch(() => {});
+    }
+}, 45000);
+
+window.addEventListener('beforeunload', () => {
+    if (currentUser) {
+        try {
+            updateDoc(doc(db, "users", currentUser.uid), {
+                online: false,
+                lastActive: serverTimestamp()
+            });
+        } catch(e) {}
+    }
+});
+
+
 // ── Audio Feedback Synthesizer (Web Audio API) ──
 function playSfx(type) {
     const prefSfx = document.getElementById('pref-sfx');
@@ -1030,22 +1196,60 @@ function renderFriendsDOM(friends) {
     container.innerHTML = friends.map(friend => {
         const fUid = friend.uid || friend.id;
         const live = friendLivePresence.get(fUid) || {};
-        const isOnline = live.online !== undefined ? live.online : (friend.online !== false);
-        const statusText = isOnline ? (live.statusText || friend.statusText || 'Browsing the Website') : 'Offline';
+
+        const lastActiveTime = live.lastActive?.toMillis ? live.lastActive.toMillis() : (live.lastActive?.seconds ? live.lastActive.seconds * 1000 : 0);
+        const isStale = lastActiveTime > 0 && (Date.now() - lastActiveTime > 2.5 * 60 * 1000);
+        const isOnline = !isStale && (live.online !== undefined ? live.online : (friend.online !== false));
+
+        const mode = isOnline ? (live.statusMode || 'online') : 'offline';
+        const currentGame = isOnline ? (live.currentGame || null) : null;
         const pfp = live.photoURL || friend.photoURL || DEFAULT_PFP;
         const dispName = live.displayName || friend.displayName || 'CrimX Player';
         const handle = live.username || friend.username || 'user';
+
+        let dotClass = isOnline ? mode : 'offline';
+        let statusDisplay = 'Offline';
+        let statusColor = '#9ca3af';
+        let gameBadgeHtml = '';
+
+        if (isOnline) {
+            if (currentGame && currentGame.title) {
+                const detailsText = currentGame.details ? ` · ${escapeHtml(currentGame.details)}` : '';
+                gameBadgeHtml = `
+                    <div class="friend-game-badge">
+                        <span class="game-icon">🎮</span>
+                        <span>Playing ${escapeHtml(currentGame.title)}${detailsText}</span>
+                    </div>
+                `;
+            }
+
+            const customStatus = live.statusText || friend.statusText || '';
+            if (mode === 'idle') {
+                statusDisplay = `🌙 Idle${customStatus ? ' · ' + escapeHtml(customStatus) : ''}`;
+                statusColor = '#facc15';
+            } else if (mode === 'afk') {
+                statusDisplay = `⌨️ AFK${customStatus ? ' · ' + escapeHtml(customStatus) : ''}`;
+                statusColor = '#fb923c';
+            } else if (mode === 'dnd') {
+                statusDisplay = `⛔ Do Not Disturb${customStatus ? ' · ' + escapeHtml(customStatus) : ''}`;
+                statusColor = '#f87171';
+            } else {
+                statusDisplay = currentGame ? `Online` : (customStatus ? escapeHtml(customStatus) : 'Browsing CrimsonFlame');
+                statusColor = '#4ade80';
+            }
+        }
 
         return `
             <div class="friend-card">
                 <div class="friend-avatar-wrap">
                     <img src="${pfp}" alt="${escapeHtml(dispName)}">
-                    <div class="friend-online-dot ${isOnline ? '' : 'offline'}" title="${isOnline ? 'Online' : 'Offline'}"></div>
+                    <div class="friend-online-dot ${dotClass}" title="${isOnline ? mode.toUpperCase() : 'Offline'}"></div>
                 </div>
                 <div class="friend-info">
                     <div class="friend-name">${escapeHtml(dispName)}</div>
                     <div class="friend-handle">@${escapeHtml(handle)}</div>
-                    <div class="friend-status" style="color: ${isOnline ? '#f87171' : '#9ca3af'};">${escapeHtml(statusText)}</div>
+                    <div class="friend-status" style="color: ${statusColor};">${statusDisplay}</div>
+                    ${gameBadgeHtml}
                 </div>
                 <button type="button" class="btn-secondary" onclick="removeFriend('${friend.id}', '${escapeHtml(dispName)}')" style="width: auto; padding: 6px 12px; font-size: 0.74rem; color: #f87171; border-color: rgba(239, 68, 68, 0.25);" title="Remove Friend">
                     Remove
@@ -1164,7 +1368,10 @@ function renderCIMFriends(friends) {
     list.innerHTML = friends.map(friend => {
         const fUid = friend.uid || friend.id;
         const live = friendLivePresence.get(fUid) || {};
-        const isOnline = live.online !== undefined ? live.online : (friend.online !== false);
+        const lastActiveTime = live.lastActive?.toMillis ? live.lastActive.toMillis() : (live.lastActive?.seconds ? live.lastActive.seconds * 1000 : 0);
+        const isStale = lastActiveTime > 0 && (Date.now() - lastActiveTime > 2.5 * 60 * 1000);
+        const isOnline = !isStale && (live.online !== undefined ? live.online : (friend.online !== false));
+        const mode = isOnline ? (live.statusMode || 'online') : 'offline';
         const pfp = live.photoURL || friend.photoURL || DEFAULT_PFP;
         const dispName = live.displayName || friend.displayName || 'CrimX Player';
         const handle = live.username || friend.username || 'user';
@@ -1174,7 +1381,7 @@ function renderCIMFriends(friends) {
             <button type="button" class="cim-contact-btn ${isActive ? 'active' : ''}" onclick="openCIMChat('${fUid}', '${escapeHtml(dispName)}', '${escapeHtml(pfp)}', '${escapeHtml(handle)}')">
                 <div class="cim-contact-avatar-wrap">
                     <img src="${pfp}" alt="${escapeHtml(dispName)}">
-                    <span class="cim-contact-dot ${isOnline ? '' : 'offline'}"></span>
+                    <span class="cim-contact-dot ${isOnline ? mode : 'offline'}"></span>
                 </div>
                 <div class="cim-contact-meta">
                     <div class="cim-contact-name">${escapeHtml(dispName)}</div>
@@ -1280,14 +1487,32 @@ window.openCIMChat = function(friendUid, friendName, friendPfp, friendHandle) {
     const dotEl = document.getElementById('cim-active-dot');
 
     const live = friendLivePresence.get(friendUid) || {};
-    const isOnline = live.online !== undefined ? live.online : true;
+    const lastActiveTime = live.lastActive?.toMillis ? live.lastActive.toMillis() : (live.lastActive?.seconds ? live.lastActive.seconds * 1000 : 0);
+    const isStale = lastActiveTime > 0 && (Date.now() - lastActiveTime > 2.5 * 60 * 1000);
+    const isOnline = !isStale && (live.online !== undefined ? live.online : true);
+    const mode = isOnline ? (live.statusMode || 'online') : 'offline';
+    const currentGame = isOnline ? (live.currentGame || null) : null;
 
     if (avatar) avatar.src = live.photoURL || friendPfp || DEFAULT_PFP;
     if (nameEl) nameEl.innerText = live.displayName || friendName || 'Friend';
-    if (statusEl) statusEl.innerText = isOnline ? (live.statusText || 'Browsing the Website') : 'Offline';
+    
+    let activeChatStatus = 'Offline';
+    if (isOnline) {
+        if (currentGame && currentGame.title) {
+            activeChatStatus = `🎮 Playing ${currentGame.title}`;
+        } else if (mode === 'idle') {
+            activeChatStatus = `🌙 Idle`;
+        } else if (mode === 'afk') {
+            activeChatStatus = `⌨️ AFK`;
+        } else if (mode === 'dnd') {
+            activeChatStatus = `⛔ Do Not Disturb`;
+        } else {
+            activeChatStatus = live.statusText || 'Browsing CrimsonFlame';
+        }
+    }
+    if (statusEl) statusEl.innerText = activeChatStatus;
     if (dotEl) {
-        if (isOnline) dotEl.classList.remove('offline');
-        else dotEl.classList.add('offline');
+        dotEl.className = `cim-contact-dot ${isOnline ? mode : 'offline'}`;
     }
 
     if (input) {
@@ -1473,6 +1698,10 @@ function updateCIMProfileCard(userData) {
     if (pfpEl) pfpEl.src = pfp;
     if (bannerEl) applyBannerStyle(bannerEl, banner);
 
+    if (userData) {
+        window.updatePresenceUI(userData.statusMode || 'online', status, userData.currentGame);
+    }
+
     if (window.renderCIMProfileSocials) {
         window.renderCIMProfileSocials(userData);
     }
@@ -1498,7 +1727,9 @@ function handleIncomingCIMMessage(msg) {
 
     if (!saved) return; // already processed / rendered
 
-    playCIMChime();
+    if (currentUserStatusMode !== 'dnd') {
+        playCIMChime();
+    }
 
     // If currently chatting with this friend, update chat UI in real time dynamically!
     if (activeCIMRecipient && activeCIMRecipient.uid === msg.senderUid) {
@@ -1506,8 +1737,8 @@ function handleIncomingCIMMessage(msg) {
         renderCIMMessagesUI(updated);
     }
 
-    // If chat not active or window backgrounded, show top-right notification toast
-    if (!activeCIMRecipient || activeCIMRecipient.uid !== msg.senderUid || document.hidden) {
+    // If chat not active or window backgrounded, show top-right notification toast (suppressed on DND)
+    if (currentUserStatusMode !== 'dnd' && (!activeCIMRecipient || activeCIMRecipient.uid !== msg.senderUid || document.hidden)) {
         showCIMNotification(msg.senderUid, msg.senderName, msg.senderPfp, msg.text);
     }
 }
@@ -1909,6 +2140,7 @@ onAuthStateChanged(auth, user => {
         // Set real-time online presence on website
         updateDoc(doc(db, "users", user.uid), {
             online: true,
+            statusMode: currentUserStatusMode || 'online',
             statusText: "Browsing the Website",
             lastActive: serverTimestamp()
         }).catch(() => {});

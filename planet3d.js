@@ -47,23 +47,143 @@
 
             container.appendChild(renderer.domElement);
 
-            // 2. Procedural Lava / Magma Canvas Texture Generator (Smooth Magma & Obsidian with Seamless Equirectangular Mapping)
-            function generateLavaTexture() {
+            // 2. Theme Palettes for 3D Planet Globe
+            const THEME_PALETTES = {
+                'crimson': {
+                    emissive: 0x7a0d0d,
+                    atmos: 0xff3b3b,
+                    aura: 0xff7722,
+                    ring1: 0xff4d4d,
+                    ring2: 0xff9933,
+                    particles: 0xff6b35,
+                    lightPoint: 0xff4500,
+                    lightBack: 0xdc2626,
+                    lightAmbient: 0x2a080c,
+                    baseColor: '#0a0305',
+                    spot1: 'rgba(255, 140, 0, 0.9)',
+                    spot2: 'rgba(220, 38, 38, 0.5)',
+                    veinR: 205, veinG: 0, veinB: 0,
+                    multR: 50, multG: 160, multB: 35
+                },
+                'emerald': {
+                    emissive: 0x064e3b,
+                    atmos: 0x10b981,
+                    aura: 0x34d399,
+                    ring1: 0x34d399,
+                    ring2: 0x6ee7b7,
+                    particles: 0x10b981,
+                    lightPoint: 0x10b981,
+                    lightBack: 0x059669,
+                    lightAmbient: 0x042416,
+                    baseColor: '#020f08',
+                    spot1: 'rgba(52, 211, 153, 0.9)',
+                    spot2: 'rgba(16, 185, 129, 0.5)',
+                    veinR: 16, veinG: 185, veinB: 129,
+                    multR: 36, multG: 70, multB: 40
+                },
+                'void': {
+                    emissive: 0x4c1d95,
+                    atmos: 0x8b5cf6,
+                    aura: 0xa855f7,
+                    ring1: 0xa78bfa,
+                    ring2: 0xd8b4fe,
+                    particles: 0xa855f7,
+                    lightPoint: 0xa855f7,
+                    lightBack: 0x7c3aed,
+                    lightAmbient: 0x1a0933,
+                    baseColor: '#090414',
+                    spot1: 'rgba(192, 132, 252, 0.9)',
+                    spot2: 'rgba(139, 92, 246, 0.5)',
+                    veinR: 139, veinG: 92, veinB: 246,
+                    multR: 70, multG: 40, multB: 10
+                },
+                'solar': {
+                    emissive: 0x78350f,
+                    atmos: 0xf59e0b,
+                    aura: 0xfbbf24,
+                    ring1: 0xfbbf24,
+                    ring2: 0xfde68a,
+                    particles: 0xf59e0b,
+                    lightPoint: 0xfbbf24,
+                    lightBack: 0xd97706,
+                    lightAmbient: 0x2b1704,
+                    baseColor: '#120b02',
+                    spot1: 'rgba(251, 191, 36, 0.9)',
+                    spot2: 'rgba(245, 158, 11, 0.5)',
+                    veinR: 245, veinG: 158, veinB: 11,
+                    multR: 10, multG: 80, multB: 25
+                },
+                'glacier': {
+                    emissive: 0x0c4a6e,
+                    atmos: 0x06b6d4,
+                    aura: 0x38bdf8,
+                    ring1: 0x38bdf8,
+                    ring2: 0x7dd3fc,
+                    particles: 0x38bdf8,
+                    lightPoint: 0x38bdf8,
+                    lightBack: 0x0284c7,
+                    lightAmbient: 0x041c2c,
+                    baseColor: '#020b12',
+                    spot1: 'rgba(56, 189, 248, 0.9)',
+                    spot2: 'rgba(6, 182, 212, 0.5)',
+                    veinR: 6, veinG: 182, veinB: 212,
+                    multR: 50, multG: 60, multB: 43
+                },
+                'frutiger-aero': {
+                    emissive: 0x0369a1,
+                    atmos: 0x38bdf8,
+                    aura: 0x34d399,
+                    ring1: 0x38bdf8,
+                    ring2: 0x34d399,
+                    particles: 0x38bdf8,
+                    lightPoint: 0x38bdf8,
+                    lightBack: 0x10b981,
+                    lightAmbient: 0x032030,
+                    baseColor: '#03141f',
+                    spot1: 'rgba(56, 189, 248, 0.95)',
+                    spot2: 'rgba(16, 185, 129, 0.5)',
+                    veinR: 2, veinG: 132, veinB: 199,
+                    multR: 54, multG: 80, multB: 49
+                },
+                'frutiger-metro': {
+                    emissive: 0x004578,
+                    atmos: 0x00a4ef,
+                    aura: 0xd80073,
+                    ring1: 0x0078d7,
+                    ring2: 0xd80073,
+                    particles: 0x00a4ef,
+                    lightPoint: 0x00a4ef,
+                    lightBack: 0xd80073,
+                    lightAmbient: 0x021528,
+                    baseColor: '#040810',
+                    spot1: 'rgba(0, 164, 239, 0.95)',
+                    spot2: 'rgba(216, 0, 115, 0.6)',
+                    veinR: 0, veinG: 120, veinB: 215,
+                    multR: 0, multG: 44, multB: 40
+                }
+            };
+
+            const initialTheme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('crimx-theme') || 'crimson';
+            const currentPalette = THEME_PALETTES[initialTheme] || THEME_PALETTES['crimson'];
+
+            // Procedural Theme-Aware Canvas Texture Generator
+            function generateLavaTexture(palette) {
+                const pal = palette || currentPalette;
                 const canvas = document.createElement('canvas');
                 canvas.width = 1024;
                 canvas.height = 512;
                 const ctx = canvas.getContext('2d');
 
-                // Dark Basalt Crust Base
-                ctx.fillStyle = '#0a0305';
+                // Basalt / Matrix Crust Base
+                ctx.fillStyle = pal.baseColor || '#0a0305';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Generate Molten Lava Veins & Hotspots
+                // Generate Fluid Veins & Hotspots
                 const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imgData.data;
 
                 const twoPi = Math.PI * 2;
-                const xCycles = 3; // 3 harmonic cycles across equator for 100% seamless wrapping
+                const xCycles = 3;
 
                 for (let y = 0; y < canvas.height; y++) {
                     const ny = (y / canvas.height) * Math.PI;
@@ -75,23 +195,20 @@
                         const idx = (y * canvas.width + x) * 4;
                         const nx = (x / canvas.width) * twoPi * xCycles;
 
-                        // Classic smooth organic wave calculation
                         const v1 = Math.sin(nx + cosNy15) * cosNy20;
                         const v2 = Math.sin(nx * 2.5 - sinNy30);
-                        const n = (v1 + v2 + 2) / 4; // 0 to 1
+                        const n = (v1 + v2 + 2) / 4;
 
                         if (n > 0.45) {
-                            // Molten Crimson & Incandescent Lava Channels
                             const intensity = (n - 0.45) / 0.55;
-                            data[idx]     = Math.min(255, 205 + intensity * 50); // R
-                            data[idx + 1] = Math.min(255, intensity * 160);      // G
-                            data[idx + 2] = Math.min(255, intensity * 35);       // B
+                            data[idx]     = Math.min(255, pal.veinR + intensity * pal.multR);
+                            data[idx + 1] = Math.min(255, pal.veinG + intensity * pal.multG);
+                            data[idx + 2] = Math.min(255, pal.veinB + intensity * pal.multB);
                         } else {
-                            // Smooth Dark Obsidian / Basalt Crust
                             const crust = Math.floor(n * 40);
-                            data[idx]     = crust + 15;
-                            data[idx + 1] = crust + 5;
-                            data[idx + 2] = crust + 8;
+                            data[idx]     = crust + 12;
+                            data[idx + 1] = crust + 8;
+                            data[idx + 2] = crust + 14;
                         }
                         data[idx + 3] = 255;
                     }
@@ -106,8 +223,8 @@
 
                     function drawSpot(px, py) {
                         const grad = ctx.createRadialGradient(px, py, 0, px, py, rad);
-                        grad.addColorStop(0, 'rgba(255, 140, 0, 0.9)');
-                        grad.addColorStop(0.5, 'rgba(220, 38, 38, 0.5)');
+                        grad.addColorStop(0, pal.spot1);
+                        grad.addColorStop(0.5, pal.spot2);
                         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                         ctx.fillStyle = grad;
                         ctx.beginPath();
@@ -126,16 +243,16 @@
                 return texture;
             }
 
-            const lavaTexture = generateLavaTexture();
+            const lavaTexture = generateLavaTexture(currentPalette);
 
             // 3. Planet Mesh (Smooth Sphere with molten glow and obsidian plates)
-            const planetRadius = 96; // Enlarged from 80 for more commanding hero presence
+            const planetRadius = 96;
             const planetGeo = new THREE.SphereGeometry(planetRadius, 64, 64);
             const planetMat = new THREE.MeshStandardMaterial({
                 map: lavaTexture,
                 roughness: 0.58,
                 metalness: 0.18,
-                emissive: new THREE.Color(0x7a0d0d),
+                emissive: new THREE.Color(currentPalette.emissive),
                 emissiveIntensity: 0.65,
                 emissiveMap: lavaTexture
             });
@@ -330,6 +447,36 @@
 
                 renderer.render(scene, camera);
             }
+
+            // Dynamic Theme Application Engine for 3D Planet
+            function applyPlanetTheme(themeName) {
+                const palette = THEME_PALETTES[themeName] || THEME_PALETTES['crimson'];
+                const newTexture = generateLavaTexture(palette);
+                planetMat.map = newTexture;
+                planetMat.emissiveMap = newTexture;
+                planetMat.emissive.setHex(palette.emissive);
+                planetMat.needsUpdate = true;
+
+                atmosMat.color.setHex(palette.atmos);
+                innerAuraMat.color.setHex(palette.aura);
+                ring1Mat.color.setHex(palette.ring1);
+                ring2Mat.color.setHex(palette.ring2);
+                particleMat.color.setHex(palette.particles);
+                pointLight.color.setHex(palette.lightPoint);
+                backLight.color.setHex(palette.lightBack);
+                ambientLight.color.setHex(palette.lightAmbient);
+            }
+
+            if (initialTheme !== 'crimson') {
+                applyPlanetTheme(initialTheme);
+            }
+
+            window.addEventListener('crimx-theme-changed', function(e) {
+                if (e.detail && e.detail.theme) {
+                    applyPlanetTheme(e.detail.theme);
+                }
+            });
+            window.setPlanetTheme = applyPlanetTheme;
 
             animate();
 

@@ -202,6 +202,103 @@ class CrimXSDK {
             }
         };
     }
+
+    /**
+     * Start Dynamic Rich Game Presence for a logged-in CrimX Player
+     * Sets player status to 'Playing [AppName]' with optional activity details, heartbeat, and exit cleanup.
+     */
+    async startPresence({ uid, appName = "Game", clientId = "", details = "" }) {
+        if (!uid) throw new Error("CrimX: 'uid' is required to start presence.");
+
+        this.presenceUid = uid;
+        this.currentAppName = appName;
+        this.currentDetails = details;
+        this.presenceClientId = clientId;
+
+        const presencePayload = {
+            online: true,
+            currentGame: {
+                title: appName,
+                details: details || "",
+                clientId: clientId || "",
+                startedAt: Date.now()
+            },
+            lastActive: new Date()
+        };
+
+        try {
+            const userRef = doc(this.db, "users", uid);
+            await updateDoc(userRef, presencePayload);
+        } catch (err) {
+            console.warn("[CrimX SDK] Failed to set initial game presence:", err);
+        }
+
+        // Heartbeat every 45s
+        if (this._presenceHeartbeat) clearInterval(this._presenceHeartbeat);
+        this._presenceHeartbeat = setInterval(async () => {
+            if (this.presenceUid && typeof document !== 'undefined' && document.visibilityState === 'visible') {
+                try {
+                    const userRef = doc(this.db, "users", this.presenceUid);
+                    await updateDoc(userRef, {
+                        online: true,
+                        lastActive: new Date()
+                    });
+                } catch(e) {}
+            }
+        }, 45000);
+
+        // Disconnect on unload
+        if (typeof window !== 'undefined') {
+            if (this._presenceUnloadHandler) {
+                window.removeEventListener('beforeunload', this._presenceUnloadHandler);
+            }
+            this._presenceUnloadHandler = () => {
+                this.stopPresence();
+            };
+            window.addEventListener('beforeunload', this._presenceUnloadHandler);
+        }
+    }
+
+    /**
+     * Update active in-game details (e.g., 'Wave 12', 'In Menu', 'High Score: 500')
+     */
+    async updateActivityDetails(details) {
+        if (!this.presenceUid) return;
+        this.currentDetails = details;
+        try {
+            const userRef = doc(this.db, "users", this.presenceUid);
+            await updateDoc(userRef, {
+                "currentGame.details": details || "",
+                lastActive: new Date()
+            });
+        } catch (err) {
+            console.warn("[CrimX SDK] Failed to update activity details:", err);
+        }
+    }
+
+    /**
+     * Stop Game Presence on game exit / logout
+     */
+    async stopPresence() {
+        if (this._presenceHeartbeat) {
+            clearInterval(this._presenceHeartbeat);
+            this._presenceHeartbeat = null;
+        }
+
+        if (this.presenceUid) {
+            const uid = this.presenceUid;
+            this.presenceUid = null;
+            try {
+                const userRef = doc(this.db, "users", uid);
+                await updateDoc(userRef, {
+                    currentGame: null,
+                    lastActive: new Date()
+                });
+            } catch (err) {
+                console.warn("[CrimX SDK] Failed to clear game presence:", err);
+            }
+        }
+    }
 }
 
 // Global export for vanilla script tag usage + ES Module export

@@ -123,9 +123,9 @@
                 </div>
                 <div class="dash-profile-body dash-hero-profile-body">
                     <div class="dash-hero-avatar-col">
-                        <div class="dash-profile-avatar-wrap cim-profile-avatar-wrap dash-hero-avatar-wrap">
+                        <div class="dash-profile-avatar-wrap cim-profile-avatar-wrap dash-hero-avatar-wrap" id="status-picker-avatar-trigger" style="cursor: pointer;" onclick="toggleStatusPicker(event)" title="Click to change status">
                             <img id="cim-profile-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
-                            <span class="cim-profile-dot"></span>
+                            <span class="cim-profile-dot" id="cim-profile-status-dot"></span>
                         </div>
                     </div>
                     <div class="dash-hero-info-col">
@@ -134,9 +134,48 @@
                             <span class="cim-profile-badge" id="cim-profile-badge">🔥 Member</span>
                             <span id="cim-profile-handle" class="dash-profile-handle-text cim-profile-handle">@user</span>
                         </div>
-                        <div class="dash-hero-status-row">
+                        <div class="dash-hero-status-row" style="position: relative; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <div id="cim-profile-status" class="dash-profile-status-text cim-profile-status">Browsing the Website</div>
+                            <button type="button" class="btn-status-selector" id="status-picker-toggle-btn" onclick="toggleStatusPicker(event)" title="Click to change your presence status">
+                                <span class="status-badge-dot online" id="current-status-picker-dot"></span>
+                                <span id="current-status-picker-label">Online</span>
+                                <span style="font-size: 0.68rem; opacity: 0.7;">▾</span>
+                            </button>
+                            <!-- Status Picker Dropdown Menu -->
+                            <div class="status-picker-dropdown" id="status-picker-dropdown" style="display: none;">
+                                <div class="status-picker-option" id="opt-status-online" onclick="selectStatusMode('online')">
+                                    <div class="status-picker-icon-badge">
+                                        <span class="status-badge-dot online"></span>
+                                    </div>
+                                    <div class="status-picker-details">
+                                        <span class="status-picker-title">Online</span>
+                                        <span class="status-picker-desc">Active, responsive, & visible</span>
+                                    </div>
+                                </div>
+                                <div class="status-picker-option" id="opt-status-idle" onclick="selectStatusMode('idle')">
+                                    <div class="status-picker-icon-badge">🌙</div>
+                                    <div class="status-picker-details">
+                                        <span class="status-picker-title">Idle</span>
+                                        <span class="status-picker-desc">I can see messages, but prob won't respond</span>
+                                    </div>
+                                </div>
+                                <div class="status-picker-option" id="opt-status-afk" onclick="selectStatusMode('afk')">
+                                    <div class="status-picker-icon-badge">⌨️</div>
+                                    <div class="status-picker-details">
+                                        <span class="status-picker-title">AFK</span>
+                                        <span class="status-picker-desc">Away from keyboard</span>
+                                    </div>
+                                </div>
+                                <div class="status-picker-option" id="opt-status-dnd" onclick="selectStatusMode('dnd')">
+                                    <div class="status-picker-icon-badge">⛔</div>
+                                    <div class="status-picker-details">
+                                        <span class="status-picker-title">Do Not Disturb</span>
+                                        <span class="status-picker-desc">Mutes incoming message chimes & alerts</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                        <div id="hero-current-game-container" style="display: none;"></div>
                         <div id="cim-profile-bio" class="dash-profile-bio-text cim-profile-bio">The developer behind it all 👓</div>
                         <div id="cim-profile-socials" class="cim-profile-socials"></div>
                     </div>
