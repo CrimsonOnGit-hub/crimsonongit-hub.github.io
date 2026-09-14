@@ -4884,32 +4884,37 @@ body.cim-fullscreen-active {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.82);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     z-index: 99999;
-    padding: 40px 20px;
+    padding: 24px 20px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 
 .settings-studio-modal.open {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    animation: powerpointFloatIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: powerpointFloatIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .settings-studio-inner {
     width: 100%;
-    max-width: 1120px;
-    background: #0e070b;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 20px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 40px var(--crimson-glow);
-    padding: 26px;
+    max-width: 1480px;
+    height: 88vh;
+    max-height: 920px;
+    background: #0d070c;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(220, 38, 38, 0.2);
+    padding: 0;
     margin: auto;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* ==========================================================================
@@ -5796,12 +5801,21 @@ body.cim-fullscreen-active {
     font-weight: 700;
 }
 
-/* ─── 2. Two-Column Balanced Workspace Grid ─── */
+/* ─── 2. Wide Multi-Column Balanced Workspace Grid ─── */
 .dash-workspace-grid {
     display: grid;
-    grid-template-columns: 370px 1fr;
+    grid-template-columns: 320px 1.45fr 1fr;
     gap: 24px;
     align-items: start;
+}
+
+@media (max-width: 1440px) {
+    .dash-workspace-grid {
+        grid-template-columns: 310px 1fr;
+    }
+    .dash-col-pages {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 980px) {
@@ -5816,10 +5830,168 @@ body.cim-fullscreen-active {
     gap: 20px;
 }
 
+.dash-col-pages {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
 .dash-col-main {
     display: flex;
     flex-direction: column;
     gap: 24px;
+}
+
+/* ─── CrimX Pages Hub Card in Dashboard ─── */
+.dash-pages-hub-card {
+    padding: 22px;
+    background: rgba(18, 10, 16, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    min-height: 600px;
+}
+
+.dash-pages-me-banner-card {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.dash-pages-item-row {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.2s ease;
+    margin-bottom: 10px;
+}
+
+.dash-pages-item-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(249, 115, 22, 0.3);
+    transform: translateY(-1px);
+}
+
+/* ─── CrimX Pages Template Selector & Editor Studio Modal ─── */
+.template-choice-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.template-choice-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(249, 115, 22, 0.4);
+    transform: translateY(-2px);
+}
+
+.template-choice-card.active {
+    background: rgba(249, 115, 22, 0.12);
+    border-color: #f97316;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.25);
+}
+
+.page-editor-studio-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(8, 4, 6, 0.88);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.page-editor-studio-modal.open {
+    display: flex;
+    animation: editorFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes editorFadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.page-editor-studio-inner {
+    background: rgba(16, 8, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(249, 115, 22, 0.18);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.page-editor-header {
+    padding: 18px 24px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.page-editor-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.page-editor-files-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.84rem;
+}
+
+.page-editor-files-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.page-editor-files-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #fff;
+}
+
+.page-editor-files-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
 }
 
 /* ─── Friends Hub Card ─── */

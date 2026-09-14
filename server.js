@@ -669,6 +669,20 @@ app.post('/api/notifications/security-alert', (req, res) => {
   res.json({ success: true });
 });
 
+// ─── CRIMX PAGES DYNAMIC ROUTING (/:username and /:username/:pagename) ───
+const RESERVED_PREFIXES = new Set([
+  'dashboard', 'developer', 'projects', 'auth', 'terms', 'privacy',
+  'link', 'status', 'api', 'assets', 'teapot', 'crimx', 'pages', 'favicon.ico'
+]);
+
+app.get('/:username/:pagename?', (req, res, next) => {
+  const user = req.params.username.toLowerCase();
+  if (RESERVED_PREFIXES.has(user) || user.includes('.')) {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, 'pages', 'index.html'));
+});
+
 // ─── 6. REAL HTTP 404 NOT FOUND HANDLER ───
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, '404.html'));

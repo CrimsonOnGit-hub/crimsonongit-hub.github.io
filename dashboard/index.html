@@ -43,7 +43,7 @@
     
 
 
-    <main class="dash-main" style="max-width: 1120px; margin: 0 auto; padding: 40px 20px 60px;">
+    <main class="dash-main" style="max-width: 1680px; width: 100%; margin: 0 auto; padding: 28px 32px 60px; box-sizing: border-box;">
         
         <!-- Login View -->
         <div id="login-container" class="dash-card" style="max-width: 460px; margin: 40px auto;">
@@ -181,6 +181,10 @@
                     </div>
                     <div class="dash-hero-stats-col">
                         <div class="dash-hero-stat-card">
+                            <span class="stat-num" id="hero-user-number" style="color: #f97316;">#1</span>
+                            <span class="stat-label">User ID</span>
+                        </div>
+                        <div class="dash-hero-stat-card">
                             <span class="stat-num" id="hero-friends-stat">0</span>
                             <span class="stat-label">Friends</span>
                         </div>
@@ -246,6 +250,60 @@
 
                         <!-- Hidden compatibility element -->
                         <div id="active-friends-list" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- CENTER COLUMN: CrimX Pages Hub -->
+                <div class="dash-col-pages">
+                    <div class="dash-card dash-pages-hub-card" id="dash-pages-hub">
+                        <div class="dash-card-header">
+                            <div class="dash-card-title-wrap">
+                                <span class="card-icon-badge" style="background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.3);">📑</span>
+                                <div>
+                                    <h3 class="dash-card-title">CrimX Pages</h3>
+                                    <span class="dash-card-subtitle">Personal Sites & Repositories</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="dash-pages-count-tag" class="cim-count-tag" style="background: rgba(249, 115, 22, 0.15); color: #f97316; border-color: rgba(249, 115, 22, 0.3);">0 Live</span>
+                                <button type="button" class="btn-primary btn-action-pill" onclick="window.openNewPageModal()" style="height: 34px; padding: 0 14px; font-size: 0.8rem; font-weight: 700;">
+                                    + New Page
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Primary "Me Page" Banner Card -->
+                        <div class="dash-pages-me-banner-card">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #f97316, #ef4444); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);">
+                                    👤
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">Your "Me Page"</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-secondary); font-family: monospace;" id="dash-me-page-url">crimx.crimsonflame.net/@user</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn-secondary" onclick="window.editPageById('me')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 600;">
+                                    ✏️ Edit
+                                </button>
+                                <button type="button" class="btn-primary" onclick="window.openLivePage('me')" style="padding: 6px 14px; font-size: 0.78rem; font-weight: 600;">
+                                    Open ↗
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Your Repositories & Pages Header -->
+                        <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                            Repositories & Custom Pages
+                        </div>
+
+                        <!-- Repositories List Container -->
+                        <div id="dash-pages-list-container" style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 200px;">
+                            <div style="text-align: center; color: var(--text-secondary); padding: 36px 16px; font-size: 0.84rem;">
+                                Loading your pages...
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1009,6 +1067,268 @@
 
                 </div>
             </div>
+
+        <!-- MODAL: CREATE NEW CRIMX PAGE -->
+        <div id="modal-new-page" class="custom-modal-overlay">
+            <div class="custom-modal-box" style="max-width: 620px; width: 95%; text-align: left; padding: 28px;">
+                <div class="custom-modal-content">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                        <div>
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.45rem; font-weight: 800; color: #fff; margin: 0 0 4px;">Create New CrimX Page</h3>
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Launch a custom user page hosted directly under crimx.crimsonflame.net</p>
+                        </div>
+                        <button type="button" onclick="closeNewPageModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.3rem; cursor: pointer; padding: 4px; line-height: 1;">✕</button>
+                    </div>
+
+                    <form onsubmit="handleCreatePageSubmit(event)">
+                        <div style="margin-bottom: 14px;">
+                            <label class="form-label" style="margin-bottom: 6px; display: block; font-size: 0.8rem; font-weight: 700;">Page Title</label>
+                            <input type="text" id="new-page-title" class="settings-input" placeholder="e.g. My Mod Repository or Portfolio" required maxlength="64">
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label class="form-label" style="margin-bottom: 6px; display: block; font-size: 0.8rem; font-weight: 700;">Page Name / URL Slug</label>
+                            <div style="display: flex; align-items: center; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; padding-left: 12px;">
+                                <span style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);" id="new-page-url-prefix">crimx.crimsonflame.net/@user/</span>
+                                <input type="text" id="new-page-slug" class="settings-input" placeholder="my-page" required maxlength="32" style="border: none; background: transparent; padding-left: 4px; font-family: monospace;" oninput="sanitizeSlugInput(this)">
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px;">Lowercase letters, numbers, and dashes. Use "me" for your root profile page.</div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label class="form-label" style="margin-bottom: 8px; display: block; font-size: 0.8rem; font-weight: 700;">Choose Template</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px;">
+                                <div class="template-choice-card active" id="tpl-card-repo" onclick="selectTemplateChoice('repo')">
+                                    <div style="font-size: 1.5rem; margin-bottom: 6px;">📦</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Repository Page</div>
+                                    <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">Code files table with upload/download, releases manager with asset downloads. No pull requests.</div>
+                                </div>
+
+                                <div class="template-choice-card" id="tpl-card-me" onclick="selectTemplateChoice('me')">
+                                    <div style="font-size: 1.5rem; margin-bottom: 6px;">👤</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Me Page</div>
+                                    <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">Custom gamer profile showcase with banners, status, bio, player badges & social links.</div>
+                                </div>
+
+                                <div class="template-choice-card" id="tpl-card-html" onclick="selectTemplateChoice('html')">
+                                    <div style="font-size: 1.5rem; margin-bottom: 6px;">⚡</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Pure HTML</div>
+                                    <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">Unrestricted HTML/CSS/JS sandbox. Write raw frontend code directly.</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="new-page-template" value="repo">
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label class="form-label" style="margin-bottom: 6px; display: block; font-size: 0.8rem; font-weight: 700;">Short Description (Optional)</label>
+                            <input type="text" id="new-page-desc" class="settings-input" placeholder="Brief summary of this repository or page..." maxlength="120">
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+                            <button type="button" class="btn-secondary" onclick="closeNewPageModal()" style="padding: 9px 18px; font-size: 0.85rem;">Cancel</button>
+                            <button type="submit" class="btn-primary" id="btn-create-page-submit" style="padding: 9px 24px; font-size: 0.85rem; font-weight: 700;">Create Page</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: CRIMX PAGE STUDIO EDITOR -->
+        <div id="modal-page-editor" class="page-editor-studio-modal">
+            <div class="page-editor-studio-inner">
+                <!-- Editor Header -->
+                <div class="page-editor-header">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <h2 id="editor-page-title-display" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0;">Repository Editor</h2>
+                                <span id="editor-page-template-badge" class="dash-profile-badge">📦 REPOSITORY</span>
+                                <span id="editor-page-status-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3);">● Live</span>
+                            </div>
+                            <a id="editor-page-url-link" href="#" target="_blank" style="font-family: monospace; font-size: 0.78rem; color: #f97316; text-decoration: none; margin-top: 2px; display: inline-block;">crimx.crimsonflame.net/@user/page</a>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn-secondary" onclick="window.openActiveEditorPage()" style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700;">
+                            👁️ Open Page ↗
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="window.openActiveEditorBuildLog()" style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; color: #f97316;">
+                            🚀 Build & Deploy Log
+                        </button>
+                        <button type="button" class="btn-danger" onclick="window.deleteActiveEditorPage()" style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; background: rgba(220,38,38,0.2) !important; border-color: rgba(220,38,38,0.4) !important;">
+                            🗑️ Delete
+                        </button>
+                        <button type="button" class="btn-primary" onclick="window.saveActiveEditorPage()" style="padding: 8px 20px; font-size: 0.82rem; font-weight: 700;">
+                            💾 Save & Deploy
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="window.closePageEditor()" style="padding: 8px 14px; font-size: 0.82rem;">
+                            ✕ Close
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Editor Body -->
+                <div class="page-editor-body">
+                    <!-- General Metadata Section -->
+                    <div class="settings-section-block">
+                        <div class="settings-section-title">
+                            <span>⚙️ Page Configuration</span>
+                        </div>
+                        <div class="form-group-row">
+                            <div>
+                                <label class="form-label">Page Title</label>
+                                <input type="text" id="editor-input-title" class="settings-input" placeholder="Page Title" maxlength="64">
+                            </div>
+                            <div>
+                                <label class="form-label">Description / Summary</label>
+                                <input type="text" id="editor-input-desc" class="settings-input" placeholder="Brief description..." maxlength="140">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TEMPLATE 1: REPOSITORY EDITOR PANE -->
+                    <div id="editor-pane-repo" style="display: none; flex-direction: column; gap: 20px;">
+                        <!-- File Manager -->
+                        <div class="settings-section-block">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                <div class="settings-section-title" style="margin-bottom: 0;">
+                                    <span>📁 Code Files (<span id="repo-file-count">0</span>)</span>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="file" id="repo-file-upload-input" multiple style="display: none;" onchange="handleRepoFilesUpload(event.target.files)">
+                                    <button type="button" class="btn-secondary" onclick="document.getElementById('repo-file-upload-input').click()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                        + Upload File
+                                    </button>
+                                    <button type="button" class="btn-secondary" onclick="promptCreateNewTextFile()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                        + New Text File
+                                    </button>
+                                </div>
+                            </div>
+
+                            <table class="page-editor-files-table">
+                                <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Size</th>
+                                        <th>Type</th>
+                                        <th style="text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="editor-repo-files-list">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 24px;">No files added yet. Click "+ Upload File" or "+ New Text File".</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Releases Manager (GitHub-style releases) -->
+                        <div class="settings-section-block">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                <div class="settings-section-title" style="margin-bottom: 0;">
+                                    <span>🏷️ Releases & Downloads (<span id="repo-release-count">0</span>)</span>
+                                </div>
+                                <button type="button" class="btn-primary" onclick="toggleNewReleaseForm()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                    + Draft Release
+                                </button>
+                            </div>
+
+                            <!-- Draft Release Form -->
+                            <div id="editor-release-draft-box" style="display: none; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                                <h4 style="color: #fff; font-size: 0.95rem; margin: 0 0 12px; font-weight: 700;">Draft New Release</h4>
+                                <div class="form-group-row">
+                                    <div>
+                                        <label class="form-label">Version Tag</label>
+                                        <input type="text" id="release-tag-input" class="settings-input" placeholder="e.g. v1.0.0" style="font-family: monospace;">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Release Title</label>
+                                        <input type="text" id="release-title-input" class="settings-input" placeholder="e.g. Initial Release">
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <label class="form-label">Changelog / Release Notes</label>
+                                    <textarea id="release-notes-input" class="settings-textarea" rows="3" placeholder="Describe the changes, new features, or fixes..."></textarea>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                    <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                                        Releases automatically package repository assets for download.
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn-secondary" onclick="toggleNewReleaseForm(false)" style="padding: 6px 14px; font-size: 0.8rem;">Cancel</button>
+                                        <button type="button" class="btn-primary" onclick="commitNewRelease()" style="padding: 6px 16px; font-size: 0.8rem; font-weight: 700;">Publish Release</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="editor-repo-releases-list" style="display: flex; flex-direction: column; gap: 10px;">
+                                <div style="text-align: center; color: var(--text-secondary); padding: 18px; font-size: 0.84rem;">
+                                    No releases published yet.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TEMPLATE 2: ME PAGE EDITOR PANE -->
+                    <div id="editor-pane-me" style="display: none; flex-direction: column; gap: 20px;">
+                        <div class="settings-section-block">
+                            <div class="settings-section-title">
+                                <span>👤 Profile Details</span>
+                            </div>
+                            <div class="form-group-row">
+                                <div>
+                                    <label class="form-label">Headline / Title</label>
+                                    <input type="text" id="me-page-headline-input" class="settings-input" placeholder="e.g. VR Developer & Digital Artist">
+                                </div>
+                                <div>
+                                    <label class="form-label">Custom Accent Theme</label>
+                                    <select id="me-page-theme-input" class="settings-input">
+                                        <option value="crimson">Crimson Flame (Red/Orange)</option>
+                                        <option value="purple">Cosmic Purple (Purple/Violet)</option>
+                                        <option value="blue">Deep Ocean (Cyan/Blue)</option>
+                                        <option value="emerald">Emerald Forest (Green)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 14px;">
+                                <label class="form-label">Extended About / Biography</label>
+                                <textarea id="me-page-bio-input" class="settings-textarea" rows="4" placeholder="Share more about yourself, your projects, and what you build..."></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Featured Projects / External Links (One per line: Label | URL)</label>
+                                <textarea id="me-page-links-input" class="settings-textarea" rows="3" placeholder="GitHub | https://github.com/myuser&#10;YouTube | https://youtube.com/@channel&#10;Portfolio | https://mywebsite.com"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TEMPLATE 3: PURE HTML EDITOR PANE -->
+                    <div id="editor-pane-html" style="display: none; flex-direction: column; gap: 20px;">
+                        <div class="settings-section-block">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div class="settings-section-title" style="margin-bottom: 0;">
+                                    <span>⚡ Pure HTML / CSS / JS Sandbox</span>
+                                </div>
+                                <button type="button" class="btn-secondary" onclick="updatePureHtmlPreview()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                    🔄 Update Preview
+                                </button>
+                            </div>
+                            <textarea id="editor-pure-html-code" class="settings-textarea" rows="12" style="font-family: monospace; font-size: 0.85rem; background: #070305; border-color: rgba(255,255,255,0.12);" placeholder="<!DOCTYPE html>&#10;<html>&#10;<head>&#10;  <style>body { color: white; font-family: sans-serif; }</style>&#10;</head>&#10;<body>&#10;  <h1>Welcome to my custom CrimX Page!</h1>&#10;</body>&#10;</html>"></textarea>
+                        </div>
+
+                        <!-- Live Preview Box -->
+                        <div class="settings-section-block">
+                            <div class="settings-section-title">
+                                <span>● Live Sandbox Preview</span>
+                            </div>
+                            <div style="border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #0d0609; height: 320px;">
+                                <iframe id="editor-pure-html-preview" style="width: 100%; height: 100%; border: none; background: #0d0609;"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Floating Toast Container -->
         <div id="toast-container"></div>

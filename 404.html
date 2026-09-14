@@ -12,6 +12,15 @@
         if (window.location.pathname.toLowerCase().includes('teapot')) {
             window.location.replace('/teapot.html');
         }
+        (function() {
+            const parts = window.location.pathname.split('/').filter(Boolean);
+            const reserved = ['dashboard', 'developer', 'projects', 'auth', 'terms', 'privacy', 'link', 'status', 'api', 'assets', 'teapot', 'crimx', 'pages', 'favicon.ico'];
+            if (parts.length > 0 && !reserved.includes(parts[0].toLowerCase()) && !parts[0].includes('.')) {
+                const u = parts[0];
+                const p = parts.length > 1 ? parts[1] : 'me';
+                window.location.replace('/pages/index.html?u=' + encodeURIComponent(u) + '&p=' + encodeURIComponent(p));
+            }
+        })();
     </script>
     <style>
         .error-viewport {

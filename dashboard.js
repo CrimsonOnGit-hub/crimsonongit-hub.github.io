@@ -2178,15 +2178,38 @@ onAuthStateChanged(auth, user => {
         const showcaseAvatar = document.getElementById('showcase-avatar');
         if (showcaseAvatar) showcaseAvatar.src = user.photoURL || DEFAULT_PFP;
 
-        // Ensure user document exists with initial username
-        getDoc(doc(db, "users", currentUser.uid)).then(docSnap => {
-            if (!docSnap.exists() || !docSnap.data().username) {
+        // Ensure user document exists with initial username & sequential User Number
+        getDoc(doc(db, "users", currentUser.uid)).then(async docSnap => {
+            const data = docSnap.exists() ? docSnap.data() : {};
+            let updates = {};
+            if (!data.username) {
                 const baseName = nameVal.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                setDoc(doc(db, "users", currentUser.uid), { 
-                    uid: currentUser.uid, 
-                    username: baseName || `player_${Math.floor(Math.random()*9000+1000)}`, 
-                    displayName: nameVal 
-                }, { merge: true });
+                updates.uid = currentUser.uid;
+                updates.username = baseName || `player_${Math.floor(Math.random()*9000+1000)}`;
+                updates.displayName = nameVal;
+            }
+            if (data.userNumber === undefined || data.userNumber === null) {
+                const checkUsername = (data.username || updates.username || '').toLowerCase();
+                const checkEmail = (currentUser.email || '').toLowerCase();
+                if (checkUsername === 'crimsononvr' || checkEmail.includes('crimsononvr')) {
+                    updates.userNumber = 1;
+                } else {
+                    try {
+                        const statsRef = doc(db, "metadata", "user_stats");
+                        const statsSnap = await getDoc(statsRef);
+                        let nextNum = 2;
+                        if (statsSnap.exists() && typeof statsSnap.data().userCounter === 'number') {
+                            nextNum = Math.max(2, statsSnap.data().userCounter + 1);
+                        }
+                        await setDoc(statsRef, { userCounter: nextNum }, { merge: true });
+                        updates.userNumber = nextNum;
+                    } catch(err) {
+                        updates.userNumber = 2;
+                    }
+                }
+            }
+            if (Object.keys(updates).length > 0) {
+                await setDoc(doc(db, "users", currentUser.uid), updates, { merge: true });
             }
         });
 
@@ -2196,6 +2219,9 @@ onAuthStateChanged(auth, user => {
         // Initialize Realtime CIM Instant Messenger
         initCIMSystem();
 
+        // Initialize CrimX Pages
+        if (window.loadUserPages) window.loadUserPages();
+
         // Realtime Firestore synchronization
         if (userDocUnsub) userDocUnsub();
         userDocUnsub = onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
@@ -2203,6 +2229,21 @@ onAuthStateChanged(auth, user => {
                 const data = docSnap.data();
 
                 updateCIMProfileCard(data);
+
+                // User Number Display
+                const uNum = data.userNumber !== undefined ? data.userNumber : ((data.username === 'crimsononvr') ? 1 : 2);
+                const heroNumEl = document.getElementById('hero-user-number');
+                if (heroNumEl) heroNumEl.innerText = `#${uNum}`;
+
+                // Me Page URL display
+                const meUrlEl = document.getElementById('dash-me-page-url');
+                if (meUrlEl && data.username) {
+                    meUrlEl.innerText = `crimx.crimsonflame.net/@${data.username}`;
+                }
+                const newPagePrefixEl = document.getElementById('new-page-url-prefix');
+                if (newPagePrefixEl && data.username) {
+                    newPagePrefixEl.innerText = `crimx.crimsonflame.net/@${data.username}/`;
+                }
 
                 // Input fields
                 if (data.username) document.getElementById('username-input').value = data.username;
@@ -2685,3 +2726,763 @@ window.revokeDoorAuthApp = async function(appId) {
     window.loadDoorAuthApps();
     if (window.showToast) window.showToast("App access revoked successfully.", "info");
 };
+
+// ═════════════════════════════════════════════════════════════════════════
+// CRIMX PAGES HUB & STUDIO EDITOR CONTROLLER
+// Real-time personal sites, repository workspaces, and pure HTML sandboxes
+// ═════════════════════════════════════════════════════════════════════════
+
+let activeEditingPage = null;
+let userPagesCache = [];
+
+function getCurrentUserHandle() {
+    if (!currentUser) return 'user';
+    const inputVal = document.getElementById('username-input')?.value.trim().toLowerCase();
+    if (inputVal) return inputVal;
+    return (currentUser.displayName || currentUser.email.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_]/g, '');
+}
+
+// ─── Modal Open / Close / Template Selection ───
+window.openNewPageModal = function() {
+    if (!currentUser) {
+        if (window.showToast) window.showToast("Please sign in to create pages.", "error");
+        return;
+    }
+    const modal = document.getElementById('modal-new-page');
+    if (!modal) return;
+
+    const titleInput = document.getElementById('new-page-title');
+    const slugInput = document.getElementById('new-page-slug');
+    const descInput = document.getElementById('new-page-desc');
+    const prefixEl = document.getElementById('new-page-url-prefix');
+
+    if (titleInput) titleInput.value = '';
+    if (slugInput) slugInput.value = '';
+    if (descInput) descInput.value = '';
+    if (prefixEl) prefixEl.innerText = `crimx.crimsonflame.net/@${getCurrentUserHandle()}/`;
+
+    window.selectTemplateChoice('repo');
+    modal.classList.add('active');
+    playSfx('click');
+};
+
+window.closeNewPageModal = function() {
+    const modal = document.getElementById('modal-new-page');
+    if (modal) modal.classList.remove('active');
+    playSfx('click');
+};
+
+window.selectTemplateChoice = function(templateType) {
+    const hidden = document.getElementById('new-page-template');
+    if (hidden) hidden.value = templateType;
+
+    document.querySelectorAll('.template-choice-card').forEach(card => card.classList.remove('active'));
+    const activeCard = document.getElementById(`tpl-card-${templateType}`);
+    if (activeCard) activeCard.classList.add('active');
+
+    const slugInput = document.getElementById('new-page-slug');
+    if (slugInput && templateType === 'me' && !slugInput.value) {
+        slugInput.value = 'me';
+    }
+    playSfx('click');
+};
+
+window.sanitizeSlugInput = function(inputEl) {
+    if (!inputEl) return;
+    inputEl.value = inputEl.value.toLowerCase().replace(/[^a-z0-9\-]/g, '');
+};
+
+// ─── Create Page Handler ───
+window.handleCreatePageSubmit = async function(e) {
+    if (e) e.preventDefault();
+    if (!currentUser) return;
+
+    const btn = document.getElementById('btn-create-page-submit');
+    const title = document.getElementById('new-page-title')?.value.trim();
+    let slug = document.getElementById('new-page-slug')?.value.trim().toLowerCase().replace(/[^a-z0-9\-]/g, '');
+    const template = document.getElementById('new-page-template')?.value || 'repo';
+    const desc = document.getElementById('new-page-desc')?.value.trim() || '';
+
+    if (!title || !slug) {
+        if (window.showToast) window.showToast("Page title and URL slug are required.", "error");
+        return;
+    }
+
+    const username = getCurrentUserHandle();
+    const pageDocId = `${username}_${slug}`;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Creating Page...";
+    }
+
+    try {
+        const pageRef = doc(db, "user_pages", pageDocId);
+        const existingSnap = await getDoc(pageRef);
+
+        if (existingSnap.exists() && existingSnap.data().ownerUid !== currentUser.uid) {
+            throw new Error(`A page at @${username}/${slug} already exists.`);
+        }
+
+        let newPageData = {
+            ownerUid: currentUser.uid,
+            username: username,
+            slug: slug,
+            title: title,
+            description: desc,
+            template: template,
+            published: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+
+        if (template === 'repo') {
+            newPageData.files = [
+                {
+                    name: 'README.md',
+                    size: 140,
+                    type: 'text/markdown',
+                    content: `# ${title}\n\n${desc || 'Welcome to this repository on CrimX Pages.'}\n\n### Usage\nFiles and releases can be downloaded directly from the file list.`,
+                    lastModified: Date.now()
+                }
+            ];
+            newPageData.releases = [];
+        } else if (template === 'me') {
+            const bioVal = document.getElementById('bio-input')?.value.trim() || "";
+            newPageData.meData = {
+                headline: title,
+                theme: 'crimson',
+                bio: bioVal || desc || 'CrimX Player profile and custom creations.',
+                links: []
+            };
+        } else if (template === 'html') {
+            newPageData.htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapeHtml(title)}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background: radial-gradient(circle at 50% 10%, #200810 0%, #080306 100%);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+    }
+    .card {
+      max-width: 580px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 32px;
+      backdrop-filter: blur(16px);
+    }
+    h1 { color: #f97316; margin-bottom: 8px; }
+    p { color: #cbd5e1; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>${escapeHtml(title)}</h1>
+    <p>${escapeHtml(desc || 'Custom page created with Pure HTML on CrimX Pages.')}</p>
+  </div>
+</body>
+</html>`;
+        }
+
+        await setDoc(pageRef, newPageData, { merge: true });
+
+        playSfx('success');
+        if (window.showToast) window.showToast(`✓ Page "${title}" launched successfully!`, "success");
+        window.closeNewPageModal();
+
+        await window.loadUserPages();
+        window.editPageById(slug);
+    } catch(err) {
+        playSfx('error');
+        if (window.showToast) window.showToast("Error creating page: " + err.message, "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "Create Page";
+        }
+    }
+};
+
+// ─── Load User Pages List ───
+window.loadUserPages = async function() {
+    if (!currentUser) return;
+    const container = document.getElementById('dash-pages-list-container');
+    const countTag = document.getElementById('dash-pages-count-tag');
+    const username = getCurrentUserHandle();
+
+    try {
+        const q = query(collection(db, "user_pages"), where("ownerUid", "==", currentUser.uid));
+        const snap = await getDocs(q);
+        userPagesCache = [];
+
+        snap.forEach(d => {
+            userPagesCache.push({ id: d.id, ...d.data() });
+        });
+
+        // Ensure "me" page is represented in userPagesCache if not present
+        const hasMePage = userPagesCache.some(p => p.slug === 'me');
+        if (!hasMePage) {
+            userPagesCache.unshift({
+                id: `${username}_me`,
+                slug: 'me',
+                title: `${document.getElementById('display-name')?.value.trim() || 'My'} Profile Page`,
+                description: 'Primary public profile on CrimX Pages.',
+                template: 'me',
+                published: true,
+                ownerUid: currentUser.uid,
+                username: username
+            });
+        }
+
+        const customPages = userPagesCache.filter(p => p.slug !== 'me');
+        if (countTag) {
+            countTag.innerText = `${userPagesCache.length} Live`;
+        }
+
+        if (!container) return;
+
+        if (customPages.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; color: var(--text-secondary); padding: 34px 16px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 2rem; margin-bottom: 8px;">📦</div>
+                    <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 4px;">No Repositories or Custom Pages Yet</div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); max-width: 320px; margin: 0 auto 12px; line-height: 1.4;">
+                        Launch your first repository, mod hub, or custom web experience on CrimX Pages!
+                    </div>
+                    <button type="button" class="btn-primary" onclick="window.openNewPageModal()" style="padding: 6px 16px; font-size: 0.8rem; font-weight: 700; width: auto; margin: 0 auto;">
+                        + Create Your First Page
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = customPages.map(page => {
+            let icon = '📦';
+            let templateLabel = 'REPOSITORY';
+            if (page.template === 'html') {
+                icon = '⚡';
+                templateLabel = 'PURE HTML';
+            } else if (page.template === 'me') {
+                icon = '👤';
+                templateLabel = 'ME PAGE';
+            }
+
+            let statDetail = '';
+            if (page.template === 'repo') {
+                const fileCount = Array.isArray(page.files) ? page.files.length : 0;
+                const releaseCount = Array.isArray(page.releases) ? page.releases.length : 0;
+                statDetail = `· ${fileCount} file${fileCount === 1 ? '' : 's'} · ${releaseCount} release${releaseCount === 1 ? '' : 's'}`;
+            }
+
+            return `
+                <div class="dash-pages-item-row" id="page-row-${page.slug}">
+                    <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                            ${icon}
+                        </div>
+                        <div style="min-width: 0; flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-weight: 700; color: #fff; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(page.title || page.slug)}</span>
+                                <span style="font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3); font-weight: 800;">${templateLabel}</span>
+                            </div>
+                            <div style="font-size: 0.74rem; color: var(--text-secondary); font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                @${escapeHtml(username)}/${escapeHtml(page.slug)} <span style="font-family: var(--font-body);">${statDetail}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                        <button type="button" class="btn-secondary" onclick="window.editPageById('${page.slug}')" style="padding: 6px 10px; font-size: 0.76rem; font-weight: 600;" title="Edit repository files and settings">
+                            ✏️ Edit
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="window.openPageBuildLog('${page.slug}')" style="padding: 6px 10px; font-size: 0.76rem; font-weight: 600; color: #f97316;" title="View real-time deployment status">
+                            🚀 Log
+                        </button>
+                        <button type="button" class="btn-primary" onclick="window.openLivePage('${page.slug}')" style="padding: 6px 12px; font-size: 0.76rem; font-weight: 600;" title="Open live page in new tab">
+                            Open ↗
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch(err) {
+        console.warn("[CrimX Pages] Could not sync user pages:", err);
+    }
+};
+
+// ─── Navigation Helpers ───
+window.openLivePage = function(slug) {
+    const username = getCurrentUserHandle();
+    const url = `/pages/index.html?u=${encodeURIComponent(username)}&p=${encodeURIComponent(slug)}`;
+    window.open(url, '_blank');
+};
+
+window.openPageBuildLog = function(slug) {
+    const username = getCurrentUserHandle();
+    const url = `/pages/index.html?status=true&u=${encodeURIComponent(username)}&p=${encodeURIComponent(slug)}`;
+    window.open(url, '_blank');
+};
+
+// ─── Page Studio Editor ───
+window.editPageById = async function(slug) {
+    if (!currentUser) return;
+    const username = getCurrentUserHandle();
+    const pageDocId = `${username}_${slug}`;
+
+    try {
+        let pageData = userPagesCache.find(p => p.slug === slug);
+
+        if (!pageData) {
+            const pageRef = doc(db, "user_pages", pageDocId);
+            const snap = await getDoc(pageRef);
+            if (snap.exists()) {
+                pageData = { id: snap.id, ...snap.data() };
+            }
+        }
+
+        if (!pageData && slug === 'me') {
+            pageData = {
+                id: pageDocId,
+                slug: 'me',
+                title: `${document.getElementById('display-name')?.value.trim() || 'My'} Profile Page`,
+                description: 'Personal profile showcase on CrimX Pages',
+                template: 'me',
+                published: true,
+                meData: {
+                    headline: document.getElementById('display-name')?.value.trim() || 'CrimX Gamer',
+                    theme: 'crimson',
+                    bio: document.getElementById('bio-input')?.value.trim() || 'Welcome to my official CrimX page!',
+                    links: []
+                }
+            };
+        }
+
+        if (!pageData) {
+            if (window.showToast) window.showToast("Page data could not be found.", "error");
+            return;
+        }
+
+        activeEditingPage = JSON.parse(JSON.stringify(pageData));
+        if (!Array.isArray(activeEditingPage.files)) activeEditingPage.files = [];
+        if (!Array.isArray(activeEditingPage.releases)) activeEditingPage.releases = [];
+
+        // Header elements
+        const titleDisplay = document.getElementById('editor-page-title-display');
+        const badgeDisplay = document.getElementById('editor-page-template-badge');
+        const urlLink = document.getElementById('editor-page-url-link');
+        const titleInput = document.getElementById('editor-input-title');
+        const descInput = document.getElementById('editor-input-desc');
+
+        const pageUrl = `/pages/index.html?u=${encodeURIComponent(username)}&p=${encodeURIComponent(slug)}`;
+        if (titleDisplay) titleDisplay.innerText = activeEditingPage.title || activeEditingPage.slug;
+        if (urlLink) {
+            urlLink.innerText = `crimx.crimsonflame.net/@${username}/${slug}`;
+            urlLink.href = pageUrl;
+        }
+        if (titleInput) titleInput.value = activeEditingPage.title || '';
+        if (descInput) descInput.value = activeEditingPage.description || '';
+
+        // Badge template label
+        if (badgeDisplay) {
+            if (activeEditingPage.template === 'repo') {
+                badgeDisplay.innerText = '📦 REPOSITORY';
+            } else if (activeEditingPage.template === 'me') {
+                badgeDisplay.innerText = '👤 ME PAGE';
+            } else {
+                badgeDisplay.innerText = '⚡ PURE HTML';
+            }
+        }
+
+        // Toggle panes
+        const paneRepo = document.getElementById('editor-pane-repo');
+        const paneMe = document.getElementById('editor-pane-me');
+        const paneHtml = document.getElementById('editor-pane-html');
+
+        if (paneRepo) paneRepo.style.display = activeEditingPage.template === 'repo' ? 'flex' : 'none';
+        if (paneMe) paneMe.style.display = activeEditingPage.template === 'me' ? 'flex' : 'none';
+        if (paneHtml) paneHtml.style.display = activeEditingPage.template === 'html' ? 'flex' : 'none';
+
+        // Render template-specific subviews
+        if (activeEditingPage.template === 'repo') {
+            renderRepoFilesTable();
+            renderRepoReleasesList();
+        } else if (activeEditingPage.template === 'me') {
+            const meObj = activeEditingPage.meData || {};
+            const headInput = document.getElementById('me-page-headline-input');
+            const themeInput = document.getElementById('me-page-theme-input');
+            const bioInput = document.getElementById('me-page-bio-input');
+            const linksInput = document.getElementById('me-page-links-input');
+
+            if (headInput) headInput.value = meObj.headline || '';
+            if (themeInput) themeInput.value = meObj.theme || 'crimson';
+            if (bioInput) bioInput.value = meObj.bio || '';
+            if (linksInput) {
+                if (Array.isArray(meObj.links)) {
+                    linksInput.value = meObj.links.map(l => `${l.label || 'Link'} | ${l.url || ''}`).join('\n');
+                } else {
+                    linksInput.value = '';
+                }
+            }
+        } else if (activeEditingPage.template === 'html') {
+            const htmlCodeInput = document.getElementById('editor-pure-html-code');
+            if (htmlCodeInput) {
+                htmlCodeInput.value = activeEditingPage.htmlContent || '';
+            }
+            window.updatePureHtmlPreview();
+        }
+
+        const modal = document.getElementById('modal-page-editor');
+        if (modal) modal.classList.add('open');
+        playSfx('click');
+    } catch(err) {
+        console.error("Error opening page editor:", err);
+        if (window.showToast) window.showToast("Could not open page editor: " + err.message, "error");
+    }
+};
+
+window.closePageEditor = function() {
+    const modal = document.getElementById('modal-page-editor');
+    if (modal) modal.classList.remove('open');
+    activeEditingPage = null;
+    playSfx('click');
+};
+
+window.openActiveEditorPage = function() {
+    if (!activeEditingPage) return;
+    window.openLivePage(activeEditingPage.slug);
+};
+
+window.openActiveEditorBuildLog = function() {
+    if (!activeEditingPage) return;
+    window.openPageBuildLog(activeEditingPage.slug);
+};
+
+// ─── Save & Deploy Page ───
+window.saveActiveEditorPage = async function() {
+    if (!currentUser || !activeEditingPage) return;
+
+    const username = getCurrentUserHandle();
+    const pageDocId = `${username}_${activeEditingPage.slug}`;
+
+    const newTitle = document.getElementById('editor-input-title')?.value.trim() || activeEditingPage.slug;
+    const newDesc = document.getElementById('editor-input-desc')?.value.trim() || '';
+
+    activeEditingPage.title = newTitle;
+    activeEditingPage.description = newDesc;
+    activeEditingPage.updatedAt = serverTimestamp();
+
+    if (activeEditingPage.template === 'me') {
+        const headline = document.getElementById('me-page-headline-input')?.value.trim() || newTitle;
+        const theme = document.getElementById('me-page-theme-input')?.value || 'crimson';
+        const bio = document.getElementById('me-page-bio-input')?.value.trim() || '';
+        const rawLinks = document.getElementById('me-page-links-input')?.value || '';
+
+        const parsedLinks = rawLinks.split('\n').filter(line => line.includes('|')).map(line => {
+            const parts = line.split('|');
+            return { label: parts[0].trim(), url: parts.slice(1).join('|').trim() };
+        });
+
+        activeEditingPage.meData = {
+            headline,
+            theme,
+            bio,
+            links: parsedLinks
+        };
+    } else if (activeEditingPage.template === 'html') {
+        activeEditingPage.htmlContent = document.getElementById('editor-pure-html-code')?.value || '';
+    }
+
+    try {
+        await setDoc(doc(db, "user_pages", pageDocId), {
+            ...activeEditingPage,
+            ownerUid: currentUser.uid,
+            username: username,
+            published: true,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        playSfx('success');
+        if (window.showToast) window.showToast(`✓ Page "${newTitle}" saved & deployed!`, "success");
+        await window.loadUserPages();
+    } catch(err) {
+        playSfx('error');
+        if (window.showToast) window.showToast("Error saving page: " + err.message, "error");
+    }
+};
+
+// ─── Delete Page ───
+window.deleteActiveEditorPage = async function() {
+    if (!currentUser || !activeEditingPage) return;
+    if (activeEditingPage.slug === 'me') {
+        if (window.showToast) window.showToast("The root 'me' profile page cannot be deleted.", "error");
+        return;
+    }
+
+    const conf = confirm(`Are you sure you want to permanently delete "@${getCurrentUserHandle()}/${activeEditingPage.slug}"?\nThis cannot be undone.`);
+    if (!conf) return;
+
+    try {
+        const username = getCurrentUserHandle();
+        const pageDocId = `${username}_${activeEditingPage.slug}`;
+        await deleteDoc(doc(db, "user_pages", pageDocId));
+
+        playSfx('click');
+        if (window.showToast) window.showToast("Page deleted successfully.", "info");
+        window.closePageEditor();
+        await window.loadUserPages();
+    } catch(err) {
+        playSfx('error');
+        if (window.showToast) window.showToast("Error deleting page: " + err.message, "error");
+    }
+};
+
+// ─── Repository File Management ───
+function formatBytes(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function renderRepoFilesTable() {
+    const tbody = document.getElementById('editor-repo-files-list');
+    const countEl = document.getElementById('repo-file-count');
+    if (!tbody || !activeEditingPage) return;
+
+    const files = activeEditingPage.files || [];
+    if (countEl) countEl.innerText = files.length;
+
+    if (files.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 24px;">No files added yet. Click "+ Upload File" or "+ New Text File".</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = files.map((file, idx) => `
+        <tr>
+            <td style="font-family: monospace; font-weight: 700; color: #fff;">
+                📄 ${escapeHtml(file.name)}
+            </td>
+            <td style="color: var(--text-secondary);">${formatBytes(file.size)}</td>
+            <td style="color: var(--text-secondary); font-size: 0.76rem;">${escapeHtml(file.type || 'file')}</td>
+            <td style="text-align: right;">
+                <button type="button" class="btn-secondary" onclick="window.downloadRepoFile(${idx})" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 600; width: auto; margin-right: 4px;">Download</button>
+                <button type="button" class="btn-danger" onclick="window.deleteRepoFile(${idx})" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 600; width: auto;">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.handleRepoFilesUpload = async function(fileList) {
+    if (!fileList || !activeEditingPage) return;
+
+    for (let i = 0; i < fileList.length; i++) {
+        const f = fileList[i];
+        const isText = f.type.startsWith('text/') || f.name.endsWith('.js') || f.name.endsWith('.json') || f.name.endsWith('.md') || f.name.endsWith('.html') || f.name.endsWith('.css');
+
+        let data = null;
+        if (isText && f.size < 500000) {
+            data = await f.text();
+        } else {
+            data = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(f);
+            });
+        }
+
+        const existingIdx = activeEditingPage.files.findIndex(item => item.name.toLowerCase() === f.name.toLowerCase());
+        const fileObj = {
+            name: f.name,
+            size: f.size,
+            type: f.type || 'application/octet-stream',
+            content: data,
+            lastModified: f.lastModified || Date.now()
+        };
+
+        if (existingIdx >= 0) {
+            activeEditingPage.files[existingIdx] = fileObj;
+        } else {
+            activeEditingPage.files.push(fileObj);
+        }
+    }
+
+    renderRepoFilesTable();
+    playSfx('success');
+    if (window.showToast) window.showToast(`✓ Added ${fileList.length} file(s) to repository.`, "success");
+};
+
+window.promptCreateNewTextFile = function() {
+    if (!activeEditingPage) return;
+    const name = prompt("Enter file name (e.g. index.js, config.json, LICENSE):");
+    if (!name || !name.trim()) return;
+
+    const trimmed = name.trim();
+    const existing = activeEditingPage.files.find(f => f.name.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+        alert("A file with this name already exists in the repository.");
+        return;
+    }
+
+    const defaultContent = trimmed.endsWith('.json') ? '{\n  "name": "project"\n}' : trimmed.endsWith('.md') ? `# ${trimmed}\n` : '// Code file\n';
+
+    activeEditingPage.files.push({
+        name: trimmed,
+        size: defaultContent.length,
+        type: 'text/plain',
+        content: defaultContent,
+        lastModified: Date.now()
+    });
+
+    renderRepoFilesTable();
+    playSfx('click');
+};
+
+window.deleteRepoFile = function(idx) {
+    if (!activeEditingPage || !activeEditingPage.files[idx]) return;
+    const fName = activeEditingPage.files[idx].name;
+    if (!confirm(`Delete "${fName}" from this repository?`)) return;
+
+    activeEditingPage.files.splice(idx, 1);
+    renderRepoFilesTable();
+    playSfx('click');
+};
+
+window.downloadRepoFile = function(idx) {
+    if (!activeEditingPage || !activeEditingPage.files[idx]) return;
+    const file = activeEditingPage.files[idx];
+
+    const a = document.createElement('a');
+    if (typeof file.content === 'string' && file.content.startsWith('data:')) {
+        a.href = file.content;
+    } else {
+        const blob = new Blob([file.content || ''], { type: file.type || 'text/plain' });
+        a.href = URL.createObjectURL(blob);
+    }
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+};
+
+// ─── Repository Releases Management ───
+function renderRepoReleasesList() {
+    const container = document.getElementById('editor-repo-releases-list');
+    const countEl = document.getElementById('repo-release-count');
+    if (!container || !activeEditingPage) return;
+
+    const releases = activeEditingPage.releases || [];
+    if (countEl) countEl.innerText = releases.length;
+
+    if (releases.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 18px; font-size: 0.84rem;">No releases published yet. Click "+ Draft Release".</div>`;
+        return;
+    }
+
+    container.innerHTML = releases.map((rel, idx) => `
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 14px 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-family: monospace; font-weight: 800; color: #4ade80; background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 6px; font-size: 0.82rem;">${escapeHtml(rel.tag)}</span>
+                    <span style="font-weight: 700; color: #fff; font-size: 0.92rem;">${escapeHtml(rel.title || rel.tag)}</span>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" class="btn-secondary" onclick="window.downloadReleaseAsset(${idx})" style="padding: 3px 10px; font-size: 0.74rem; font-weight: 600;">Download</button>
+                    <button type="button" class="btn-danger" onclick="window.deleteRepoRelease(${idx})" style="padding: 3px 10px; font-size: 0.74rem; font-weight: 600;">Delete</button>
+                </div>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px; white-space: pre-wrap; line-height: 1.4;">${escapeHtml(rel.notes || 'No changelog provided.')}</div>
+            <div style="font-size: 0.72rem; color: var(--crimson-light); font-family: monospace;">📦 Asset: ${escapeHtml(rel.assetName || (rel.tag + '.zip'))} (${formatBytes(rel.assetSize || 1024)})</div>
+        </div>
+    `).join('');
+}
+
+window.toggleNewReleaseForm = function(forceShow) {
+    const box = document.getElementById('editor-release-draft-box');
+    if (!box) return;
+    const isVisible = box.style.display !== 'none';
+    box.style.display = (forceShow !== undefined) ? (forceShow ? 'block' : 'none') : (isVisible ? 'none' : 'block');
+    playSfx('click');
+};
+
+window.commitNewRelease = function() {
+    if (!activeEditingPage) return;
+    const tag = document.getElementById('release-tag-input')?.value.trim();
+    const title = document.getElementById('release-title-input')?.value.trim();
+    const notes = document.getElementById('release-notes-input')?.value.trim();
+
+    if (!tag) {
+        alert("Version tag (e.g. v1.0.0) is required.");
+        return;
+    }
+
+    const releaseObj = {
+        tag: tag,
+        title: title || tag,
+        notes: notes || '',
+        assetName: `${activeEditingPage.slug}-${tag}.zip`,
+        assetSize: activeEditingPage.files.reduce((acc, f) => acc + (f.size || 0), 0) || 2048,
+        createdAt: Date.now()
+    };
+
+    activeEditingPage.releases.unshift(releaseObj);
+
+    document.getElementById('release-tag-input').value = '';
+    document.getElementById('release-title-input').value = '';
+    document.getElementById('release-notes-input').value = '';
+    window.toggleNewReleaseForm(false);
+
+    renderRepoReleasesList();
+    playSfx('success');
+    if (window.showToast) window.showToast(`✓ Release ${tag} drafted! Remember to click "Save & Deploy".`, "info");
+};
+
+window.deleteRepoRelease = function(idx) {
+    if (!activeEditingPage || !activeEditingPage.releases[idx]) return;
+    activeEditingPage.releases.splice(idx, 1);
+    renderRepoReleasesList();
+    playSfx('click');
+};
+
+window.downloadReleaseAsset = function(idx) {
+    if (!activeEditingPage || !activeEditingPage.releases[idx]) return;
+    const rel = activeEditingPage.releases[idx];
+
+    // Combine current repository files into manifest for download
+    const bundle = {
+        repository: activeEditingPage.title,
+        version: rel.tag,
+        changelog: rel.notes,
+        files: activeEditingPage.files.map(f => ({ name: f.name, size: f.size, type: f.type, content: f.content }))
+    };
+
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${activeEditingPage.slug}-${rel.tag}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+};
+
+// ─── Pure HTML Sandbox Live Preview ───
+window.updatePureHtmlPreview = function() {
+    const code = document.getElementById('editor-pure-html-code')?.value || '';
+    const iframe = document.getElementById('editor-pure-html-preview');
+    if (!iframe) return;
+
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(code);
+    doc.close();
+};
+
