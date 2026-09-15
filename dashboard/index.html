@@ -43,7 +43,7 @@
     
 
 
-    <main class="dash-main" style="max-width: 1680px; width: 100%; margin: 0 auto; padding: 28px 32px 60px; box-sizing: border-box;">
+    <main class="dash-main" style="max-width: 100%; width: 100%; margin: 0 auto; padding: 20px 28px 60px; box-sizing: border-box;">
         
         <!-- Login View -->
         <div id="login-container" class="dash-card" style="max-width: 460px; margin: 40px auto;">
@@ -107,9 +107,14 @@
                     </div>
                 </div>
                 <div class="dash-header-right">
-                    <button type="button" class="btn-primary btn-aero-primary" onclick="toggleSettingsStudio(true)" style="padding: 8px 20px; font-size: 0.85rem; font-weight: 800;">
-                        ⚙️ Settings Studio
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="/pages/" class="btn-secondary" style="padding: 8px 18px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: #f97316; border-color: rgba(249, 115, 22, 0.4);">
+                            📑 Pages Hub
+                        </a>
+                        <button type="button" class="btn-primary btn-aero-primary" onclick="toggleSettingsStudio(true)" style="padding: 8px 20px; font-size: 0.85rem; font-weight: 800;">
+                            ⚙️ Settings Studio
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -177,6 +182,7 @@
                         </div>
                         <div id="hero-current-game-container" style="display: none;"></div>
                         <div id="cim-profile-bio" class="dash-profile-bio-text cim-profile-bio">The developer behind it all 👓</div>
+                        <div id="hero-achievements-container" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;"></div>
                         <div id="cim-profile-socials" class="cim-profile-socials"></div>
                     </div>
                     <div class="dash-hero-stats-col">
@@ -200,10 +206,10 @@
                 </div>
             </div>
 
-            <!-- 2. TWO-COLUMN BALANCED WORKSPACE GRID -->
+            <!-- 2. WIDE BALANCED 2-COLUMN WORKSPACE GRID (FULL AREA) -->
             <div class="dash-workspace-grid">
                 
-                <!-- LEFT COLUMN: Social & Friends Hub -->
+                <!-- LEFT COLUMN: Social & Friends Hub + DoorAuth Apps -->
                 <div class="dash-col-social">
                     <div class="dash-card dash-friends-hub-card">
                         <div class="dash-card-header">
@@ -220,7 +226,7 @@
                             </div>
                         </div>
 
-                        <!-- Add Friend Input Action Group (NEVER OVERLAPS!) -->
+                        <!-- Add Friend Input Action Group -->
                         <div class="dash-add-friend-wrapper">
                             <form onsubmit="sendFriendRequestByUsername(event)" class="input-action-group dash-friends-search-row">
                                 <input type="text" id="friend-search-input" placeholder="Add @username..." required autocomplete="off" class="friends-search-input">
@@ -251,63 +257,57 @@
                         <!-- Hidden compatibility element -->
                         <div id="active-friends-list" style="display: none;"></div>
                     </div>
-                </div>
 
-                <!-- CENTER COLUMN: CrimX Pages Hub -->
-                <div class="dash-col-pages">
-                    <div class="dash-card dash-pages-hub-card" id="dash-pages-hub">
-                        <div class="dash-card-header">
-                            <div class="dash-card-title-wrap">
-                                <span class="card-icon-badge" style="background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.3);">📑</span>
-                                <div>
-                                    <h3 class="dash-card-title">CrimX Pages</h3>
-                                    <span class="dash-card-subtitle">Personal Sites & Repositories</span>
+                    <!-- DoorAuth Linked Apps Card -->
+                    <div class="dash-card dash-doorauth-card" id="dash-doorauth-block">
+                        <div class="doorauth-header">
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="doorauth-icon-badge">🚪</div>
+                                    <div>
+                                        <h3 class="doorauth-title">Linked Apps</h3>
+                                        <span style="font-size: 0.74rem; color: var(--text-secondary);">CrimX Connected Apps</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span id="dash-pages-count-tag" class="cim-count-tag" style="background: rgba(249, 115, 22, 0.15); color: #f97316; border-color: rgba(249, 115, 22, 0.3);">0 Live</span>
-                                <button type="button" class="btn-primary btn-action-pill" onclick="window.openNewPageModal()" style="height: 34px; padding: 0 14px; font-size: 0.8rem; font-weight: 700;">
-                                    + New Page
-                                </button>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span id="doorauth-count-badge" class="doorauth-count-tag">0 Apps</span>
+                                    <a href="/developer" class="doorauth-dev-link" title="Open CF Dev Panel">
+                                        <span>Dev Hub</span>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Primary "Me Page" Banner Card -->
-                        <div class="dash-pages-me-banner-card">
-                            <div style="display: flex; align-items: center; gap: 14px;">
-                                <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #f97316, #ef4444); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);">
-                                    👤
-                                </div>
-                                <div>
-                                    <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">Your "Me Page"</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-secondary); font-family: monospace;" id="dash-me-page-url">crimx.crimsonflame.net/@user</div>
-                                </div>
+                        <div class="doorauth-body" style="margin-top: 12px;">
+                            <div class="doorauth-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+                                Manage third-party games, services, and developer access linked to your CrimX account.
                             </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button type="button" class="btn-secondary" onclick="window.editPageById('me')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 600;">
-                                    ✏️ Edit
-                                </button>
-                                <button type="button" class="btn-primary" onclick="window.openLivePage('me')" style="padding: 6px 14px; font-size: 0.78rem; font-weight: 600;">
-                                    Open ↗
-                                </button>
-                            </div>
-                        </div>
 
-                        <!-- Your Repositories & Pages Header -->
-                        <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-                            Repositories & Custom Pages
-                        </div>
-
-                        <!-- Repositories List Container -->
-                        <div id="dash-pages-list-container" style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 200px;">
-                            <div style="text-align: center; color: var(--text-secondary); padding: 36px 16px; font-size: 0.84rem;">
-                                Loading your pages...
+                            <div id="doorauth-apps-list" class="doorauth-apps-list">
+                                <div class="doorauth-empty-state">
+                                    <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
+                                        Use "Sign in with CrimX" on supported apps or link with a code below.
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- Quick Connect Form with Input Action Group -->
+                            <form onsubmit="connectDoorAuthCode(event)" class="input-action-group doorauth-connect-form" style="margin-top: 14px;">
+                                <input type="text" id="doorauth-code-input" placeholder="Enter App Link Code..." autocomplete="off" class="doorauth-connect-input">
+                                <button type="submit" class="btn-primary btn-action-pill">
+                                    + Link App
+                                </button>
+                            </form>
+                            <div id="doorauth-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 8px;"></div>
                         </div>
                     </div>
+
                 </div>
 
-                <!-- RIGHT COLUMN: CIM Instant Messager & DoorAuth Hub -->
+                <!-- RIGHT COLUMN: CIM Instant Messager (Expansive Full Width) -->
                 <div class="dash-col-main">
                     
                     <!-- CIM Instant Messager Card -->
@@ -369,61 +369,32 @@
                                 <div id="cim-messages-list" style="display: none; flex-direction: column; gap: 10px;"></div>
                             </div>
 
-                            <form id="cim-input-form" onsubmit="sendCIMMessage(event)" class="cim-input-form" style="display: none;">
-                                <input type="text" id="cim-message-input" placeholder="Type an instant message..." autocomplete="off" maxlength="1000" class="cim-input-field">
-                                <button type="submit" class="cim-send-btn" title="Send message (Enter)">
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                                    </svg>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- DoorAuth Linked Apps Card -->
-                    <div class="dash-card dash-doorauth-card" id="dash-doorauth-block">
-                        <div class="doorauth-header">
-                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="doorauth-icon-badge">🚪</div>
-                                    <div>
-                                        <h3 class="doorauth-title">Linked Apps</h3>
-                                        <span style="font-size: 0.74rem; color: var(--text-secondary);">CrimX Linked Apps</span>
+                            <form id="cim-input-form" onsubmit="sendCIMMessage(event)" class="cim-input-form" style="display: none; flex-direction: column; gap: 6px;">
+                                <!-- Attachment Staging Preview Chip -->
+                                <div id="cim-media-staging-chip" class="cim-media-staging" style="display: none;">
+                                    <img id="cim-staging-img" class="cim-staging-thumb" src="" alt="Screenshot preview">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: 0.78rem; font-weight: 700; color: #fff;">Attached Screenshot</div>
+                                        <div id="cim-staging-name" style="font-size: 0.7rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">image.png</div>
                                     </div>
+                                    <button type="button" onclick="window.removeCIMMediaStaging()" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1;" title="Remove attachment">✕</button>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span id="doorauth-count-badge" class="doorauth-count-tag">0 Apps</span>
-                                    <a href="/developer" class="doorauth-dev-link" title="Open CF Dev Panel">
-                                        <span>Dev Hub</span>
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                    </a>
+
+                                <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                                    <button type="button" class="cim-media-btn" onclick="document.getElementById('cim-media-input').click()" title="Attach Screenshot or Image (or paste Ctrl+V)">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                        </svg>
+                                    </button>
+                                    <input type="file" id="cim-media-input" accept="image/*" style="display: none;" onchange="window.handleCIMMediaSelect(event)">
+                                    <input type="text" id="cim-message-input" placeholder="Type a message or paste a screenshot..." autocomplete="off" maxlength="1000" class="cim-input-field" style="flex: 1;">
+                                    <button type="submit" class="cim-send-btn" title="Send message (Enter)">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                        </svg>
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="doorauth-body" style="margin-top: 12px;">
-                            <div class="doorauth-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
-                                Manage third-party games, services, and developer access linked to your CrimX account.
-                            </div>
-
-                            <div id="doorauth-apps-list" class="doorauth-apps-list">
-                                <div class="doorauth-empty-state">
-                                    <div style="font-size: 1.6rem; margin-bottom: 4px;">🔗</div>
-                                    <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">No External Apps Linked</div>
-                                    <div style="color: var(--text-secondary); font-size: 0.76rem; line-height: 1.4;">
-                                        Use "Sign in with CrimX" on supported apps or link with a code below.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Quick Connect Form with Input Action Group (NEVER OVERLAPS!) -->
-                            <form onsubmit="connectDoorAuthCode(event)" class="input-action-group doorauth-connect-form" style="margin-top: 14px;">
-                                <input type="text" id="doorauth-code-input" placeholder="Enter App Link Code..." autocomplete="off" class="doorauth-connect-input">
-                                <button type="submit" class="btn-primary btn-action-pill">
-                                    + Link App
-                                </button>
                             </form>
-                            <div id="doorauth-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; margin-top: 8px;"></div>
                         </div>
                     </div>
 
@@ -1115,6 +1086,12 @@
                                     <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Pure HTML</div>
                                     <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">Unrestricted HTML/CSS/JS sandbox. Write raw frontend code directly.</div>
                                 </div>
+
+                                <div class="template-choice-card" id="tpl-card-game" onclick="selectTemplateChoice('game')">
+                                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🎮</div>
+                                    <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Playable Game</div>
+                                    <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">In-browser HTML5/WebGL game launcher with fullscreen mode, controls guide & cover banner.</div>
+                                </div>
                             </div>
                             <input type="hidden" id="new-page-template" value="repo">
                         </div>
@@ -1144,6 +1121,8 @@
                                 <h2 id="editor-page-title-display" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0;">Repository Editor</h2>
                                 <span id="editor-page-template-badge" class="dash-profile-badge">📦 REPOSITORY</span>
                                 <span id="editor-page-status-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3);">● Live</span>
+                                <span id="editor-page-views-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3);">👁️ 0 views</span>
+                                <span id="editor-page-stars-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(245,158,11,0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3);">⭐ 0 stars</span>
                             </div>
                             <a id="editor-page-url-link" href="#" target="_blank" style="font-family: monospace; font-size: 0.78rem; color: #f97316; text-decoration: none; margin-top: 2px; display: inline-block;">crimx.crimsonflame.net/@user/page</a>
                         </div>
@@ -1326,6 +1305,73 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- TEMPLATE 4: PLAYABLE GAME EDITOR PANE -->
+                    <div id="editor-pane-game" style="display: none; flex-direction: column; gap: 20px;">
+                        <div class="settings-section-block">
+                            <div class="settings-section-title">
+                                <span>🎮 Game Configuration & Controls</span>
+                            </div>
+                            <div class="form-group-row">
+                                <div>
+                                    <label class="form-label">Genre & Category Tags</label>
+                                    <input type="text" id="game-tags-input" class="settings-input" placeholder="e.g. Arcade, WebGL, Retro, Action">
+                                </div>
+                                <div>
+                                    <label class="form-label">Player Aspect Ratio</label>
+                                    <select id="game-ratio-input" class="settings-input">
+                                        <option value="aspect-16-9">16:9 Widescreen (Recommended)</option>
+                                        <option value="aspect-4-3">4:3 Classic Retro</option>
+                                        <option value="responsive">Responsive Flexible Fit</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group-row">
+                                <div>
+                                    <label class="form-label">Cover Banner URL</label>
+                                    <input type="url" id="game-cover-url-input" class="settings-input" placeholder="https://... cover image for launch splash">
+                                </div>
+                                <div>
+                                    <label class="form-label">Version / Build Tag</label>
+                                    <input type="text" id="game-version-input" class="settings-input" placeholder="v1.0.0" style="font-family: monospace;">
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <label class="form-label">Game Controls Mapping (One per line: Key | Action)</label>
+                                <textarea id="game-controls-input" class="settings-textarea" rows="3" placeholder="WASD / Arrows | Move Character&#10;Spacebar | Jump / Action&#10;Esc | Pause Game"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Game Instructions & Description</label>
+                                <textarea id="game-desc-input" class="settings-textarea" rows="3" placeholder="Explain the objective, gameplay tips, and lore..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Game Source Code -->
+                        <div class="settings-section-block">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div class="settings-section-title" style="margin-bottom: 0;">
+                                    <span>🕹️ HTML5 / Canvas Game Source Code</span>
+                                </div>
+                                <button type="button" class="btn-secondary" onclick="window.testGamePreview()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                    ▶ Test In Sandbox
+                                </button>
+                            </div>
+                            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 8px;">
+                                Write or paste your complete self-contained HTML5/Canvas game code.
+                            </div>
+                            <textarea id="game-code-input" class="settings-textarea" rows="14" style="font-family: monospace; font-size: 0.84rem; background: #060205; border-color: rgba(255,255,255,0.12);"></textarea>
+                        </div>
+
+                        <!-- Live Game Test Frame -->
+                        <div class="settings-section-block">
+                            <div class="settings-section-title">
+                                <span>● Live Game Test Sandbox</span>
+                            </div>
+                            <div style="border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); background: #000; height: 380px;">
+                                <iframe id="game-test-iframe" style="width: 100%; height: 100%; border: none; background: #000;"></iframe>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1342,6 +1388,11 @@
                 <button onclick="document.getElementById('custom-alert').classList.remove('active')" class="custom-modal-btn confirm" style="width: 100%;">OK</button>
             </div>
         </div>
+    </div>
+
+    <!-- CIM Screenshot & Media Lightbox Modal -->
+    <div id="cim-lightbox-modal" class="cim-lightbox-modal" onclick="window.closeCIMLightbox()">
+        <img id="cim-lightbox-img" class="cim-lightbox-img" src="" alt="Fullscreen Screenshot">
     </div>
 
     <footer class="site-footer">

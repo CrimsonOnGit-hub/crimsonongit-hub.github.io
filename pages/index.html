@@ -427,46 +427,139 @@
         </p>
         <p class="pages-404-subtext">This is a placeholder.</p>
         <p class="pages-404-subtext">Please check your CrimX Page Status, it may still be loading.</p>
-        <a href="/dashboard" class="pages-404-btn">Pages</a>
+        <a href="/pages/" class="pages-404-btn">Pages</a>
     </div>
 
-    <!-- ── 2. REAL-TIME BUILD & DEPLOYMENT STATUS VIEW ── -->
+    <!-- ── 2. REAL-TIME LIVE DEPLOYMENT INSPECTOR (NO FAKE SIMULATOR) ── -->
     <div id="pages-view-build" class="pages-container" style="display: none;">
         <div class="pages-build-wrap">
-            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
-                <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" style="width: 36px; height: 36px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <img src="https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png" alt="CF" style="width: 40px; height: 40px;">
+                    <div>
+                        <h2 style="font-family: 'Outfit', sans-serif; margin: 0; color: #fff; font-size: 1.4rem;">Deployment Status</h2>
+                        <div style="font-size: 0.84rem; color: var(--page-text-muted); font-family: monospace;" id="build-target-url">crimx.crimsonflame.net/...</div>
+                    </div>
+                </div>
+                <div id="deploy-live-badge" style="padding: 6px 14px; border-radius: 9999px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: #4ade80; font-size: 0.82rem; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
+                    LIVE ON WEB
+                </div>
+            </div>
+
+            <!-- Real Live Deployment Details Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 0.72rem; color: var(--page-text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Template Architecture</div>
+                    <div id="deploy-template-name" style="font-weight: 800; color: #fff; font-size: 1.05rem;">Repository</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 0.72rem; color: var(--page-text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Last Deployed</div>
+                    <div id="deploy-timestamp" style="font-weight: 800; color: #fff; font-size: 1.05rem;">Just now</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 0.72rem; color: var(--page-text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Atomic Page Views</div>
+                    <div id="deploy-views-count" style="font-weight: 800; color: #f97316; font-size: 1.05rem;">0 views</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 0.72rem; color: var(--page-text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Community Stars</div>
+                    <div id="deploy-stars-count" style="font-weight: 800; color: #eab308; font-size: 1.05rem;">⭐ 0</div>
+                </div>
+            </div>
+
+            <!-- Health Check Feedback Box -->
+            <div id="deploy-health-feedback" style="display: none; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 0.88rem; font-weight: 600;"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <a href="/pages/" class="dev-btn-secondary" style="text-decoration: none; padding: 10px 18px; font-size: 0.88rem; border-radius: 9px; display: inline-flex; align-items: center; gap: 6px;">
+                    ← Pages Hub
+                </a>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="dev-btn-secondary" onclick="window.verifyLiveDeploymentHealth()" style="padding: 10px 18px; font-size: 0.88rem; border-radius: 9px; cursor: pointer;">
+                        🔍 Verify Live Response
+                    </button>
+                    <a id="btn-visit-built-page" href="#" class="dev-btn-primary" style="text-decoration: none; padding: 10px 22px; font-size: 0.88rem; border-radius: 9px; display: inline-flex; align-items: center; gap: 6px;">
+                        Open Page ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 2B. DEDICATED CRIMX PAGES HUB VIEW (WHEN NO SLUG/USER SPECIFIED) ── -->
+    <div id="pages-view-hub" class="pages-container" style="display: none; max-width: 1200px; margin: 0 auto; padding: 24px 20px 80px;">
+        <!-- Top Navigation Header Bar -->
+        <header style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; padding: 14px 24px; background: rgba(18, 9, 14, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9999px; backdrop-filter: blur(16px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <a href="/dashboard/" class="crimx-back-btn" style="text-decoration: none;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 9999px; font-family: 'Outfit', sans-serif; font-size: 0.92rem; font-weight: 800; color: #ffffff;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #f97316; box-shadow: 0 0 8px #f97316;"></span>
+                    <span>CrimX Pages Hub</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button type="button" class="btn-primary" onclick="window.openNewPageModal()" style="padding: 8px 22px; font-size: 0.86rem; font-weight: 800; border-radius: 9999px;">
+                    + New Page
+                </button>
+            </div>
+        </header>
+
+        <!-- Primary "Me Page" Banner Card -->
+        <div class="dash-pages-me-banner-card" style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.22) 0%, rgba(249, 115, 22, 0.15) 100%); border: 1px solid rgba(249, 115, 22, 0.35); border-radius: 18px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #f97316, #ef4444); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);">
+                    👤
+                </div>
                 <div>
-                    <h2 style="font-family: 'Outfit', sans-serif; margin: 0; color: #fff; font-size: 1.4rem;">Deploying CrimX Page</h2>
-                    <div style="font-size: 0.84rem; color: var(--page-text-muted);" id="build-target-url">crimx.crimsonflame.net/...</div>
+                    <div style="font-weight: 800; color: #fff; font-size: 1.15rem; font-family: 'Outfit', sans-serif;">Your Personal "Me Page"</div>
+                    <div style="font-size: 0.82rem; color: #cbd5e1; font-family: monospace;" id="hub-me-page-url">crimx.crimsonflame.net/@user</div>
                 </div>
             </div>
-
-            <div class="build-progress-bar">
-                <div class="build-progress-fill" id="build-progress-bar-fill"></div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-secondary" onclick="window.editPageById('me')" style="padding: 8px 18px; font-size: 0.82rem; font-weight: 700;">
+                    ✏️ Edit Profile Page
+                </button>
+                <button type="button" class="btn-primary" onclick="window.openLivePage('me')" style="padding: 8px 20px; font-size: 0.82rem; font-weight: 700;">
+                    Open Live ↗
+                </button>
             </div>
+        </div>
 
-            <div id="build-steps-list">
-                <div class="build-step-item" id="bstep-1">
-                    <span>📦</span>
-                    <span>Packaging page metadata and content...</span>
-                </div>
-                <div class="build-step-item" id="bstep-2">
-                    <span>🛡️</span>
-                    <span>Validating sandbox structure & link integrity...</span>
-                </div>
-                <div class="build-step-item" id="bstep-3">
-                    <span>🚀</span>
-                    <span>Publishing to CrimX Pages route...</span>
-                </div>
-                <div class="build-step-item" id="bstep-4">
-                    <span>✅</span>
-                    <span>Page live and accessible worldwide!</span>
+        <!-- Navigation Tabs: My Pages vs Explore Community -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+            <button type="button" class="btn-secondary active" id="hub-tab-mypages" onclick="window.switchHubTab('mypages')" style="padding: 8px 20px; font-size: 0.86rem; font-weight: 700;">
+                📑 My Repositories & Pages (<span id="hub-mypages-count">0</span>)
+            </button>
+            <button type="button" class="btn-secondary" id="hub-tab-explore" onclick="window.switchHubTab('explore')" style="padding: 8px 20px; font-size: 0.86rem; font-weight: 700; color: #f97316;">
+                🌟 Explore Community Creations
+            </button>
+        </div>
+
+        <!-- Section 1: My Pages & Repositories -->
+        <div id="hub-section-mypages">
+            <div id="hub-pages-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="text-align: center; color: var(--page-text-muted); padding: 40px; font-size: 0.9rem;">
+                    Loading your CrimX pages...
                 </div>
             </div>
+        </div>
 
-            <div style="margin-top: 28px; display: flex; justify-content: flex-end; gap: 12px;">
-                <a href="/dashboard" class="dev-btn-secondary" style="text-decoration: none; padding: 10px 18px; font-size: 0.88rem; border-radius: 9px; display: inline-block;">Back to Dashboard</a>
-                <a id="btn-visit-built-page" href="#" class="dev-btn-primary" style="display: none; text-decoration: none; padding: 10px 20px; font-size: 0.88rem; border-radius: 9px;">Visit Page ↗</a>
+        <!-- Section 2: Explore Community Creations -->
+        <div id="hub-section-explore" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span style="font-size: 0.84rem; color: var(--page-text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Trending Community Sites, Games & Repos</span>
+                <button type="button" onclick="window.loadHubCommunityPages()" style="background: none; border: none; color: #f97316; font-size: 0.82rem; cursor: pointer; font-weight: 700;">🔄 Refresh List</button>
+            </div>
+            <div id="hub-explore-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="text-align: center; color: var(--page-text-muted); padding: 40px; font-size: 0.9rem;">
+                    Discovering community creations...
+                </div>
             </div>
         </div>
     </div>
@@ -483,7 +576,10 @@
                         <span class="repo-name-text" id="repo-name-text">repository</span>
                         <span class="repo-badge">Public</span>
                     </div>
-                    <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" id="repo-star-btn" class="page-star-btn" onclick="window.toggleStarActivePage()">
+                            ⭐ Star <span id="repo-star-count">0</span>
+                        </button>
                         <a id="repo-clone-btn" href="#" class="repo-btn-download" style="padding: 6px 14px; font-size: 0.84rem; background: #238636; border-color: #2ea043; color: #fff; font-weight: 600;">
                             ⬇ Download Archive
                         </a>
@@ -505,7 +601,7 @@
             </nav>
 
             <div class="repo-body-content">
-                <!-- CODE TAB: Files Table -->
+                <!-- CODE TAB: Files Table & README Viewer -->
                 <div id="repo-pane-code">
                     <table class="repo-files-table">
                         <thead>
@@ -523,6 +619,18 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <!-- GitHub-Style README Viewer -->
+                    <div id="repo-readme-container" class="repo-readme-box" style="display: none;">
+                        <div class="repo-readme-header">
+                            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.88rem; color: #fff;">
+                                <span>📖</span>
+                                <span id="repo-readme-filename">README.md</span>
+                            </div>
+                            <button type="button" class="code-copy-btn" style="position: static;" onclick="window.copyReadmeRaw()">Copy raw</button>
+                        </div>
+                        <div id="repo-readme-body" class="repo-readme-body"></div>
+                    </div>
                 </div>
 
                 <!-- RELEASES TAB: Releases Feed -->
@@ -538,15 +646,23 @@
     <!-- ── 4. ME PAGE VIEW (PROFILE SHOWCASE) ── -->
     <div id="pages-view-me" class="pages-container" style="display: none;">
         <div class="me-page-wrap">
-            <img id="me-page-banner" class="me-banner" src="" alt="Banner">
+            <div id="me-page-banner" class="me-banner" style="background-size: cover; background-position: center; border-radius: 20px; height: 240px; border: 1px solid var(--page-border);"></div>
             <div class="me-profile-card">
                 <div class="me-avatar-row">
                     <img id="me-page-avatar" class="me-avatar" src="" alt="Avatar">
                     <div id="me-page-user-number" class="me-user-badge">Member #1</div>
                 </div>
-                <h1 id="me-page-display-name" style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0 0 4px 0;">User</h1>
-                <div id="me-page-handle" style="font-size: 0.9rem; color: var(--page-text-muted); font-family: monospace; margin-bottom: 16px;">@username</div>
-                <p id="me-page-bio" style="font-size: 1rem; color: var(--page-text-main); line-height: 1.6; margin-bottom: 24px;">Bio text</p>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <h1 id="me-page-display-name" style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">User</h1>
+                    <span id="me-page-presence" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 3px 12px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.1);"></span>
+                </div>
+                <div id="me-page-handle" style="font-size: 0.9rem; color: var(--page-text-muted); font-family: monospace; margin: 4px 0 12px 0;">@username</div>
+                <div id="me-page-headline" style="font-size: 1.15rem; font-weight: 700; color: #f97316; margin-bottom: 10px;"></div>
+                <div id="me-page-achievements-container" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;"></div>
+                <p id="me-page-bio" style="font-size: 1rem; color: var(--page-text-main); line-height: 1.6; margin-bottom: 24px; white-space: pre-wrap;">Bio text</p>
+
+                <!-- Custom links list -->
+                <div id="me-page-links-container" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;"></div>
 
                 <!-- Custom showcase sections -->
                 <div id="me-page-sections" style="display: flex; flex-direction: column; gap: 16px;"></div>
@@ -557,6 +673,394 @@
     <!-- ── 5. PURE HTML CUSTOM PAGE VIEW ── -->
     <div id="pages-view-html" style="display: none; min-height: 100vh;">
         <iframe id="pages-html-frame" sandbox="allow-scripts allow-popups allow-forms" style="width: 100%; height: 100vh; border: none;"></iframe>
+    </div>
+
+    <!-- ── 6. PLAYABLE GAME LAUNCHER VIEW ── -->
+    <div id="pages-view-game" class="pages-container" style="display: none;">
+        <div class="game-view-container">
+            <!-- Game Header Card -->
+            <div class="game-hero-header">
+                <div class="game-title-group">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px;">
+                        <span style="font-size: 1.8rem;">🎮</span>
+                        <h1 id="game-title-display">Game Title</h1>
+                        <span id="game-version-badge" class="game-tag-chip" style="background: rgba(34,197,94,0.15); color: #4ade80; border-color: rgba(34,197,94,0.35);">v1.0.0</span>
+                    </div>
+                    <div style="font-size: 0.88rem; color: var(--page-text-muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span>Created by <a id="game-author-link" href="#" style="color: #f97316; text-decoration: none; font-weight: 700;">@username</a></span>
+                        <span>·</span>
+                        <span id="game-views-text">👁️ 0 plays</span>
+                    </div>
+                    <div class="game-tags-row" id="game-tags-container" style="margin-top: 10px;"></div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="game-star-btn" class="page-star-btn" onclick="window.toggleStarActivePage()">
+                        ⭐ Star <span id="game-star-count">0</span>
+                    </button>
+                    <a id="game-download-btn" href="#" class="repo-btn-download" style="display: none; padding: 8px 16px; font-size: 0.84rem; background: #238636; border-color: #2ea043; color: #fff; font-weight: 600;">
+                        ⬇ Download Build
+                    </a>
+                </div>
+            </div>
+
+            <!-- Interactive Game Player -->
+            <div class="game-player-card">
+                <div id="game-canvas-wrapper" class="game-canvas-wrap aspect-16-9">
+                    <!-- Splash Screen Cover with Launch Button -->
+                    <div id="game-splash-cover" class="game-splash-cover">
+                        <div class="game-splash-overlay"></div>
+                        <button type="button" class="btn-launch-game" onclick="window.launchGameSession()">
+                            <span>▶ Launch Game</span>
+                        </button>
+                        <div style="position: relative; z-index: 6; color: rgba(255,255,255,0.7); font-size: 0.85rem; font-weight: 600;">
+                            Click to play directly in browser
+                        </div>
+                    </div>
+
+                    <!-- Game Canvas Iframe -->
+                    <iframe id="game-frame" class="game-iframe-player" sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"></iframe>
+                </div>
+
+                <!-- Game Toolbar -->
+                <div class="game-player-toolbar">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button type="button" class="game-tool-btn" onclick="window.restartGameSession()" title="Restart Game">
+                            🔄 Restart
+                        </button>
+                        <button type="button" class="game-tool-btn" onclick="window.toggleGameSound()" id="btn-game-sound" title="Toggle Sound">
+                            🔊 Sound On
+                        </button>
+                    </div>
+                    <div>
+                        <button type="button" class="game-tool-btn" onclick="window.toggleGameFullscreen()" title="Toggle Fullscreen (F)">
+                            ⛶ Fullscreen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls & Game Information Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+                <!-- Controls Guide -->
+                <div style="background: var(--page-card-bg); border: 1px solid var(--page-border); border-radius: 18px; padding: 24px;">
+                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: #fff; margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px;">
+                        <span>🕹️</span> How to Play / Controls
+                    </h3>
+                    <div id="game-controls-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
+
+                <!-- About / Story -->
+                <div style="background: var(--page-card-bg); border: 1px solid var(--page-border); border-radius: 18px; padding: 24px;">
+                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: #fff; margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px;">
+                        <span>📖</span> About this Game
+                    </h3>
+                    <div id="game-desc-display" style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE NEW CRIMX PAGE -->
+    <div id="modal-new-page" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 640px; width: 95%; text-align: left; padding: 28px; background: rgba(18, 10, 16, 0.95); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+            <div class="custom-modal-content">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                    <div>
+                        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.45rem; font-weight: 800; color: #fff; margin: 0 0 4px;">Create New CrimX Page</h3>
+                        <p style="font-size: 0.82rem; color: var(--page-text-muted); margin: 0;">Launch a custom user page hosted directly under crimx.crimsonflame.net</p>
+                    </div>
+                    <button type="button" onclick="closeNewPageModal()" style="background: none; border: none; color: var(--page-text-muted); font-size: 1.3rem; cursor: pointer; padding: 4px; line-height: 1;">✕</button>
+                </div>
+
+                <form onsubmit="handleCreatePageSubmit(event)">
+                    <div style="margin-bottom: 14px;">
+                        <label style="margin-bottom: 6px; display: block; font-size: 0.8rem; font-weight: 700; color: #fff;">Page Title</label>
+                        <input type="text" id="new-page-title" class="settings-input" placeholder="e.g. Retro Space Odyssey or Mod Hub" required maxlength="64" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); padding: 10px 14px; border-radius: 10px; color: #fff; font-family: inherit;">
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="margin-bottom: 6px; display: block; font-size: 0.8rem; font-weight: 700; color: #fff;">Page URL Slug</label>
+                        <div style="display: flex; align-items: center; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; padding-left: 12px;">
+                            <span style="font-family: monospace; font-size: 0.82rem; color: var(--page-text-muted);" id="new-page-url-prefix">crimx.crimsonflame.net/@user/</span>
+                            <input type="text" id="new-page-slug" class="settings-input" placeholder="my-page" required maxlength="32" style="border: none; background: transparent; padding: 10px 8px; font-family: monospace; color: #fff; flex: 1;" oninput="sanitizeSlugInput(this)">
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--page-text-muted); margin-top: 4px;">Lowercase letters, numbers, and dashes. Use "me" for your root profile page.</div>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="margin-bottom: 8px; display: block; font-size: 0.8rem; font-weight: 700; color: #fff;">Choose Template</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                            <div class="template-choice-card active" id="tpl-card-repo" onclick="selectTemplateChoice('repo')">
+                                <div style="font-size: 1.5rem; margin-bottom: 6px;">📦</div>
+                                <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Repository</div>
+                                <div style="font-size: 0.74rem; color: var(--page-text-muted); line-height: 1.35;">Code files table with upload/download, releases manager & README.md parser.</div>
+                            </div>
+
+                            <div class="template-choice-card" id="tpl-card-game" onclick="selectTemplateChoice('game')">
+                                <div style="font-size: 1.5rem; margin-bottom: 6px;">🎮</div>
+                                <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Playable Game</div>
+                                <div style="font-size: 0.74rem; color: var(--page-text-muted); line-height: 1.35;">HTML5/Canvas game launcher with fullscreen player & controls guide.</div>
+                            </div>
+
+                            <div class="template-choice-card" id="tpl-card-html" onclick="selectTemplateChoice('html')">
+                                <div style="font-size: 1.5rem; margin-bottom: 6px;">⚡</div>
+                                <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Pure HTML</div>
+                                <div style="font-size: 0.74rem; color: var(--page-text-muted); line-height: 1.35;">Unrestricted HTML/CSS/JS sandbox. Write raw frontend code directly.</div>
+                            </div>
+
+                            <div class="template-choice-card" id="tpl-card-me" onclick="selectTemplateChoice('me')">
+                                <div style="font-size: 1.5rem; margin-bottom: 6px;">👤</div>
+                                <div style="font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 4px;">Me Page</div>
+                                <div style="font-size: 0.74rem; color: var(--page-text-muted); line-height: 1.35;">Custom gamer profile showcase with banners, status, bio & creation links.</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="new-page-template" value="repo">
+                    </div>
+
+                    <div style="margin-bottom: 18px;">
+                        <label style="margin-bottom: 6px; display: block; font-size: 0.8rem; font-weight: 700; color: #fff;">Short Description (Optional)</label>
+                        <input type="text" id="new-page-desc" class="settings-input" placeholder="Brief summary of this repository or page..." maxlength="120" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); padding: 10px 14px; border-radius: 10px; color: #fff; font-family: inherit;">
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+                        <button type="button" class="btn-secondary" onclick="closeNewPageModal()" style="padding: 8px 18px; font-size: 0.85rem;">Cancel</button>
+                        <button type="submit" class="btn-primary" id="btn-create-page-submit" style="padding: 8px 24px; font-size: 0.85rem; font-weight: 700;">Create Page</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CRIMX PAGE STUDIO EDITOR -->
+    <div id="modal-page-editor" class="page-editor-studio-modal">
+        <div class="page-editor-studio-inner" style="max-width: 1050px; width: 95%; max-height: 90vh; overflow-y: auto; background: rgba(18, 10, 16, 0.96); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 24px; box-shadow: 0 24px 70px rgba(0,0,0,0.85);">
+            <!-- Editor Header -->
+            <div class="page-editor-header" style="display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <h2 id="editor-page-title-display" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0;">Repository Editor</h2>
+                        <span id="editor-page-template-badge" class="dash-profile-badge">📦 REPOSITORY</span>
+                        <span id="editor-page-status-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3);">● Live</span>
+                        <span id="editor-page-views-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3);">👁️ 0 views</span>
+                        <span id="editor-page-stars-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(245,158,11,0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3);">⭐ 0 stars</span>
+                    </div>
+                    <a id="editor-page-url-link" href="#" target="_blank" style="font-family: monospace; font-size: 0.78rem; color: #f97316; text-decoration: none; margin-top: 4px; display: inline-block;">crimx.crimsonflame.net/@user/page</a>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary" onclick="window.openActiveEditorPage()" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700;">
+                        👁️ Open Page ↗
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="window.openActiveEditorBuildLog()" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700; color: #f97316;">
+                        🚀 Status
+                    </button>
+                    <button type="button" class="btn-danger" onclick="window.deleteActiveEditorPage()" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700;">
+                        🗑️ Delete
+                    </button>
+                    <button type="button" class="btn-primary" onclick="window.saveActiveEditorPage()" style="padding: 7px 20px; font-size: 0.8rem; font-weight: 700;">
+                        💾 Save & Deploy
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="window.closePageEditor()" style="padding: 7px 14px; font-size: 0.8rem;">
+                        ✕ Close
+                    </button>
+                </div>
+            </div>
+
+            <!-- Editor Body -->
+            <div class="page-editor-body" style="display: flex; flex-direction: column; gap: 18px;">
+                <!-- General Metadata Section -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                    <div style="font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">
+                        ⚙️ Page Configuration
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+                        <div>
+                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Page Title</label>
+                            <input type="text" id="editor-input-title" class="settings-input" placeholder="Page Title" maxlength="64" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Description / Summary</label>
+                            <input type="text" id="editor-input-desc" class="settings-input" placeholder="Brief description..." maxlength="140" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEMPLATE 1: REPOSITORY EDITOR PANE -->
+                <div id="editor-pane-repo" style="display: none; flex-direction: column; gap: 20px;">
+                    <!-- File Manager -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
+                                📁 Code Files (<span id="repo-file-count">0</span>)
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="file" id="repo-file-upload-input" multiple style="display: none;" onchange="handleRepoFilesUpload(event.target.files)">
+                                <button type="button" class="btn-secondary" onclick="document.getElementById('repo-file-upload-input').click()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                    + Upload File
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="promptCreateNewTextFile()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                    + New Text File
+                                </button>
+                            </div>
+                        </div>
+
+                        <table class="page-editor-files-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; font-size: 0.76rem; color: var(--page-text-muted);">
+                                    <th style="padding: 8px;">File Name</th>
+                                    <th style="padding: 8px;">Size</th>
+                                    <th style="padding: 8px;">Type</th>
+                                    <th style="padding: 8px; text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editor-repo-files-list">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--page-text-muted); padding: 24px;">No files added yet. Click "+ Upload File" or "+ New Text File".</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Releases Manager -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
+                                🏷️ Releases & Versioning (<span id="repo-release-count">0</span>)
+                            </div>
+                            <button type="button" class="btn-secondary" onclick="toggleNewReleaseForm()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                + Draft Release
+                            </button>
+                        </div>
+
+                        <!-- Draft Release Box -->
+                        <div id="editor-release-draft-box" style="display: none; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                            <div style="font-weight: 700; color: #4ade80; margin-bottom: 10px; font-size: 0.88rem;">Publish New Version Release</div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                                <div>
+                                    <label style="font-size: 0.74rem; color: var(--page-text-muted);">Version Tag (e.g. v1.0.0)</label>
+                                    <input type="text" id="release-tag-input" placeholder="v1.0.0" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; color: #fff;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.74rem; color: var(--page-text-muted);">Release Title</label>
+                                    <input type="text" id="release-title-input" placeholder="Initial Stable Release" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; color: #fff;">
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-size: 0.74rem; color: var(--page-text-muted);">Release Notes & Changelog</label>
+                                <textarea id="release-notes-input" placeholder="Describe the changes and new features..." rows="3" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; color: #fff; resize: vertical;"></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <button type="button" class="btn-secondary" onclick="toggleNewReleaseForm(false)" style="padding: 6px 12px; font-size: 0.8rem;">Cancel</button>
+                                <button type="button" class="btn-primary" onclick="commitNewRelease()" style="padding: 6px 16px; font-size: 0.8rem; font-weight: 700;">Publish Release</button>
+                            </div>
+                        </div>
+
+                        <!-- Published Releases Feed -->
+                        <div id="editor-repo-releases-list" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="color: var(--page-text-muted); font-size: 0.82rem; text-align: center; padding: 18px;">No releases published yet. Click "+ Draft Release".</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEMPLATE 2: PLAYABLE GAME LAUNCHER EDITOR PANE -->
+                <div id="editor-pane-game" style="display: none; flex-direction: column; gap: 20px;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">
+                            🎮 Game Setup & Aspect Ratio
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                            <div>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Player Aspect Ratio</label>
+                                <select id="game-aspect-ratio" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                                    <option value="16:9">16:9 Widescreen (Landscape)</option>
+                                    <option value="4:3">4:3 Classic Arcade / Retro</option>
+                                    <option value="1:1">1:1 Square</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Cover Splash Image URL</label>
+                                <input type="text" id="game-cover-url" class="settings-input" placeholder="https://... cover art" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Controls Mapping (One per line: Key : Action)</label>
+                            <textarea id="game-controls-input" class="settings-input" rows="3" placeholder="Arrow Keys / WASD : Move&#10;Spacebar : Jump / Action&#10;Mouse Click : Fire" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff; resize: vertical; font-family: monospace;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Game HTML5 / Canvas Code Box & Live Test Sandbox -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
+                                🕹️ In-Browser HTML5 / Canvas Game Source Code
+                            </div>
+                            <button type="button" class="btn-secondary" onclick="testGamePreview()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700; color: #f97316;">
+                                ▶ Test Game in Sandbox
+                            </button>
+                        </div>
+                        <textarea id="game-code-editor" class="settings-input" rows="12" placeholder="<!DOCTYPE html>&#10;<html>...<canvas id='c'></canvas>...</html>" style="width: 100%; box-sizing: border-box; background: #080306; border: 1px solid rgba(255,255,255,0.12); padding: 12px; border-radius: 10px; color: #f0f6fc; font-family: monospace; font-size: 0.82rem; resize: vertical; line-height: 1.4;"></textarea>
+                        
+                        <div style="margin-top: 14px;">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); margin-bottom: 6px;">Live Test Sandbox</div>
+                            <iframe id="game-preview-iframe" sandbox="allow-scripts allow-same-origin allow-pointer-lock" style="width: 100%; height: 280px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: #000;"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEMPLATE 3: ME PAGE EDITOR PANE -->
+                <div id="editor-pane-me" style="display: none; flex-direction: column; gap: 16px;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">
+                            👤 Showcase Profile Page Settings
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                            <div>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Profile Headline</label>
+                                <input type="text" id="me-page-headline-input" class="settings-input" placeholder="e.g. Lead Programmer & Modder" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Theme Preset</label>
+                                <select id="me-page-theme-input" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                                    <option value="crimson">Crimson Flame (Aero Glass Red)</option>
+                                    <option value="midnight">Midnight Cobalt</option>
+                                    <option value="cyber">Cyberpunk Emerald</option>
+                                    <option value="obsidian">Dark Obsidian</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 14px;">
+                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Public Bio</label>
+                            <textarea id="me-page-bio-input" class="settings-input" rows="3" placeholder="Tell everyone who you are and what you create..." style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff; resize: vertical;"></textarea>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Social & Project Links (One per line: Label | URL)</label>
+                            <textarea id="me-page-links-input" class="settings-input" rows="4" placeholder="Discord | https://discord.gg/...&#10;GitHub | https://github.com/...&#10;My Game | https://crimx.crimsonflame.net/@user/game" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff; resize: vertical; font-family: monospace;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEMPLATE 4: PURE HTML EDITOR PANE -->
+                <div id="editor-pane-html" style="display: none; flex-direction: column; gap: 16px;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
+                                ⚡ Raw HTML / CSS / JS Sandbox Code
+                            </div>
+                            <button type="button" class="btn-secondary" onclick="updatePureHtmlPreview()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                                🔄 Refresh Sandbox
+                            </button>
+                        </div>
+                        <textarea id="editor-pure-html-code" class="settings-input" rows="14" placeholder="<!DOCTYPE html>&#10;<html>...</html>" style="width: 100%; box-sizing: border-box; background: #080306; border: 1px solid rgba(255,255,255,0.12); padding: 12px; border-radius: 10px; color: #f0f6fc; font-family: monospace; font-size: 0.82rem; resize: vertical; line-height: 1.4;" oninput="updatePureHtmlPreview()"></textarea>
+                        
+                        <div style="margin-top: 14px;">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); margin-bottom: 6px;">Live Sandboxed Output</div>
+                            <iframe id="editor-pure-html-preview" sandbox="allow-scripts allow-popups allow-forms" style="width: 100%; height: 280px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: #000;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="/pages.js"></script>

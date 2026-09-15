@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc, addDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc, addDoc, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBSSJKDrFJ1_qlliZqgw34CY2TSaKOxxxM",
@@ -1414,6 +1414,8 @@ function getCIMLocalMessages(myUid, friendUid) {
     } catch(e) { return []; }
 }
 
+let pendingCIMMedia = null;
+
 function saveCIMLocalMessage(myUid, friendUid, msg) {
     try {
         const key = `cim_chat_${myUid}_${friendUid}`;
@@ -1421,7 +1423,7 @@ function saveCIMLocalMessage(myUid, friendUid, msg) {
         // Avoid duplicate message
         const isDuplicate = msgs.some(m => 
             (m.id && msg.id && m.id === msg.id) ||
-            ((m.senderId || m.senderUid) === (msg.senderId || msg.senderUid) && m.text === msg.text && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 4000)
+            ((m.senderId || m.senderUid) === (msg.senderId || msg.senderUid) && m.text === msg.text && m.mediaUrl === msg.mediaUrl && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 4000)
         );
         if (isDuplicate) return false;
         msgs.push(msg);
@@ -1449,9 +1451,19 @@ function renderCIMMessagesUI(messages) {
         const timeVal = msg.timestamp ? new Date(msg.timestamp) : new Date();
         const timeStr = isNaN(timeVal.getTime()) ? 'Just now' : timeVal.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+        let mediaHtml = '';
+        if (msg.mediaUrl) {
+            mediaHtml = `
+                <div class="cim-message-image-wrap">
+                    <img src="${escapeHtml(msg.mediaUrl)}" class="cim-message-image" onclick="window.openCIMLightbox('${escapeHtml(msg.mediaUrl)}')" alt="Shared image" loading="lazy" />
+                </div>
+            `;
+        }
+
         return `
             <div class="cim-message-bubble ${isMine ? 'cim-message-sent' : 'cim-message-received'}">
-                <div>${escapeHtml(msg.text || '')}</div>
+                ${mediaHtml}
+                ${msg.text ? `<div>${escapeHtml(msg.text)}</div>` : ''}
                 <div class="cim-message-time">${timeStr}</div>
             </div>
         `;
@@ -1460,6 +1472,74 @@ function renderCIMMessagesUI(messages) {
     const box = document.getElementById('cim-messages-box');
     if (box) box.scrollTop = box.scrollHeight;
 }
+
+window.triggerCIMMediaUpload = function() {
+    const input = document.getElementById('cim-media-file-input');
+    if (input) input.click();
+};
+
+window.handleCIMMediaSelect = async function(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        if (window.showToast) window.showToast("Please select a valid image file.", "error");
+        return;
+    }
+
+    try {
+        let compressed = null;
+        if (file.type === 'image/gif') {
+            compressed = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        } else {
+            compressed = await compressImageFile(file, 900, 900, 0.82);
+        }
+
+        pendingCIMMedia = compressed;
+        const chip = document.getElementById('cim-media-staging-chip');
+        const thumb = document.getElementById('cim-media-staging-thumb');
+        const label = document.getElementById('cim-media-staging-name');
+
+        if (thumb) thumb.src = compressed;
+        if (label) label.innerText = file.name || 'Screenshot.png';
+        if (chip) chip.style.display = 'flex';
+
+        const input = document.getElementById('cim-message-input');
+        if (input) input.focus();
+    } catch(err) {
+        console.error("CIM media staging error:", err);
+        if (window.showToast) window.showToast("Could not stage image: " + err.message, "error");
+    }
+};
+
+window.removeCIMMediaStaging = function() {
+    pendingCIMMedia = null;
+    const chip = document.getElementById('cim-media-staging-chip');
+    if (chip) chip.style.display = 'none';
+    const thumb = document.getElementById('cim-media-staging-thumb');
+    if (thumb) thumb.src = '';
+    const fileInput = document.getElementById('cim-media-file-input');
+    if (fileInput) fileInput.value = '';
+};
+
+window.openCIMLightbox = function(imgSrc) {
+    const modal = document.getElementById('cim-lightbox-modal');
+    const img = document.getElementById('cim-lightbox-image');
+    if (!modal || !img) return;
+    img.src = imgSrc;
+    modal.classList.add('active');
+    playSfx('click');
+};
+
+window.closeCIMLightbox = function() {
+    const modal = document.getElementById('cim-lightbox-modal');
+    if (modal) modal.classList.remove('active');
+    const img = document.getElementById('cim-lightbox-image');
+    if (img) img.src = '';
+};
 
 window.openCIMChat = function(friendUid, friendName, friendPfp, friendHandle) {
     activeCIMRecipient = {
@@ -1573,9 +1653,11 @@ window.sendCIMMessage = async function(e) {
     const input = document.getElementById('cim-message-input');
     if (!input) return;
     const text = input.value.trim();
-    if (!text) return;
+    const mediaToSend = pendingCIMMedia;
+    if (!text && !mediaToSend) return;
 
     input.value = '';
+    window.removeCIMMediaStaging();
 
     try {
         const mySnap = await getDoc(doc(db, "users", currentUser.uid)).catch(() => null);
@@ -1592,6 +1674,7 @@ window.sendCIMMessage = async function(e) {
             senderPfp: myPfp,
             recipientId: activeCIMRecipient.uid,
             text: text,
+            mediaUrl: mediaToSend || null,
             timestamp: nowTime
         };
 
