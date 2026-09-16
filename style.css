@@ -6991,3 +6991,82 @@ body.cim-fullscreen-active {
     box-shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 
+/* ─── Admin Console Styles ─── */
+.admin-tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    padding: 10px 18px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    border-radius: 6px 6px 0 0;
+}
+.admin-tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.04);
+}
+.admin-tab-btn.active {
+    color: #ef4444;
+    border-bottom-color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+.admin-users-table-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+}
+.admin-user-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.15s ease;
+    gap: 10px;
+}
+.admin-user-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+.admin-action-btn {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.admin-action-btn.btn-reset {
+    background: rgba(249, 115, 22, 0.15);
+    border-color: rgba(249, 115, 22, 0.35);
+    color: #fb923c;
+}
+.admin-action-btn.btn-reset:hover {
+    background: rgba(249, 115, 22, 0.3);
+    color: #fff;
+}
+.admin-action-btn.btn-del {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #f87171;
+}
+.admin-action-btn.btn-del:hover {
+    background: rgba(239, 68, 68, 0.35);
+    color: #fff;
+}
+
+

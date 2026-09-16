@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc, addDoc, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -13,6 +13,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const ADMIN_EMAILS = ["allaboutwaterdiamond@gmail.com"];
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 setPersistence(auth, browserLocalPersistence);
@@ -2235,6 +2236,11 @@ onAuthStateChanged(auth, user => {
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('dashboard-container').style.display = 'block';
 
+        // Toggle Admin Panel trigger visibility for authorized admin accounts
+        const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+        const adminBtn = document.getElementById('admin-panel-nav-btn');
+        if (adminBtn) adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
         // Set real-time online presence on website
         updateDoc(doc(db, "users", user.uid), {
             online: true,
@@ -3582,5 +3588,310 @@ window.updatePureHtmlPreview = function() {
     doc.open();
     doc.write(code);
     doc.close();
+};
+
+// ─── ADMIN CONSOLE LOGIC & USER MANAGEMENT ───
+let adminCachedUsers = [];
+let pendingAdminPromptAction = null;
+
+window.toggleAdminPanel = function(show) {
+    const modal = document.getElementById('admin-panel-modal');
+    if (!modal) return;
+    if (show) {
+        if (!currentUser || !ADMIN_EMAILS.includes(currentUser.email?.toLowerCase())) {
+            window.showToast("Unauthorized: Admin credentials required.", "error");
+            return;
+        }
+        modal.classList.add('open');
+        modal.style.display = 'flex';
+        playSfx('click');
+        window.loadAdminUsersList();
+    } else {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+        playSfx('click');
+    }
+};
+
+window.switchAdminTab = function(tabName) {
+    const usersTab = document.getElementById('admin-tab-users');
+    const createTab = document.getElementById('admin-tab-create');
+    const usersBtn = document.getElementById('admin-tab-btn-users');
+    const createBtn = document.getElementById('admin-tab-btn-create');
+
+    if (tabName === 'users') {
+        if (usersTab) usersTab.style.display = 'block';
+        if (createTab) createTab.style.display = 'none';
+        if (usersBtn) usersBtn.classList.add('active');
+        if (createBtn) createBtn.classList.remove('active');
+        window.loadAdminUsersList();
+    } else {
+        if (usersTab) usersTab.style.display = 'none';
+        if (createTab) createTab.style.display = 'block';
+        if (usersBtn) usersBtn.classList.remove('active');
+        if (createBtn) createBtn.classList.add('active');
+    }
+    playSfx('click');
+};
+
+window.loadAdminUsersList = async function() {
+    const container = document.getElementById('admin-users-table-body');
+    const countEl = document.getElementById('admin-users-count');
+    if (!container) return;
+
+    container.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-secondary);">Querying registered user profiles...</div>`;
+
+    try {
+        const snap = await getDocs(collection(db, "users"));
+        adminCachedUsers = [];
+        snap.forEach(d => {
+            const data = d.data();
+            adminCachedUsers.push({ id: d.id, ...data });
+        });
+
+        adminCachedUsers.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+
+        if (countEl) countEl.innerText = adminCachedUsers.length;
+        renderAdminUsersList(adminCachedUsers);
+    } catch(err) {
+        console.error("Admin user query error:", err);
+        container.innerHTML = `<div style="padding: 30px; text-align: center; color: #f87171;">Failed to load users: ${escapeHtml(err.message)}</div>`;
+    }
+};
+
+function renderAdminUsersList(users) {
+    const container = document.getElementById('admin-users-table-body');
+    if (!container) return;
+
+    if (!users || users.length === 0) {
+        container.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-secondary);">No registered user accounts found.</div>`;
+        return;
+    }
+
+    container.innerHTML = users.map(u => {
+        const pfp = u.photoURL || DEFAULT_PFP;
+        const name = u.displayName || 'Unnamed Player';
+        const handle = u.username ? `@${u.username}` : '@user';
+        const email = u.email || 'No email attached';
+        const uid = u.uid || u.id;
+        const isVerified = u.emailVerified || (email.toLowerCase().endsWith('@students.cobbk12.org'));
+
+        return `
+            <div class="admin-user-row">
+                <div style="flex: 1.4; min-width: 180px; display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                    <img src="${escapeHtml(pfp)}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15);" alt="pfp" />
+                    <div style="overflow: hidden;">
+                        <div style="font-weight: 700; color: #fff; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(name)}</div>
+                        <div style="font-size: 0.76rem; color: var(--text-secondary); font-family: monospace;">${escapeHtml(handle)}</div>
+                    </div>
+                </div>
+                <div style="flex: 1.6; min-width: 200px; font-size: 0.84rem; color: #e2e8f0; word-break: break-all;">
+                    ${escapeHtml(email)}
+                </div>
+                <div style="flex: 1.2; min-width: 140px; font-size: 0.74rem; font-family: monospace; color: #94a3b8; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(uid)}">
+                    ${escapeHtml(uid.slice(0, 16))}...
+                </div>
+                <div style="width: 120px; text-align: center;">
+                    <span style="display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 0.74rem; font-weight: 700; ${isVerified ? 'background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3);' : 'background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.3);'}">
+                        ${isVerified ? '✓ Active' : '⚠️ Pending'}
+                    </span>
+                </div>
+                <div style="width: 230px; text-align: right; display: flex; justify-content: flex-end; gap: 6px;">
+                    <button type="button" class="admin-action-btn btn-reset" onclick="window.adminInitiatePasswordReset('${escapeHtml(email)}')">
+                        🔑 Reset Pass
+                    </button>
+                    <button type="button" class="admin-action-btn btn-del" onclick="window.adminInitiateDeleteUser('${escapeHtml(uid)}', '${escapeHtml(email)}', '${escapeHtml(u.username || '')}')">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.filterAdminUsersList = function(q) {
+    const term = (q || '').trim().toLowerCase();
+    if (!term) {
+        renderAdminUsersList(adminCachedUsers);
+        return;
+    }
+    const filtered = adminCachedUsers.filter(u => 
+        (u.email || '').toLowerCase().includes(term) ||
+        (u.displayName || '').toLowerCase().includes(term) ||
+        (u.username || '').toLowerCase().includes(term) ||
+        (u.uid || u.id || '').toLowerCase().includes(term)
+    );
+    renderAdminUsersList(filtered);
+};
+
+// ── Custom Modal Confirmation (Rule 10 Compliant: NO window.prompt) ──
+function showAdminPromptModal({ title, description, onConfirm }) {
+    const modal = document.getElementById('admin-prompt-modal');
+    const titleEl = document.getElementById('admin-prompt-title');
+    const descEl = document.getElementById('admin-prompt-description');
+    const inputEl = document.getElementById('admin-prompt-input');
+    const errEl = document.getElementById('admin-prompt-error');
+
+    if (!modal) return;
+    if (titleEl) titleEl.innerText = title;
+    if (descEl) descEl.innerHTML = description;
+    if (inputEl) {
+        inputEl.value = '';
+        setTimeout(() => inputEl.focus(), 150);
+    }
+    if (errEl) {
+        errEl.style.display = 'none';
+        errEl.innerText = '';
+    }
+
+    pendingAdminPromptAction = onConfirm;
+    modal.style.display = 'flex';
+    playSfx('click');
+}
+
+window.closeAdminPromptModal = function() {
+    const modal = document.getElementById('admin-prompt-modal');
+    if (modal) modal.style.display = 'none';
+    pendingAdminPromptAction = null;
+    playSfx('click');
+};
+
+window.confirmAdminPromptModal = async function() {
+    const inputEl = document.getElementById('admin-prompt-input');
+    const errEl = document.getElementById('admin-prompt-error');
+    const val = (inputEl ? inputEl.value : '').trim();
+
+    // Match "I'm Sure" (case-insensitive for convenience)
+    if (val.toLowerCase() !== "i'm sure" && val.toLowerCase() !== "im sure") {
+        if (errEl) {
+            errEl.style.display = 'block';
+            errEl.innerText = "Please type \"I'm Sure\" exactly to confirm this action.";
+        }
+        playSfx('error');
+        return;
+    }
+
+    const action = pendingAdminPromptAction;
+    window.closeAdminPromptModal();
+
+    if (typeof action === 'function') {
+        try {
+            await action();
+        } catch(err) {
+            console.error("Admin action execution error:", err);
+            window.showToast("Action failed: " + err.message, "error");
+        }
+    }
+};
+
+window.adminInitiatePasswordReset = function(email) {
+    if (!email) return;
+    showAdminPromptModal({
+        title: "Dispatch Password Reset",
+        description: `You are about to dispatch an official password reset link to <strong>${escapeHtml(email)}</strong>.`,
+        onConfirm: async () => {
+            await sendPasswordResetEmail(auth, email);
+            playSfx('success');
+            window.showToast(`✓ Password reset dispatched to ${email}`, "success");
+        }
+    });
+};
+
+window.adminInitiateDeleteUser = function(uid, email, username) {
+    if (!uid) return;
+    showAdminPromptModal({
+        title: "Permanently Delete Account",
+        description: `You are about to delete user account <strong>${escapeHtml(email)}</strong> (${username ? '@' + escapeHtml(username) : uid}). This will erase their user profile and custom pages from the database.`,
+        onConfirm: async () => {
+            await deleteDoc(doc(db, "users", uid));
+            if (username) {
+                await deleteDoc(doc(db, "user_pages", `${username}_me`)).catch(() => {});
+            }
+            playSfx('success');
+            window.showToast(`✓ Account for ${email} has been deleted.`, "success");
+            window.loadAdminUsersList();
+        }
+    });
+};
+
+window.adminSubmitCreateAccount = async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('admin-create-submit-btn');
+    const feedback = document.getElementById('admin-create-feedback');
+    const email = document.getElementById('admin-new-email')?.value.trim();
+    const password = document.getElementById('admin-new-password')?.value;
+    const displayName = document.getElementById('admin-new-displayname')?.value.trim();
+    const username = document.getElementById('admin-new-username')?.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+    if (!email || !password || !displayName || !username) {
+        window.showToast("Please fill in all required fields.", "error");
+        return;
+    }
+
+    if (btn) { btn.disabled = true; btn.innerText = "⚡ Provisioning..."; }
+    if (feedback) feedback.style.display = 'none';
+
+    let secondaryApp = null;
+    try {
+        // Create secondary app instance so active admin session is not interrupted
+        secondaryApp = initializeApp(firebaseConfig, "AdminCreatorApp_" + Date.now());
+        const secondaryAuth = getAuth(secondaryApp);
+
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        await updateProfile(cred.user, { displayName: displayName });
+
+        // Save pre-verified user document in Firestore
+        await setDoc(doc(db, "users", cred.user.uid), {
+            uid: cred.user.uid,
+            email: email,
+            username: username,
+            displayName: displayName,
+            photoURL: DEFAULT_PFP,
+            emailVerified: true,
+            role: 'Member',
+            createdAt: serverTimestamp(),
+            online: false
+        }, { merge: true });
+
+        await signOut(secondaryAuth);
+        try { await deleteApp(secondaryApp); } catch(_) {}
+
+        playSfx('success');
+        if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.background = "rgba(34, 197, 94, 0.15)";
+            feedback.style.border = "1px solid rgba(34, 197, 94, 0.4)";
+            feedback.style.color = "#4ade80";
+            feedback.innerText = `✓ Account created successfully for ${email}! It is active and pre-verified.`;
+        }
+        window.showToast(`✓ Account provisioned for ${email}!`, "success");
+
+        const inEmail = document.getElementById('admin-new-email');
+        const inPass = document.getElementById('admin-new-password');
+        const inName = document.getElementById('admin-new-displayname');
+        const inUser = document.getElementById('admin-new-username');
+        if (inEmail) inEmail.value = '';
+        if (inPass) inPass.value = '';
+        if (inName) inName.value = '';
+        if (inUser) inUser.value = '';
+
+        setTimeout(() => {
+            window.switchAdminTab('users');
+        }, 1200);
+
+    } catch(err) {
+        console.error("Admin account provisioning error:", err);
+        playSfx('error');
+        if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.background = "rgba(239, 68, 68, 0.15)";
+            feedback.style.border = "1px solid rgba(239, 68, 68, 0.4)";
+            feedback.style.color = "#f87171";
+            feedback.innerText = err.message || "Failed to provision account.";
+        }
+        window.showToast("Creation error: " + err.message, "error");
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerText = "⚡ Provision Account"; }
+    }
 };
 

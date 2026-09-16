@@ -108,6 +108,9 @@
                 </div>
                 <div class="dash-header-right">
                     <div style="display: flex; gap: 8px;">
+                        <button type="button" id="admin-panel-nav-btn" class="btn-secondary" onclick="toggleAdminPanel(true)" style="display: none; padding: 8px 18px; font-size: 0.85rem; font-weight: 700; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); align-items: center; gap: 6px;">
+                            👑 Admin Console
+                        </button>
                         <a href="/pages/" class="btn-secondary" style="padding: 8px 18px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: #f97316; border-color: rgba(249, 115, 22, 0.4);">
                             📑 Pages Hub
                         </a>
@@ -1038,6 +1041,149 @@
 
                 </div>
             </div>
+
+        <!-- ADMIN CONSOLE MODAL OVERLAY -->
+        <div id="admin-panel-modal" class="settings-studio-modal" style="display: none;">
+            <div class="settings-studio-inner" style="max-width: 1240px; height: 88vh; max-height: 880px; border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(239, 68, 68, 0.25);">
+                <!-- Admin Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(20, 10, 14, 0.7);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.6rem;">👑</span>
+                        <div>
+                            <h1 style="font-family: 'Outfit', sans-serif; font-size: 1.45rem; font-weight: 800; color: #fff; margin: 0;">
+                                CrimX Admin Console
+                            </h1>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0;">
+                                Registered Accounts Directory, Direct Pre-Verified Provisioning & Account Management
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-secondary" onclick="toggleAdminPanel(false)" style="width: auto; padding: 8px 18px; font-size: 0.85rem; font-weight: 700;">
+                        ✕ Close
+                    </button>
+                </div>
+
+                <!-- Admin Navigation Tabs -->
+                <div style="display: flex; gap: 12px; padding: 12px 24px; background: rgba(0, 0, 0, 0.3); border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                    <button type="button" id="admin-tab-btn-users" class="admin-tab-btn active" onclick="switchAdminTab('users')">
+                        👥 Registered Accounts (<span id="admin-users-count">0</span>)
+                    </button>
+                    <button type="button" id="admin-tab-btn-create" class="admin-tab-btn" onclick="switchAdminTab('create')">
+                        ➕ Create Pre-Verified Account
+                    </button>
+                </div>
+
+                <!-- Admin Tab Content Body -->
+                <div style="flex: 1; overflow-y: auto; padding: 24px; box-sizing: border-box;">
+                    
+                    <!-- TAB 1: Registered Accounts Directory -->
+                    <div id="admin-tab-users" class="admin-tab-content">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+                            <div style="flex: 1; max-width: 460px;">
+                                <input type="text" id="admin-user-search-input" class="settings-input" placeholder="Search by email, username, or display name..." oninput="filterAdminUsersList(this.value)" style="margin: 0; font-size: 0.85rem;">
+                            </div>
+                            <button type="button" class="btn-secondary" onclick="loadAdminUsersList()" style="width: auto; padding: 8px 16px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                🔄 Refresh List
+                            </button>
+                        </div>
+
+                        <div style="background: rgba(14, 8, 12, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; overflow: hidden;">
+                            <div class="admin-users-table-header">
+                                <div style="flex: 1.4; min-width: 180px;">User & Handle</div>
+                                <div style="flex: 1.6; min-width: 200px;">Email Address</div>
+                                <div style="flex: 1.2; min-width: 140px;">UID</div>
+                                <div style="width: 120px; text-align: center;">Status</div>
+                                <div style="width: 230px; text-align: right;">Actions</div>
+                            </div>
+                            <div id="admin-users-table-body" style="max-height: 500px; overflow-y: auto;">
+                                <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                                    Loading registered user accounts...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: Create Pre-Verified Account -->
+                    <div id="admin-tab-create" class="admin-tab-content" style="display: none; max-width: 680px; margin: 0 auto;">
+                        <div class="settings-section-block" style="background: rgba(20, 10, 15, 0.7); border-color: rgba(255, 255, 255, 0.12); padding: 24px;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #fff; margin: 0 0 6px;">
+                                Create Pre-Verified Account
+                            </h3>
+                            <p style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                                Accounts created via the Admin Console are provisioned immediately with active status and <strong style="color: #4ade80;">bypass email verification entirely</strong>.
+                            </p>
+
+                            <form onsubmit="adminSubmitCreateAccount(event)">
+                                <div class="form-group-row">
+                                    <div>
+                                        <div class="form-label">Email Address</div>
+                                        <input type="email" id="admin-new-email" class="settings-input" placeholder="user@example.com" required>
+                                    </div>
+                                    <div>
+                                        <div class="form-label">Initial Password</div>
+                                        <input type="password" id="admin-new-password" class="settings-input" placeholder="Min 6 characters" required minlength="6">
+                                    </div>
+                                </div>
+                                <div class="form-group-row">
+                                    <div>
+                                        <div class="form-label">Display Name</div>
+                                        <input type="text" id="admin-new-displayname" class="settings-input" placeholder="Player Name" required maxlength="32">
+                                    </div>
+                                    <div>
+                                        <div class="form-label">Username (@handle)</div>
+                                        <input type="text" id="admin-new-username" class="settings-input" placeholder="gamer_tag" required maxlength="24">
+                                    </div>
+                                </div>
+
+                                <div id="admin-create-feedback" style="display: none; padding: 12px 16px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 16px;"></div>
+
+                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                                    <button type="reset" class="btn-secondary" style="width: auto; padding: 10px 20px;">Clear Form</button>
+                                    <button type="submit" id="admin-create-submit-btn" class="btn-primary" style="width: auto; padding: 10px 24px; font-weight: 800;">
+                                        ⚡ Provision Account
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN PROMPT CONFIRMATION MODAL (NO NATIVE PROMPT) -->
+        <div id="admin-prompt-modal" class="custom-modal-overlay" style="display: none; z-index: 100002;">
+            <div class="custom-modal-box" style="max-width: 500px; width: 92%; text-align: left; padding: 26px; border: 1px solid rgba(239, 68, 68, 0.4); background: #13070b; box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 35px rgba(239, 68, 68, 0.25);">
+                <div style="display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px;">
+                    <div style="font-size: 2rem; line-height: 1;">⚠️</div>
+                    <div>
+                        <h3 id="admin-prompt-title" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #fff; margin: 0 0 6px;">
+                            Admin Confirmation
+                        </h3>
+                        <div id="admin-prompt-description" style="font-size: 0.86rem; color: #fca5a5; line-height: 1.5;">
+                            Action description goes here...
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">
+                        To confirm this action, type <strong style="color: #fff; font-family: monospace;">I'm Sure</strong> below:
+                    </div>
+                    <input type="text" id="admin-prompt-input" class="settings-input" placeholder="I'm Sure" autocomplete="off" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.5px;">
+                    <div id="admin-prompt-error" style="display: none; color: #f87171; font-size: 0.8rem; margin-top: 6px; font-weight: 600;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-secondary" onclick="closeAdminPromptModal()" style="width: auto; padding: 9px 20px; font-size: 0.85rem; font-weight: 700;">
+                        Cancel
+                    </button>
+                    <button type="button" id="admin-prompt-confirm-btn" class="btn-primary" onclick="confirmAdminPromptModal()" style="width: auto; padding: 9px 22px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, #ef4444, #b91c1c);">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- MODAL: CREATE NEW CRIMX PAGE -->
         <div id="modal-new-page" class="custom-modal-overlay">
