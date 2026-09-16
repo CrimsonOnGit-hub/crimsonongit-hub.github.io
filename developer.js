@@ -788,7 +788,8 @@ window.copyActiveCode = function() {
 
 // ─── AUTH STATE INITIALIZATION ───
 onAuthStateChanged(auth, user => {
-    if (user && (user.emailVerified || user.providerData.some(p => p.providerId === 'google.com'))) {
+    const isExempt = user && user.email && user.email.toLowerCase().endsWith('@students.cobbk12.org');
+    if (user && (user.emailVerified || isExempt || user.providerData.some(p => p.providerId === 'google.com'))) {
         currentUser = user;
         document.getElementById('dev-auth-notice').style.display = 'none';
 

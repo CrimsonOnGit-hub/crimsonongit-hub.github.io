@@ -825,12 +825,26 @@ window.submitLogin = async function(e) {
     const btn = e.target.querySelector('button[type="submit"]'); 
     btn.disabled = true; btn.innerText = "Processing...";
     try {
+        const emailInput = document.getElementById('email').value.trim();
+        const passInput = document.getElementById('password').value;
+        const isExempt = emailInput.toLowerCase().endsWith('@students.cobbk12.org');
         if(isLogin) {
-            const cred = await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
-            if (!cred.user.emailVerified) { await sendEmailVerification(cred.user); await signOut(auth); window.showCustomAlert("Email not verified. Verification link sent to your inbox."); } 
+            const cred = await signInWithEmailAndPassword(auth, emailInput, passInput);
+            if (!cred.user.emailVerified && !isExempt) { 
+                await sendEmailVerification(cred.user); 
+                await signOut(auth); 
+                window.showCustomAlert("Email not verified. Verification link sent to your inbox."); 
+            } 
         } else {
-            const cred = await createUserWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
-            await sendEmailVerification(cred.user); await signOut(auth); window.showCustomAlert("Account created! Please check your inbox to verify your email."); window.toggleLoginMode();
+            const cred = await createUserWithEmailAndPassword(auth, emailInput, passInput);
+            if (isExempt) {
+                window.showToast("Account created successfully!", "success");
+            } else {
+                await sendEmailVerification(cred.user); 
+                await signOut(auth); 
+                window.showCustomAlert("Account created! Please check your inbox to verify your email."); 
+                window.toggleLoginMode();
+            }
         }
     } catch (err) { showResponseText(btn, 'error', err.message); } 
     finally { btn.disabled = false; btn.innerText = "Submit"; }
@@ -2215,7 +2229,8 @@ window.removeFriend = async function(friendUid, friendName) {
 let userDocUnsub = null;
 
 onAuthStateChanged(auth, user => {
-    if (user && (user.emailVerified || user.providerData.some(p => p.providerId === 'google.com'))) {
+    const isExempt = user && user.email && user.email.toLowerCase().endsWith('@students.cobbk12.org');
+    if (user && (user.emailVerified || isExempt || user.providerData.some(p => p.providerId === 'google.com'))) {
         currentUser = user;
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('dashboard-container').style.display = 'block';
@@ -2244,7 +2259,7 @@ onAuthStateChanged(auth, user => {
 
         const resendBtn = document.getElementById('resend-verification-btn');
         const emailBadge = document.getElementById('security-email-badge');
-        if (user.emailVerified) {
+        if (user.emailVerified || isExempt) {
             if (resendBtn) resendBtn.style.display = 'none';
             if (emailBadge) { emailBadge.innerText = "✓ Verified Account"; emailBadge.style.color = "#4ade80"; }
         } else {

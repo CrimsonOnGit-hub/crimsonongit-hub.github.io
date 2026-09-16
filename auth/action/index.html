@@ -1302,9 +1302,11 @@
                             console.warn("Could not save user profile doc:", dbErr);
                         }
 
-                        // Dispatch verification email
+                        // Dispatch verification email (unless exempt)
                         try {
-                            await sendEmailVerification(cred.user);
+                            if (!email.toLowerCase().endsWith('@students.cobbk12.org')) {
+                                await sendEmailVerification(cred.user);
+                            }
                         } catch(vErr) {
                             console.warn("Verification email dispatch warning:", vErr);
                         }

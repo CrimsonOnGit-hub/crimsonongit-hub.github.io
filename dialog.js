@@ -65,7 +65,8 @@ function formatDiscordTime(timestamp) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-    if (user && (user.emailVerified || user.providerData.some(p => p.providerId === 'google.com'))) {
+    const isExempt = user && user.email && user.email.toLowerCase().endsWith('@students.cobbk12.org');
+    if (user && (user.emailVerified || isExempt || user.providerData.some(p => p.providerId === 'google.com'))) {
         currentUser = user; myUsername = user.displayName || user.email.split('@')[0];
         await setDoc(doc(db, "users", currentUser.uid), { uid: currentUser.uid, username: myUsername.toLowerCase(), displayName: myUsername }, { merge: true });
         loadFriends(); loadChats();

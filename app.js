@@ -127,13 +127,29 @@ function formatTime(timestamp) {
 window.submitLogin = async function(e) {
     e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerText = "Processing...";
     try {
+        const emailInput = document.getElementById('email').value.trim();
+        const passInput = document.getElementById('password').value;
+        const isExempt = emailInput.toLowerCase().endsWith('@students.cobbk12.org');
         if(isLogin) {
-            const cred = await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
-            if (!cred.user.emailVerified) { await sendEmailVerification(cred.user); await signOut(auth); window.showCustomAlert("Email not verified. Link sent."); } 
-            else { window.routeTo('home'); }
+            const cred = await signInWithEmailAndPassword(auth, emailInput, passInput);
+            if (!cred.user.emailVerified && !isExempt) { 
+                await sendEmailVerification(cred.user); 
+                await signOut(auth); 
+                window.showCustomAlert("Email not verified. Link sent."); 
+            } else { 
+                window.routeTo('home'); 
+            }
         } else {
-            const cred = await createUserWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
-            await sendEmailVerification(cred.user); await signOut(auth); window.showCustomAlert("Account created! Check inbox."); window.toggleLoginMode();
+            const cred = await createUserWithEmailAndPassword(auth, emailInput, passInput);
+            if (isExempt) {
+                window.showCustomAlert("Account created successfully!");
+                window.routeTo('home');
+            } else {
+                await sendEmailVerification(cred.user); 
+                await signOut(auth); 
+                window.showCustomAlert("Account created! Check inbox."); 
+                window.toggleLoginMode();
+            }
         }
     } catch (err) { showResponseText(btn, 'error', err.message); } finally { btn.disabled = false; btn.innerText = "Submit"; }
 };
@@ -220,7 +236,8 @@ let userDocUnsub = null;
 
 onAuthStateChanged(auth, user => {
     const navAuth = document.getElementById('nav-auth-link');
-    if (user && (user.emailVerified || user.providerData.some(p => p.providerId === 'google.com'))) {
+    const isExempt = user && user.email && user.email.toLowerCase().endsWith('@students.cobbk12.org');
+    if (user && (user.emailVerified || isExempt || user.providerData.some(p => p.providerId === 'google.com'))) {
         currentUser = user; isGlobalAdmin = (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
         
         if (navAuth) { navAuth.innerText = "Dashboard"; navAuth.onclick = () => window.routeTo('dashboard'); }
@@ -1027,7 +1044,7 @@ function renderModalAccount(pane) {
 }
 
 function renderModalSecurity(pane) {
-    const isEmailVerified = currentUser.emailVerified;
+    const isEmailVerified = currentUser.emailVerified || (currentUser.email && currentUser.email.toLowerCase().endsWith('@students.cobbk12.org'));
     pane.innerHTML = `
         <div class="account-section-card">
             <div class="account-card-title"><span>🛡️</span> Security & Verification</div>
