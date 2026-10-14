@@ -1,7 +1,7 @@
 {
   "name": "crimsonflame-platform",
   "version": "1.0.0",
-  "description": "CrimsonFlame dynamic web platform and backend infrastructure for Google Cloud Run",
+  "description": "CrimsonFlame dynamic web platform and backend infrastructure and core identity services",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {

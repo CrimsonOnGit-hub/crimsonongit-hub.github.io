@@ -1,4 +1,14 @@
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { 
+    getDatabase, 
+    ref as dbRef, 
+    set as dbSet, 
+    update as dbUpdate, 
+    onValue, 
+    onDisconnect, 
+    serverTimestamp as rtdbServerTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, updateProfile, sendEmailVerification, sendPasswordResetEmail, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, getDoc, query, where, doc, onSnapshot, updateDoc, serverTimestamp, setDoc, deleteDoc, addDoc, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -15,6 +25,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const ADMIN_EMAILS = ["allaboutwaterdiamond@gmail.com"];
 const db = getFirestore(app);
+const rtdb = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 setPersistence(auth, browserLocalPersistence);
 
@@ -263,11 +274,27 @@ window.showToast = function(message, type = 'info') {
     }, 3500);
 };
 
-window.showCustomAlert = function(message) {
-    const overlay = document.getElementById('custom-alert'); 
-    if(!overlay) { alert(message); return; }
-    document.getElementById('custom-alert-message').innerText = message; 
-    overlay.classList.add('active');
+window.showCustomAlert = function(message, onOk) {
+    ensureCustomDialogElements();
+    const overlay = document.getElementById('custom-alert');
+    const msgEl = document.getElementById('custom-alert-message');
+    const okBtn = document.getElementById('custom-alert-ok');
+    if (msgEl) msgEl.innerText = message || '';
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.classList.add('active');
+    }
+    const closeAlert = () => {
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.style.display = 'none';
+        }
+        if (typeof onOk === 'function') onOk();
+    };
+    if (okBtn) {
+        okBtn.onclick = closeAlert;
+        setTimeout(() => okBtn.focus(), 50);
+    }
 };
 
 function showResponseText(element, type, text) {
@@ -592,6 +619,25 @@ window.handleUpload = async function(file, type) {
     setTimeout(() => { if (sEl) sEl.style.display = 'none'; }, 2500);
 };
 
+window.handleGameCoverUpload = async function(file) {
+    if (!file || !file.type.startsWith('image/')) {
+        window.showToast("Please choose a valid image file.", "error");
+        return;
+    }
+    const statusEl = document.getElementById('game-cover-status');
+    if (statusEl) statusEl.textContent = 'Processing...';
+    try {
+        const compressed = await compressImageFile(file, 800, 450, 0.85);
+        const input = document.getElementById('game-cover-url-input');
+        if (input) input.value = compressed;
+        if (statusEl) statusEl.textContent = '✅ ' + (file.name.length > 18 ? file.name.substring(0, 15) + '...' : file.name);
+        window.showToast("Game cover image loaded!", "success");
+    } catch(err) {
+        if (statusEl) statusEl.textContent = 'Upload failed';
+        window.showToast("Failed to process cover image: " + err.message, "error");
+    }
+};
+
 // ── Save Profile Submission ──
 window.submitProfile = async function(e) {
     e.preventDefault(); 
@@ -805,19 +851,30 @@ window.savePreferences = async function() {
 };
 
 window.confirmDeleteAccount = function() {
-    const confirmation = prompt("WARNING: This will permanently delete your CrimsonFlame profile and credentials.\n\nType DELETE to confirm:");
-    if (confirmation === "DELETE" && currentUser) {
-        deleteDoc(doc(db, "users", currentUser.uid)).then(() => {
-            currentUser.delete().then(() => {
-                alert("Account deleted.");
-                window.location.reload();
-            }).catch(err => {
-                window.showToast("Please sign in again before deleting your account: " + err.message, "error");
-            });
-        }).catch(err => {
-            window.showToast("Error removing data: " + err.message, "error");
-        });
-    }
+    if (!currentUser) return;
+    window.showCustomPrompt(
+        "Delete Account Confirmation",
+        "WARNING: This will permanently delete your CrimsonFlame profile, wipes active sessions, and purges credentials.\n\nType DELETE to confirm:",
+        "Type DELETE",
+        (confirmation) => {
+            if (confirmation === "DELETE") {
+                const uid = currentUser.uid;
+                deleteDoc(doc(db, "users", uid)).then(() => {
+                    currentUser.delete().then(() => {
+                        window.showCustomAlert("Account deleted.", () => {
+                            window.location.reload();
+                        });
+                    }).catch(err => {
+                        window.showToast("Please sign in again before deleting your account: " + err.message, "error");
+                    });
+                }).catch(err => {
+                    window.showToast("Error removing data: " + err.message, "error");
+                });
+            } else {
+                window.showCustomAlert("Deletion cancelled. You must type DELETE exactly.");
+            }
+        }
+    );
 };
 
 // ── Authentication Flows ──
@@ -1420,33 +1477,8 @@ function renderCIMFriends(friends) {
     }
 }
 
-// Local Device Storage Helpers (Ensures 0 messages ever stored in Firestore cloud database)
-function getCIMLocalMessages(myUid, friendUid) {
-    try {
-        const key = `cim_chat_${myUid}_${friendUid}`;
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : [];
-    } catch(e) { return []; }
-}
-
+// ── Realtime CIM Messaging System (Direct Firestore onSnapshot) ──
 let pendingCIMMedia = null;
-
-function saveCIMLocalMessage(myUid, friendUid, msg) {
-    try {
-        const key = `cim_chat_${myUid}_${friendUid}`;
-        const msgs = getCIMLocalMessages(myUid, friendUid);
-        // Avoid duplicate message
-        const isDuplicate = msgs.some(m => 
-            (m.id && msg.id && m.id === msg.id) ||
-            ((m.senderId || m.senderUid) === (msg.senderId || msg.senderUid) && m.text === msg.text && m.mediaUrl === msg.mediaUrl && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 4000)
-        );
-        if (isDuplicate) return false;
-        msgs.push(msg);
-        if (msgs.length > 100) msgs.shift();
-        localStorage.setItem(key, JSON.stringify(msgs));
-        return true;
-    } catch(e) { return false; }
-}
 
 function renderCIMMessagesUI(messages) {
     const list = document.getElementById('cim-messages-list');
@@ -1462,8 +1494,9 @@ function renderCIMMessagesUI(messages) {
     }
 
     list.innerHTML = messages.map(msg => {
-        const isMine = msg.senderId === currentUser.uid || msg.senderUid === currentUser.uid;
-        const timeVal = msg.timestamp ? new Date(msg.timestamp) : new Date();
+        const isMine = msg.senderUid === currentUser.uid || msg.senderId === currentUser.uid;
+        const rawTime = msg.timestamp?.toMillis ? msg.timestamp.toMillis() : (msg.timestamp?.seconds ? msg.timestamp.seconds * 1000 : msg.timestamp);
+        const timeVal = rawTime ? new Date(rawTime) : new Date();
         const timeStr = isNaN(timeVal.getTime()) ? 'Just now' : timeVal.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         let mediaHtml = '';
@@ -1485,17 +1518,24 @@ function renderCIMMessagesUI(messages) {
     }).join('');
 
     const box = document.getElementById('cim-messages-box');
-    if (box) box.scrollTop = box.scrollHeight;
+    if (box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 30);
 }
 
 window.triggerCIMMediaUpload = function() {
-    const input = document.getElementById('cim-media-file-input');
+    const input = document.getElementById('cim-media-input');
     if (input) input.click();
 };
 
-window.handleCIMMediaSelect = async function(file) {
+window.handleCIMMediaSelect = async function(eOrFile) {
+    let file = null;
+    if (eOrFile instanceof File) {
+        file = eOrFile;
+    } else if (eOrFile?.target?.files?.[0]) {
+        file = eOrFile.target.files[0];
+    }
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
+
+    if (!file.type || !file.type.startsWith('image/')) {
         if (window.showToast) window.showToast("Please select a valid image file.", "error");
         return;
     }
@@ -1515,8 +1555,8 @@ window.handleCIMMediaSelect = async function(file) {
 
         pendingCIMMedia = compressed;
         const chip = document.getElementById('cim-media-staging-chip');
-        const thumb = document.getElementById('cim-media-staging-thumb');
-        const label = document.getElementById('cim-media-staging-name');
+        const thumb = document.getElementById('cim-staging-img');
+        const label = document.getElementById('cim-staging-name');
 
         if (thumb) thumb.src = compressed;
         if (label) label.innerText = file.name || 'Screenshot.png';
@@ -1534,9 +1574,9 @@ window.removeCIMMediaStaging = function() {
     pendingCIMMedia = null;
     const chip = document.getElementById('cim-media-staging-chip');
     if (chip) chip.style.display = 'none';
-    const thumb = document.getElementById('cim-media-staging-thumb');
+    const thumb = document.getElementById('cim-staging-img');
     if (thumb) thumb.src = '';
-    const fileInput = document.getElementById('cim-media-file-input');
+    const fileInput = document.getElementById('cim-media-input');
     if (fileInput) fileInput.value = '';
 };
 
@@ -1545,18 +1585,19 @@ window.openCIMLightbox = function(imgSrc) {
     const img = document.getElementById('cim-lightbox-image');
     if (!modal || !img) return;
     img.src = imgSrc;
-    modal.classList.add('active');
+    modal.style.display = 'flex';
     playSfx('click');
 };
 
 window.closeCIMLightbox = function() {
     const modal = document.getElementById('cim-lightbox-modal');
-    if (modal) modal.classList.remove('active');
+    if (modal) modal.style.display = 'none';
     const img = document.getElementById('cim-lightbox-image');
     if (img) img.src = '';
 };
 
 window.openCIMChat = function(friendUid, friendName, friendPfp, friendHandle) {
+    if (!currentUser) return;
     activeCIMRecipient = {
         uid: friendUid,
         name: friendName || 'Friend',
@@ -1621,32 +1662,47 @@ window.openCIMChat = function(friendUid, friendName, friendPfp, friendHandle) {
         else btn.classList.remove('active');
     });
 
-    // 1. Load messages from private local device memory immediately
-    const messages = getCIMLocalMessages(currentUser.uid, friendUid);
-    renderCIMMessagesUI(messages);
+    // Clean up previous active chat listener if any
+    if (activeCIMChatUnsub) {
+        activeCIMChatUnsub();
+        activeCIMChatUnsub = null;
+    }
 
-    // 2. Dynamically sync conversation history from in-memory relay (no refresh needed)
+    // Subscribe to genuine Firestore real-time message stream
     const convoId = [currentUser.uid, friendUid].sort().join('_');
-    fetch(`/api/cim/history?convoId=${convoId}`)
-        .then(r => r.json())
-        .then(data => {
-            if (data && data.messages && Array.isArray(data.messages)) {
-                let hasNew = false;
-                data.messages.forEach(m => {
-                    const saved = saveCIMLocalMessage(currentUser.uid, friendUid, m);
-                    if (saved) hasNew = true;
-                });
-                if (hasNew && activeCIMRecipient && activeCIMRecipient.uid === friendUid) {
-                    const updated = getCIMLocalMessages(currentUser.uid, friendUid);
-                    renderCIMMessagesUI(updated);
+    const messagesRef = collection(db, "cim_chats", convoId, "messages");
+    const q = query(messagesRef, orderBy("timestamp", "asc"));
+
+    let isInitialLoad = true;
+    activeCIMChatUnsub = onSnapshot(q, (snap) => {
+        const messages = [];
+        snap.forEach(d => {
+            messages.push({ id: d.id, ...d.data() });
+        });
+        renderCIMMessagesUI(messages);
+
+        if (!isInitialLoad) {
+            snap.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const data = change.doc.data();
+                    if (data && data.senderUid !== currentUser.uid && currentUserStatusMode !== 'dnd') {
+                        playCIMChime();
+                    }
                 }
-            }
-        })
-        .catch(() => {});
+            });
+        }
+        isInitialLoad = false;
+    }, (err) => {
+        console.warn("CIM messages listener error:", err);
+    });
 };
 
 window.clearActiveCIMChat = function() {
     activeCIMRecipient = null;
+    if (activeCIMChatUnsub) {
+        activeCIMChatUnsub();
+        activeCIMChatUnsub = null;
+    }
 
     const header = document.getElementById('cim-chat-header');
     const noChat = document.getElementById('cim-no-chat-state');
@@ -1679,45 +1735,32 @@ window.sendCIMMessage = async function(e) {
         const myData = mySnap && mySnap.exists() ? mySnap.data() : {};
         const myName = myData.displayName || currentUser.displayName || currentUser.email.split('@')[0];
         const myPfp = myData.photoURL || currentUser.photoURL || DEFAULT_PFP;
-        const nowTime = Date.now();
 
-        const newMsg = {
-            id: `cim_${nowTime}_${Math.random().toString(36).slice(2, 7)}`,
-            senderId: currentUser.uid,
+        const convoId = [currentUser.uid, activeCIMRecipient.uid].sort().join('_');
+
+        // 1. Add message doc directly into Firestore real-time collection
+        await addDoc(collection(db, "cim_chats", convoId, "messages"), {
             senderUid: currentUser.uid,
             senderName: myName,
             senderPfp: myPfp,
-            recipientId: activeCIMRecipient.uid,
+            recipientUid: activeCIMRecipient.uid,
             text: text,
             mediaUrl: mediaToSend || null,
-            timestamp: nowTime
-        };
+            timestamp: serverTimestamp()
+        });
 
-        // 1. Save directly to local device storage (NO Firestore cloud message leaks!)
-        saveCIMLocalMessage(currentUser.uid, activeCIMRecipient.uid, newMsg);
+        // 2. Update conversation summary doc for realtime notifications & unread tracking
+        await setDoc(doc(db, "cim_chats", convoId), {
+            participants: [currentUser.uid, activeCIMRecipient.uid],
+            lastMessage: text || (mediaToSend ? '📷 Image' : ''),
+            lastSenderUid: currentUser.uid,
+            lastSenderName: myName,
+            lastSenderPfp: myPfp,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
 
-        // 2. Render immediately in chat
-        const currentMsgs = getCIMLocalMessages(currentUser.uid, activeCIMRecipient.uid);
-        renderCIMMessagesUI(currentMsgs);
-
-        // 3. Dispatch directly via Firebase Cloud Messaging & Realtime Relay
-        const recipientSnap = await getDoc(doc(db, "users", activeCIMRecipient.uid)).catch(() => null);
-        const rData = recipientSnap && recipientSnap.exists() ? recipientSnap.data() : {};
-
-        fetch('/api/cim/send-fcm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                token: rData.fcmToken || null,
-                title: `${myName} (CIM)`,
-                body: text,
-                senderUid: currentUser.uid,
-                senderName: myName,
-                senderPfp: myPfp,
-                recipientUid: activeCIMRecipient.uid,
-                timestamp: nowTime
-            })
-        }).catch(() => {});
+        const box = document.getElementById('cim-messages-box');
+        if (box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 60);
 
     } catch (err) {
         console.error("Failed to send CIM message:", err);
@@ -1805,191 +1848,73 @@ function updateCIMProfileCard(userData) {
     }
 }
 
-let cimEventSource = null;
-let cimPollInterval = null;
-
-function handleIncomingCIMMessage(msg) {
-    if (!currentUser || !msg || !msg.senderUid) return;
-    if (msg.senderUid === currentUser.uid) return;
-
-    const saved = saveCIMLocalMessage(currentUser.uid, msg.senderUid, {
-        id: msg.id || `msg_${msg.timestamp || Date.now()}`,
-        senderId: msg.senderUid,
-        senderUid: msg.senderUid,
-        senderName: msg.senderName,
-        senderPfp: msg.senderPfp,
-        recipientId: currentUser.uid,
-        text: msg.text,
-        timestamp: msg.timestamp || Date.now()
-    });
-
-    if (!saved) return; // already processed / rendered
-
-    if (currentUserStatusMode !== 'dnd') {
-        playCIMChime();
-    }
-
-    // If currently chatting with this friend, update chat UI in real time dynamically!
-    if (activeCIMRecipient && activeCIMRecipient.uid === msg.senderUid) {
-        const updated = getCIMLocalMessages(currentUser.uid, activeCIMRecipient.uid);
-        renderCIMMessagesUI(updated);
-    }
-
-    // If chat not active or window backgrounded, show top-right notification toast (suppressed on DND)
-    if (currentUserStatusMode !== 'dnd' && (!activeCIMRecipient || activeCIMRecipient.uid !== msg.senderUid || document.hidden)) {
-        showCIMNotification(msg.senderUid, msg.senderName, msg.senderPfp, msg.text);
-    }
-}
-
-function checkCIMPendingMessages() {
-    if (!currentUser) return;
-    fetch(`/api/cim/poll?uid=${currentUser.uid}`)
-        .then(r => r.json())
-        .then(data => {
-            if (data && data.messages && Array.isArray(data.messages)) {
-                data.messages.forEach(msg => handleIncomingCIMMessage(msg));
-            }
-        })
-        .catch(() => {});
-
-    // If currently chatting with a friend, sync history dynamically as well!
-    if (activeCIMRecipient && activeCIMRecipient.uid) {
-        const convoId = [currentUser.uid, activeCIMRecipient.uid].sort().join('_');
-        fetch(`/api/cim/history?convoId=${convoId}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.messages && Array.isArray(data.messages)) {
-                    let hasNew = false;
-                    data.messages.forEach(m => {
-                        const saved = saveCIMLocalMessage(currentUser.uid, activeCIMRecipient.uid, m);
-                        if (saved) hasNew = true;
-                    });
-                    if (hasNew && activeCIMRecipient) {
-                        const updated = getCIMLocalMessages(currentUser.uid, activeCIMRecipient.uid);
-                        renderCIMMessagesUI(updated);
-                    }
-                }
-            })
-            .catch(() => {});
-    }
-}
-
-function initCIMStream() {
-    if (!currentUser) return;
-    if (cimEventSource) { cimEventSource.close(); cimEventSource = null; }
-    if (cimPollInterval) { clearInterval(cimPollInterval); cimPollInterval = null; }
-
-    // 1. Realtime SSE connection (sub-millisecond delivery)
-    try {
-        cimEventSource = new EventSource(`/api/cim/stream?uid=${currentUser.uid}`);
-        cimEventSource.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data && data.type === 'cim_message') {
-                    handleIncomingCIMMessage(data);
-                }
-            } catch(e) {}
-        };
-        cimEventSource.onerror = () => {
-            // EventSource auto-reconnects; fast-poll ensures zero dropped messages
-        };
-    } catch(e) {}
-
-    // 2. High-speed poll loop (every 750ms) ensures instant live updates without refresh
-    checkCIMPendingMessages();
-    cimPollInterval = setInterval(checkCIMPendingMessages, 750);
-}
-
-async function initFirebaseMessaging() {
-    try {
-        if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
-            console.log("[CIM] Web Notifications or ServiceWorker not supported in this browser.");
-            return;
-        }
-
-        const fcmModule = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js").catch(e => {
-            console.warn("[CIM] Could not load firebase-messaging.js dynamically:", e);
-            return null;
-        });
-
-        if (!fcmModule) return;
-        const { getMessaging, getToken, onMessage, isSupported } = fcmModule;
-
-        const supported = await isSupported().catch(() => false);
-        if (!supported) {
-            console.log("[CIM] Firebase Messaging is not supported in this browser context.");
-            return;
-        }
-
-        // Register Service Worker for background push notifications
-        let swReg = null;
-        try {
-            swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-            console.log("[CIM] Service Worker registered for Firebase Messaging");
-        } catch(swErr) {
-            console.warn("[CIM] Service Worker registration failed:", swErr);
-        }
-
-        fcmMessaging = getMessaging(app);
-
-        // Request browser permission for notifications
-        if (Notification.permission === 'default') {
-            try {
-                await Notification.requestPermission();
-            } catch (pErr) {}
-        }
-
-        // Retrieve token if permission is granted
-        if (Notification.permission === 'granted') {
-            try {
-                const tokenOpts = swReg ? { serviceWorkerRegistration: swReg } : {};
-                const token = await getToken(fcmMessaging, tokenOpts).catch(() => null);
-                if (token && currentUser) {
-                    console.log("[CIM] Firebase Messaging Token acquired");
-                    await setDoc(doc(db, "users", currentUser.uid), {
-                        fcmToken: token,
-                        fcmUpdatedAt: serverTimestamp()
-                    }, { merge: true }).catch(() => {});
-                }
-            } catch (tErr) {
-                console.warn("[CIM] FCM token retrieval error:", tErr);
-            }
-        }
-
-        // Setup foreground message listener
-        if (fcmUnsub) { fcmUnsub(); fcmUnsub = null; }
-        fcmUnsub = onMessage(fcmMessaging, (payload) => {
-            console.log("[CIM] FCM Message received in foreground:", payload);
-            const data = payload.data || {};
-            handleIncomingCIMMessage({
-                senderUid: data.senderUid || data.senderId,
-                senderName: data.senderName || payload.notification?.title || 'Friend',
-                senderPfp: data.senderPfp || payload.notification?.icon || DEFAULT_PFP,
-                text: payload.notification?.body || data.text || 'New instant message',
-                timestamp: data.timestamp ? Number(data.timestamp) : Date.now()
-            });
-        });
-
-    } catch (err) {
-        console.warn("[CIM] Firebase Messaging initialization error:", err);
-    }
-}
-
+// ── Realtime CIM Global Notification Watcher ──
 function initCIMSystem() {
     if (!currentUser) return;
-    cimSessionStartTime = Date.now();
+    if (cimGlobalWatcherUnsub) {
+        cimGlobalWatcherUnsub();
+        cimGlobalWatcherUnsub = null;
+    }
 
-    // 1. Initialize Firebase Cloud Messaging for CIM
-    initFirebaseMessaging();
+    // Realtime listener for incoming messages across all friend conversations
+    const q = query(collection(db, "cim_chats"), where("participants", "array-contains", currentUser.uid));
+    let isInitialLoad = true;
 
-    // 2. Initialize Realtime Instant Message Stream (Zero-database storage!)
-    initCIMStream();
+    cimGlobalWatcherUnsub = onSnapshot(q, (snap) => {
+        if (isInitialLoad) {
+            isInitialLoad = false;
+            return;
+        }
+
+        snap.docChanges().forEach(change => {
+            if (change.type === 'modified' || change.type === 'added') {
+                const data = change.doc.data();
+                if (!data) return;
+
+                if (data.lastSenderUid && data.lastSenderUid !== currentUser.uid) {
+                    const senderUid = data.lastSenderUid;
+                    const senderName = data.lastSenderName || 'Friend';
+                    const senderPfp = data.lastSenderPfp || DEFAULT_PFP;
+                    const msgText = data.lastMessage || 'New instant message';
+
+                    // Show notification if chat is not open with that friend or window is backgrounded
+                    if (!activeCIMRecipient || activeCIMRecipient.uid !== senderUid || document.hidden) {
+                        if (currentUserStatusMode !== 'dnd') {
+                            showCIMNotification(senderUid, senderName, senderPfp, msgText);
+                        }
+                    }
+                }
+            }
+        });
+    }, (err) => {
+        console.warn("CIM global watcher error:", err);
+    });
+
+    // Attach clipboard paste listener for screenshots
+    const msgInput = document.getElementById('cim-message-input');
+    if (msgInput && !msgInput._cimPasteBound) {
+        msgInput._cimPasteBound = true;
+        msgInput.addEventListener('paste', async (e) => {
+            const items = (e.clipboardData || window.clipboardData)?.items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type && items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    if (file) {
+                        e.preventDefault();
+                        await window.handleCIMMediaSelect(file);
+                        break;
+                    }
+                }
+            }
+        });
+    }
 }
 
 function clearCIMSubscriptions() {
     window.clearActiveCIMChat();
-    if (cimEventSource) { cimEventSource.close(); cimEventSource = null; }
-    if (fcmUnsub) { fcmUnsub(); fcmUnsub = null; }
+    if (activeCIMChatUnsub) { activeCIMChatUnsub(); activeCIMChatUnsub = null; }
+    if (cimGlobalWatcherUnsub) { cimGlobalWatcherUnsub(); cimGlobalWatcherUnsub = null; }
 }
 
 function initFriendsSystem() {
@@ -2034,13 +1959,35 @@ function initFriendsSystem() {
         friends.forEach(friend => {
             const fUid = friend.uid;
             if (!friendDocUnsubs.has(fUid)) {
-                const unsub = onSnapshot(doc(db, "users", fUid), (userDocSnap) => {
+                // 1. Firestore listener for profile data
+                const unsubFirestore = onSnapshot(doc(db, "users", fUid), (userDocSnap) => {
                     if (userDocSnap.exists()) {
-                        friendLivePresence.set(fUid, userDocSnap.data());
+                        const existing = friendLivePresence.get(fUid) || {};
+                        friendLivePresence.set(fUid, { ...existing, ...userDocSnap.data() });
                         renderFriendsDOM(friends);
                     }
                 });
-                friendDocUnsubs.set(fUid, unsub);
+
+                // 2. Realtime Database listener for dynamic live presence (Rule 13)
+                const unsubRtdb = onValue(dbRef(rtdb, 'status/' + fUid), (rtdbSnap) => {
+                    const rtdbVal = rtdbSnap.val() || {};
+                    const existing = friendLivePresence.get(fUid) || {};
+                    const isRtdbOnline = rtdbVal.state && rtdbVal.state !== 'offline';
+                    friendLivePresence.set(fUid, {
+                        ...existing,
+                        online: rtdbVal.state ? isRtdbOnline : existing.online,
+                        statusMode: rtdbVal.state || existing.statusMode || 'online',
+                        statusText: rtdbVal.statusText || existing.statusText || '',
+                        currentGame: rtdbVal.currentGame !== undefined ? rtdbVal.currentGame : existing.currentGame,
+                        lastActive: rtdbVal.last_changed ? { toMillis: () => rtdbVal.last_changed } : existing.lastActive
+                    });
+                    renderFriendsDOM(friends);
+                });
+
+                friendDocUnsubs.set(fUid, () => {
+                    unsubFirestore();
+                    unsubRtdb();
+                });
             }
         });
 
@@ -2241,7 +2188,29 @@ onAuthStateChanged(auth, user => {
         const adminBtn = document.getElementById('admin-panel-nav-btn');
         if (adminBtn) adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
 
-        // Set real-time online presence on website
+        // Set real-time online presence on website via Realtime Database (Rule 13)
+        try {
+            const userStatusRef = dbRef(rtdb, 'status/' + user.uid);
+            const connectedRef = dbRef(rtdb, '.info/connected');
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    onDisconnect(userStatusRef).update({
+                        state: 'offline',
+                        last_changed: rtdbServerTimestamp()
+                    }).then(() => {
+                        dbUpdate(userStatusRef, {
+                            state: currentUserStatusMode || 'online',
+                            statusText: "Browsing the Website",
+                            currentGame: currentUserCurrentGame || null,
+                            last_changed: rtdbServerTimestamp()
+                        });
+                    });
+                }
+            });
+        } catch(rtdbInitErr) {
+            console.debug("RTDB init notice:", rtdbInitErr);
+        }
+
         updateDoc(doc(db, "users", user.uid), {
             online: true,
             statusMode: currentUserStatusMode || 'online',
@@ -3427,28 +3396,33 @@ window.handleRepoFilesUpload = async function(fileList) {
 
 window.promptCreateNewTextFile = function() {
     if (!activeEditingPage) return;
-    const name = prompt("Enter file name (e.g. index.js, config.json, LICENSE):");
-    if (!name || !name.trim()) return;
+    window.showCustomPrompt(
+        "New File",
+        "Enter file name (e.g. index.js, config.json, LICENSE):",
+        "index.js",
+        (name) => {
+            if (!name || !name.trim()) return;
+            const trimmed = name.trim();
+            const existing = activeEditingPage.files.find(f => f.name.toLowerCase() === trimmed.toLowerCase());
+            if (existing) {
+                window.showCustomAlert("A file with this name already exists in the repository.");
+                return;
+            }
 
-    const trimmed = name.trim();
-    const existing = activeEditingPage.files.find(f => f.name.toLowerCase() === trimmed.toLowerCase());
-    if (existing) {
-        alert("A file with this name already exists in the repository.");
-        return;
-    }
+            const defaultContent = trimmed.endsWith('.json') ? '{\n  "name": "project"\n}' : trimmed.endsWith('.md') ? `# ${trimmed}\n` : '// Code file\n';
 
-    const defaultContent = trimmed.endsWith('.json') ? '{\n  "name": "project"\n}' : trimmed.endsWith('.md') ? `# ${trimmed}\n` : '// Code file\n';
+            activeEditingPage.files.push({
+                name: trimmed,
+                size: defaultContent.length,
+                type: 'text/plain',
+                content: defaultContent,
+                lastModified: Date.now()
+            });
 
-    activeEditingPage.files.push({
-        name: trimmed,
-        size: defaultContent.length,
-        type: 'text/plain',
-        content: defaultContent,
-        lastModified: Date.now()
-    });
-
-    renderRepoFilesTable();
-    playSfx('click');
+            renderRepoFilesTable();
+            playSfx('click');
+        }
+    );
 };
 
 window.deleteRepoFile = function(idx) {
@@ -3525,7 +3499,7 @@ window.commitNewRelease = function() {
     const notes = document.getElementById('release-notes-input')?.value.trim();
 
     if (!tag) {
-        alert("Version tag (e.g. v1.0.0) is required.");
+        window.showCustomAlert("Version tag (e.g. v1.0.0) is required.");
         return;
     }
 

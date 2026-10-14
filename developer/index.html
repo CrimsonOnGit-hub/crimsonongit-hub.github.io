@@ -401,11 +401,18 @@
                             </div>
 
                             <div class="dev-form-group">
-                                <label class="dev-form-label">Project Icon URL</label>
-                                <div style="display: flex; gap: 10px;">
-                                    <input type="url" id="settings-project-logo" placeholder="https://..." class="dev-form-input">
-                                    <button type="button" class="dev-btn-secondary" style="white-space: nowrap;" onclick="document.getElementById('settings-logo-file').click()">Upload</button>
-                                    <input type="file" id="settings-logo-file" accept="image/*" style="display: none;" onchange="window.uploadProjectLogo(event.target.files[0])">
+                                <label class="dev-form-label">Project Icon / Picture</label>
+                                <div style="display: flex; align-items: center; gap: 14px;">
+                                    <div style="width: 48px; height: 48px; border-radius: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                                        <img id="settings-project-logo-preview" src="" alt="Icon Preview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                        <span id="settings-project-logo-fallback" style="font-size: 1.4rem;">🎮</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <button type="button" class="dev-btn-secondary" style="white-space: nowrap; width: fit-content;" onclick="document.getElementById('settings-logo-file').click()">📁 Upload Project Picture</button>
+                                        <input type="file" id="settings-logo-file" accept="image/*" style="display: none;" onchange="window.uploadProjectLogo(event.target.files[0])">
+                                        <span id="settings-project-logo-filename" style="font-size: 0.78rem; color: var(--dev-text-dim);">No picture chosen</span>
+                                    </div>
+                                    <input type="hidden" id="settings-project-logo">
                                 </div>
                             </div>
 

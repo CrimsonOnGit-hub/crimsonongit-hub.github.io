@@ -136,7 +136,7 @@ window.submitNewProject = async function(e) {
 
     } catch(err) {
         console.error("Error creating project:", err);
-        alert("Failed to create project: " + err.message);
+        window.showCustomAlert("Failed to create project: " + err.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "Create Project";
@@ -548,7 +548,7 @@ window.revokePlayerAccess = async function(uid, name) {
 
     } catch(err) {
         console.error("Error revoking access:", err);
-        alert("Failed to revoke player access: " + err.message);
+        window.showCustomAlert("Failed to revoke player access: " + err.message);
     }
 };
 
@@ -587,7 +587,7 @@ window.regenerateSecret = async function() {
         document.getElementById('oauth-client-secret').value = newSecret;
         window.showToast("✓ New Client Secret generated!");
     } catch(err) {
-        alert("Failed to regenerate secret: " + err.message);
+        window.showCustomAlert("Failed to regenerate secret: " + err.message);
     }
 };
 
@@ -617,7 +617,7 @@ window.saveProjectOAuth = async function(e) {
         window.showToast("✓ OAuth settings saved successfully!");
         updateSdkSnippets();
     } catch(err) {
-        alert("Failed to save settings: " + err.message);
+        window.showCustomAlert("Failed to save settings: " + err.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "Save Changes";
@@ -649,7 +649,7 @@ window.saveProjectSettings = async function(e) {
         window.showToast("✓ Project settings updated!");
         window.loadProjects();
     } catch(err) {
-        alert("Failed to update project: " + err.message);
+        window.showCustomAlert("Failed to update project: " + err.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "Save Settings";
@@ -657,29 +657,57 @@ window.saveProjectSettings = async function(e) {
 };
 
 window.uploadProjectLogo = async function(file) {
-    if (!file || !file.type.startsWith('image/')) return alert("Not a valid image file.");
-    window.showToast("Uploading logo...");
+    if (!file || !file.type.startsWith('image/')) return window.showCustomAlert("Please select a valid image file.");
+    const nameEl = document.getElementById('settings-project-logo-filename');
+    if (nameEl) nameEl.textContent = 'Processing ' + file.name + '...';
+    window.showToast("Loading picture...");
     try {
-        const fd = new FormData();
-        fd.append("image", file);
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
-        const json = await res.json();
-        if (!json.success) throw new Error("Upload Failed");
-        document.getElementById('settings-project-logo').value = json.data.url;
-        window.showToast("✓ Logo uploaded!");
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            const logoInp = document.getElementById('settings-project-logo');
+            const logoPrev = document.getElementById('settings-project-logo-preview');
+            const logoFall = document.getElementById('settings-project-logo-fallback');
+            if (logoInp) logoInp.value = dataUrl;
+            if (logoPrev) {
+                logoPrev.src = dataUrl;
+                logoPrev.style.display = 'block';
+            }
+            if (logoFall) logoFall.style.display = 'none';
+            if (nameEl) nameEl.textContent = '✅ ' + (file.name.length > 20 ? file.name.substring(0, 18) + '...' : file.name);
+            window.showToast("Project picture loaded! Click Save Settings to apply.", "success");
+        };
+        reader.readAsDataURL(file);
     } catch(e) {
-        alert("Upload error: " + e.message);
+        if (nameEl) nameEl.textContent = 'Upload failed';
+        window.showCustomAlert("Picture load error: " + e.message);
     }
 };
 
 window.deleteCurrentProject = async function() {
     if (!currentProject) return;
     const cId = currentProject.clientId || currentProject.id;
-    const confirmation = prompt(`To confirm deletion, type the project name "${currentProject.appName}":`);
-    if (confirmation !== currentProject.appName) {
-        alert("Deletion cancelled. Project name did not match.");
-        return;
-    }
+    const cName = currentProject.appName || '';
+    window.showCustomPrompt(
+        "Confirm Deletion",
+        `To confirm permanent deletion, type the project name "${cName}":`,
+        cName,
+        async (confirmation) => {
+            if (confirmation !== cName) {
+                window.showCustomAlert("Deletion cancelled. Project name did not match.");
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, "sso_links", cId));
+                window.showToast("Project deleted.", "info");
+                window.closeProjectConsole();
+                loadProjects();
+            } catch(err) {
+                window.showCustomAlert("Failed to delete project: " + err.message);
+            }
+        }
+    );
+    return;
 
     try {
         await deleteDoc(doc(db, "sso_links", cId));
@@ -687,7 +715,7 @@ window.deleteCurrentProject = async function() {
         window.backToHomepage();
         await window.loadProjects();
     } catch(err) {
-        alert("Failed to delete project: " + err.message);
+        window.showCustomAlert("Failed to delete project: " + err.message);
     }
 };
 

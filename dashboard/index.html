@@ -510,9 +510,8 @@
                                     <input type="file" id="banner-file-input" accept="image/*" style="display:none;" onchange="handleUpload(event.target.files[0], 'banner')">
                                 </div>
                                 
-                                <div style="display: flex; gap: 8px; margin: 12px 0 8px; flex-wrap: wrap;">
-                                    <input type="url" id="banner-url-input" class="settings-input" placeholder="Or paste direct image URL (https://...)" style="flex: 1; min-width: 200px; font-size: 0.85rem;">
-                                    <button type="button" class="btn-secondary" onclick="applyBannerUrl()" style="width: auto; padding: 8px 16px; font-size: 0.82rem; font-weight: 700;">Apply URL</button>
+                                <div style="display: flex; gap: 8px; margin: 12px 0 8px; flex-wrap: wrap; align-items: center;">
+                                    <button type="button" class="btn-secondary" onclick="document.getElementById('banner-file-input').click()" style="width: auto; padding: 8px 16px; font-size: 0.82rem; font-weight: 700;">📁 Upload Banner Image</button>
                                     <button type="button" class="btn-secondary" onclick="resetBannerToDefault()" style="width: auto; padding: 8px 14px; font-size: 0.82rem; color: var(--crimson-light);">Reset to Default</button>
                                 </div>
                                 
@@ -1474,8 +1473,13 @@
                             </div>
                             <div class="form-group-row">
                                 <div>
-                                    <label class="form-label">Cover Banner URL</label>
-                                    <input type="url" id="game-cover-url-input" class="settings-input" placeholder="https://... cover image for launch splash">
+                                    <label class="form-label">Cover Banner / Splash Art</label>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <button type="button" class="btn-secondary" onclick="document.getElementById('game-cover-file-input').click()" style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700;">📁 Upload Cover Image</button>
+                                        <input type="file" id="game-cover-file-input" accept="image/*" style="display:none;" onchange="handleGameCoverUpload(event.target.files[0])">
+                                        <span id="game-cover-status" style="font-size: 0.8rem; color: var(--text-secondary);">No file chosen</span>
+                                    </div>
+                                    <input type="hidden" id="game-cover-url-input">
                                 </div>
                                 <div>
                                     <label class="form-label">Version / Build Tag</label>
@@ -1582,6 +1586,14 @@
         }
     };
     </script>
+
+    <!-- CIM Image Lightbox Modal -->
+    <div id="cim-lightbox-modal" class="custom-modal-overlay" style="display: none; z-index: 100005; background: rgba(0,0,0,0.92);" onclick="window.closeCIMLightbox()">
+        <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
+            <img id="cim-lightbox-image" src="" alt="Enlarged shared image" style="max-width: 90vw; max-height: 85vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(220,38,38,0.3); border: 1px solid rgba(255,255,255,0.15); object-fit: contain;">
+            <button type="button" onclick="window.closeCIMLightbox()" style="position: absolute; top: -16px; right: -16px; width: 36px; height: 36px; border-radius: 50%; background: #dc2626; color: #fff; border: 2px solid #fff; font-size: 1.1rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">✕</button>
+        </div>
+    </div>
 
     <!-- Top Right CIM Instant Messager Notification Container -->
     <div id="cim-notification-container" class="cim-notification-container"></div>

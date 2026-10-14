@@ -864,6 +864,7 @@
         let activeAuthEmail = "";
         let activeAuthUsername = "";
         let activeAuthPhoto = "";
+        let friendlyAppName = "";
 
         // Known DoorAuth Applications Dictionary
         const KNOWN_DOORAUTH_APPS = {
@@ -915,7 +916,7 @@
                 if (crimxidView) crimxidView.style.display = 'flex';
 
                 // Display application name (NEVER show raw client ID as the app name)
-                let friendlyAppName = sanitizeFriendlyAppName(appName, clientId);
+                friendlyAppName = sanitizeFriendlyAppName(appName, clientId);
 
                 const updateAppLabels = (name) => {
                     const cleanName = sanitizeFriendlyAppName(name, clientId);
@@ -1373,7 +1374,7 @@
                         return;
                     }
 
-                    alert("✓ Successfully authorized with CrimX!");
+                    window.showCustomAlert("Successfully authorized with CrimX!");
                 }
 
                 return;

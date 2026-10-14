@@ -33,6 +33,7 @@ const startCallBtn = document.getElementById('startCallBtn');
 const activeChatName = document.getElementById('active-chat-name');
 
 window.showCustomPrompt = function(title, desc, placeholder, onConfirm) {
+    if (typeof window.ensureCustomDialogElements === 'function') window.ensureCustomDialogElements();
     const overlay = document.getElementById('custom-prompt');
     const input = document.getElementById('custom-prompt-input');
     document.getElementById('custom-prompt-title').innerText = title;
@@ -46,11 +47,24 @@ window.showCustomPrompt = function(title, desc, placeholder, onConfirm) {
     input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); submitAction(); } };
 };
 
-window.showCustomAlert = function(message) {
+window.showCustomAlert = function(message, onOk) {
+    if (typeof window.ensureCustomDialogElements === 'function') window.ensureCustomDialogElements();
     const overlay = document.getElementById('custom-alert');
-    document.getElementById('custom-alert-message').innerText = message;
-    overlay.classList.add('active');
-    document.getElementById('custom-alert-ok').onclick = () => overlay.classList.remove('active');
+    const msgEl = document.getElementById('custom-alert-message');
+    const okBtn = document.getElementById('custom-alert-ok');
+    if (msgEl) msgEl.innerText = message || '';
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.classList.add('active');
+    }
+    const closeAlert = () => {
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.style.display = 'none';
+        }
+        if (typeof onOk === 'function') onOk();
+    };
+    if (okBtn) okBtn.onclick = closeAlert;
 };
 
 const sfx = { msg: new Audio('assets/sounds/msgRecieved.wav'), sent: new Audio('assets/sounds/callSent.wav'), receive: new Audio('assets/sounds/callRecieve.wav') };

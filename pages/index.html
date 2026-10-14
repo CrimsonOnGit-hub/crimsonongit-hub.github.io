@@ -979,8 +979,13 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Cover Splash Image URL</label>
-                                <input type="text" id="game-cover-url" class="settings-input" placeholder="https://... cover art" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Cover Splash Picture</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button type="button" class="btn-secondary" onclick="document.getElementById('game-cover-file').click()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">📁 Upload Picture</button>
+                                    <input type="file" id="game-cover-file" accept="image/*" style="display:none;" onchange="handleGameCoverFile(event.target.files[0])">
+                                    <span id="game-cover-name" style="font-size: 0.78rem; color: var(--page-text-muted);">No picture selected</span>
+                                </div>
+                                <input type="hidden" id="game-cover-url">
                             </div>
                         </div>
                         <div>

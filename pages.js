@@ -127,7 +127,7 @@ window.copyCodeSnippet = function(codeId) {
     const el = document.getElementById(codeId);
     if (!el) return;
     navigator.clipboard.writeText(el.innerText).then(() => {
-        alert("Code copied to clipboard!");
+        window.showCustomAlert("Code copied to clipboard!");
     });
 };
 
@@ -135,7 +135,7 @@ let rawReadmeContent = '';
 window.copyReadmeRaw = function() {
     if (!rawReadmeContent) return;
     navigator.clipboard.writeText(rawReadmeContent).then(() => {
-        alert("Raw README copied to clipboard!");
+        window.showCustomAlert("Raw README copied to clipboard!");
     });
 };
 
@@ -509,7 +509,7 @@ function renderRepositoryPage(username, pageName, data) {
     if (cloneBtn) {
         cloneBtn.onclick = (e) => {
             e.preventDefault();
-            if (files.length === 0) return alert("Repository is empty.");
+            if (files.length === 0) return window.showCustomAlert("Repository is empty.");
             const allText = files.map(f => `--- FILE: ${f.name} ---\n${f.content || ''}\n\n`).join('\n');
             window.downloadRepoFile(`${data.title || pageName}_bundle.txt`, allText);
         };
@@ -526,7 +526,7 @@ window.downloadRepoFile = function(fileName, contentEncoded, mimeType = 'text/pl
         link.click();
         document.body.removeChild(link);
     } catch(e) {
-        alert("Failed to download file: " + e.message);
+        window.showCustomAlert("Failed to download file: " + e.message);
     }
 };
 
@@ -854,7 +854,7 @@ window.loadHubCommunityPages = async function() {
 
 window.toggleStarCommunityPage = async function(pageDocId, btnEl) {
     if (!currentUser) {
-        alert("Please sign in to star community pages.");
+        window.showCustomAlert("Please sign in to star community pages.");
         return;
     }
 
@@ -889,7 +889,7 @@ window.toggleStarCommunityPage = async function(pageDocId, btnEl) {
 // ─── MODAL CONTROLLER (CREATE NEW PAGE) ───
 window.openNewPageModal = function() {
     if (!currentUser) {
-        alert("Please sign in to create pages.");
+        window.showCustomAlert("Please sign in to create pages.");
         return;
     }
     const modal = document.getElementById('modal-new-page');
@@ -944,7 +944,7 @@ window.handleCreatePageSubmit = async function(e) {
     const desc = document.getElementById('new-page-desc')?.value.trim() || '';
 
     if (!title || !slug) {
-        alert("Page title and URL slug are required.");
+        window.showCustomAlert("Page title and URL slug are required.");
         return;
     }
 
@@ -1103,7 +1103,7 @@ loop();
         window.editPageById(slug);
 
     } catch(err) {
-        alert("Error creating page: " + err.message);
+        window.showCustomAlert("Error creating page: " + err.message);
     } finally {
         if (btn) { btn.disabled = false; btn.innerText = "Create Page"; }
     }
@@ -1140,7 +1140,7 @@ window.editPageById = async function(slug) {
         }
 
         if (!pageData) {
-            alert("Page data could not be loaded.");
+            window.showCustomAlert("Page data could not be loaded.");
             return;
         }
 
@@ -1224,7 +1224,7 @@ window.editPageById = async function(slug) {
         const modal = document.getElementById('modal-page-editor');
         if (modal) modal.classList.add('open');
     } catch(err) {
-        alert("Error opening editor: " + err.message);
+        window.showCustomAlert("Error opening editor: " + err.message);
     }
 };
 
@@ -1291,17 +1291,17 @@ window.saveActiveEditorPage = async function() {
             updatedAt: serverTimestamp()
         }, { merge: true });
 
-        alert(`✓ Page "${newTitle}" saved & deployed!`);
+        window.showCustomAlert(`Page "${newTitle}" saved & deployed!`);
         await loadHubUserPages();
     } catch(err) {
-        alert("Error saving page: " + err.message);
+        window.showCustomAlert("Error saving page: " + err.message);
     }
 };
 
 window.deleteActiveEditorPage = async function() {
     if (!currentUser || !activeEditingPage) return;
     if (activeEditingPage.slug === 'me') {
-        alert("The root 'me' profile page cannot be deleted.");
+        window.showCustomAlert("The root 'me' profile page cannot be deleted.");
         return;
     }
     if (!confirm(`Permanently delete "@${currentUsername}/${activeEditingPage.slug}"?`)) return;
@@ -1310,20 +1310,20 @@ window.deleteActiveEditorPage = async function() {
         await deleteDoc(doc(db, "user_pages", `${currentUsername}_${activeEditingPage.slug}`));
         window.closePageEditor();
         await loadHubUserPages();
-        alert("Page deleted successfully.");
+        window.showCustomAlert("Page deleted successfully.");
     } catch(err) {
-        alert("Error deleting page: " + err.message);
+        window.showCustomAlert("Error deleting page: " + err.message);
     }
 };
 
 window.deletePageFromHub = async function(slug) {
     if (!currentUser) return;
-    if (slug === 'me') return alert("The root 'me' page cannot be deleted.");
+    if (slug === 'me') return window.showCustomAlert("The root 'me' page cannot be deleted.");
     if (!confirm(`Delete page "${slug}"?`)) return;
     try {
         await deleteDoc(doc(db, "user_pages", `${currentUsername}_${slug}`));
         await loadHubUserPages();
-    } catch(e) { alert(e.message); }
+    } catch(e) { window.showCustomAlert(e.message); }
 };
 
 // ─── EDITOR REPO FILES MANAGEMENT ───
@@ -1382,21 +1382,27 @@ window.handleRepoFilesUpload = async function(fileList) {
 
 window.promptCreateNewTextFile = function() {
     if (!activeEditingPage) return;
-    const name = prompt("Enter file name (e.g. index.js, config.json, LICENSE):");
-    if (!name || !name.trim()) return;
-    const trimmed = name.trim();
-    if (activeEditingPage.files.some(f => f.name.toLowerCase() === trimmed.toLowerCase())) {
-        return alert("A file with this name already exists.");
-    }
-    const defaultContent = trimmed.endsWith('.json') ? '{\n  "name": "project"\n}' : trimmed.endsWith('.md') ? `# ${trimmed}\n` : '// Code file\n';
-    activeEditingPage.files.push({
-        name: trimmed,
-        size: defaultContent.length,
-        type: 'text/plain',
-        content: defaultContent,
-        lastModified: Date.now()
-    });
-    renderEditorRepoFilesTable();
+    window.showCustomPrompt(
+        "New File",
+        "Enter file name (e.g. index.js, config.json, LICENSE):",
+        "index.js",
+        (name) => {
+            if (!name || !name.trim()) return;
+            const trimmed = name.trim();
+            if (activeEditingPage.files.some(f => f.name.toLowerCase() === trimmed.toLowerCase())) {
+                return window.showCustomAlert("A file with this name already exists.");
+            }
+            const defaultContent = trimmed.endsWith('.json') ? '{\n  "name": "project"\n}' : trimmed.endsWith('.md') ? `# ${trimmed}\n` : '// Code file\n';
+            activeEditingPage.files.push({
+                name: trimmed,
+                size: defaultContent.length,
+                type: 'text/plain',
+                content: defaultContent,
+                lastModified: Date.now()
+            });
+            renderEditorRepoFilesTable();
+        }
+    );
 };
 
 window.deleteRepoFileAtIndex = function(idx) {
@@ -1457,7 +1463,7 @@ window.commitNewRelease = function() {
     const title = document.getElementById('release-title-input')?.value.trim();
     const notes = document.getElementById('release-notes-input')?.value.trim();
 
-    if (!tag) return alert("Version tag (e.g. v1.0.0) is required.");
+    if (!tag) return window.showCustomAlert("Version tag (e.g. v1.0.0) is required.");
 
     activeEditingPage.releases.unshift({
         tag,
@@ -1549,6 +1555,18 @@ window.switchRepoTab = function(tab) {
         if (relPane) relPane.style.display = 'block';
         if (codePane) codePane.style.display = 'none';
     }
+};
+
+window.handleGameCoverFile = function(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const urlInput = document.getElementById('game-cover-url');
+        if (urlInput) urlInput.value = e.target.result;
+        const nameEl = document.getElementById('game-cover-name');
+        if (nameEl) nameEl.textContent = '✅ ' + (file.name.length > 18 ? file.name.substring(0, 15) + '...' : file.name);
+    };
+    reader.readAsDataURL(file);
 };
 
 window.addEventListener('DOMContentLoaded', initPages);

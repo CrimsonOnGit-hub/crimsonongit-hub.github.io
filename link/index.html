@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign into CrimX</title>
+    <script src="/theme.js"></script>
     <link rel="stylesheet" href="/style.css?v=7">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -377,7 +378,23 @@
             <!-- Sign-in prompt (shown when not logged in) -->
             <div id="auth-needed" style="margin-bottom: 18px;">
                 <p style="color: var(--text-muted); font-size: 0.86rem; margin-bottom: 12px;">Sign into CrimX to continue:</p>
-                <button onclick="window.signInWithGoogle()" class="btn-google">
+                
+                <form id="link-email-form" onsubmit="window.handleLinkEmailSignIn(event)" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
+                    <input type="text" id="link-login-ident" placeholder="Email or Username" required style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.88rem; outline: none;">
+                    <input type="password" id="link-login-pass" placeholder="Password" required style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.88rem; outline: none;">
+                    <div id="link-login-error" style="display: none; color: #f87171; font-size: 0.8rem; padding: 2px 4px;"></div>
+                    <button type="submit" id="link-email-btn" style="background: var(--crimson); color: #fff; border: none; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 14px rgba(217, 4, 41, 0.35);">
+                        Sign In with CrimX ID
+                    </button>
+                </form>
+
+                <div style="display: flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--text-muted); font-size: 0.75rem;">
+                    <div style="flex: 1; height: 1px; background: var(--glass-border);"></div>
+                    <span>OR</span>
+                    <div style="flex: 1; height: 1px; background: var(--glass-border);"></div>
+                </div>
+
+                <button type="button" onclick="window.signInWithGoogle()" class="btn-google">
                     <img src="https://cdn-icons-png.flaticon.com/512/300/300221.png" style="width: 18px; height: 18px;" alt="Google"> Sign in with Google
                 </button>
             </div>
@@ -412,8 +429,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBSSJKDrFJ1_qlliZqgw34CY2TSaKOxxxM",
@@ -625,11 +642,50 @@
             checkAndReveal();
         });
 
+        window.handleLinkEmailSignIn = async function(e) {
+            e.preventDefault();
+            const ident = document.getElementById('link-login-ident').value.trim();
+            const pass = document.getElementById('link-login-pass').value;
+            const errEl = document.getElementById('link-login-error');
+            const btn = document.getElementById('link-email-btn');
+
+            if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+            if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+
+            try {
+                let email = ident;
+                if (!ident.includes('@')) {
+                    const q = query(collection(db, "users"), where("username", "==", ident.toLowerCase()));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        const uData = snap.docs[0].data();
+                        if (uData.email) email = uData.email;
+                    }
+                }
+
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (err) {
+                console.error("Link email sign-in error:", err);
+                if (errEl) {
+                    errEl.style.display = 'block';
+                    if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                        errEl.textContent = 'Incorrect email or password.';
+                    } else if (err.code === 'auth/user-not-found') {
+                        errEl.textContent = 'No account found with this CrimX ID.';
+                    } else {
+                        errEl.textContent = err.message || 'Failed to sign in.';
+                    }
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Sign In with CrimX ID'; }
+            }
+        };
+
         window.signInWithGoogle = async function() {
             try {
                 await signInWithPopup(auth, googleProvider);
             } catch(err) {
-                alert("Sign-in failed: " + err.message);
+                window.showCustomAlert("Sign-in failed: " + err.message);
             }
         };
 
@@ -726,6 +782,22 @@
                 btn.textContent = "✓ Authorized!";
 
                 setTimeout(() => {
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'CRIMX_AUTH_SUCCESS',
+                            code: authCode,
+                            user: {
+                                uid: currentUser.uid,
+                                username: currentUser.displayName || currentUser.email.split('@')[0],
+                                displayName: currentUser.displayName || 'CrimX Player',
+                                email: currentUser.email || '',
+                                photoURL: currentUser.photoURL || DEFAULT_PFP
+                            }
+                        }, '*');
+                        setTimeout(() => window.close(), 400);
+                        return;
+                    }
+
                     if (redirectUri) {
                         // Standard Authorization Code callback (ZERO personal data in URL!)
                         const delimiter = redirectUri.includes('?') ? '&' : '?';
@@ -733,13 +805,13 @@
                         if (state) target += `&state=${encodeURIComponent(state)}`;
                         window.location.href = target;
                     } else {
-                        alert("Authorization successful! Code: " + authCode);
+                        window.showCustomAlert("Authorization successful! Code: " + authCode);
                     }
                 }, 1000);
 
             } catch(err) {
                 console.error("Authorization error:", err);
-                alert("Failed to authorize application: " + err.message);
+                window.showCustomAlert("Failed to authorize application: " + err.message);
                 btn.disabled = false;
                 btn.textContent = "Try Again";
             }

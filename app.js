@@ -91,7 +91,7 @@ window.approveQuickAuth = function() {
 };
 
 window.showCustomPrompt = function(title, desc, placeholder, onConfirm) {
-    const overlay = document.getElementById('custom-prompt'); if(!overlay) return;
+    ensureCustomDialogElements(); const overlay = document.getElementById('custom-prompt');
     const input = document.getElementById('custom-prompt-input');
     document.getElementById('custom-prompt-title').innerText = title; document.getElementById('custom-prompt-desc').innerText = desc;
     input.style.display = 'block'; input.placeholder = placeholder; input.value = "";
@@ -103,7 +103,7 @@ window.showCustomPrompt = function(title, desc, placeholder, onConfirm) {
 };
 
 window.showCustomAlert = function(message) {
-    const overlay = document.getElementById('custom-alert'); if(!overlay) { alert(message); return; }
+    ensureCustomDialogElements(); const overlay = document.getElementById('custom-alert');
     document.getElementById('custom-alert-message').innerText = message; overlay.classList.add('active');
     document.getElementById('custom-alert-ok').onclick = () => overlay.classList.remove('active');
 };
