@@ -367,9 +367,11 @@ window.toggleSettingsStudio = function(show) {
     if (!modal) return;
     if (show) {
         modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
         playSfx('click');
     } else {
         modal.classList.remove('open');
+        document.body.style.overflow = '';
         playSfx('click');
     }
 };
@@ -2183,10 +2185,9 @@ onAuthStateChanged(auth, user => {
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('dashboard-container').style.display = 'block';
 
-        // Toggle Admin Panel trigger visibility for authorized admin accounts
-        const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+        // Admin Panel button kept hidden until verified from user record
         const adminBtn = document.getElementById('admin-panel-nav-btn');
-        if (adminBtn) adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+        if (adminBtn) adminBtn.style.display = 'none';
 
         // Set real-time online presence on website via Realtime Database (Rule 13)
         try {
@@ -2363,10 +2364,33 @@ onAuthStateChanged(auth, user => {
                     }
                 }
 
-                // Role Verification (Assigned strictly in Firebase/Firestore: isStaff / isDev / role)
-                const isStaff = data.isStaff === true || data.staff === true || data.role === 'staff' || data.role === 'admin';
+                // Role Verification (Assigned strictly in Firestore: isAdmin / isStaff / isDev / role)
+                const isAdmin = Boolean(data.isAdmin === true || data.role === 'admin');
+                const isStaff = data.isStaff === true || data.staff === true || data.role === 'staff' || isAdmin;
                 const isDev = data.isDev === true || data.dev === true || data.developer === true || data.isDeveloper === true || data.role === 'developer' || data.role === 'dev';
                 
+                // Toggle Admin button visibility based strictly on verified admin role
+                const adminNavBtn = document.getElementById('admin-panel-nav-btn');
+                if (adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
+                // Update Hero Profile Badge
+                const heroBadge = document.getElementById('cim-profile-badge');
+                if (heroBadge) {
+                    if (isAdmin) {
+                        heroBadge.innerText = "👑 Admin";
+                        heroBadge.className = "cim-profile-badge admin";
+                    } else if (isStaff) {
+                        heroBadge.innerText = "🛡️ Staff";
+                        heroBadge.className = "cim-profile-badge staff";
+                    } else if (isDev) {
+                        heroBadge.innerText = "🛠️ Developer";
+                        heroBadge.className = "cim-profile-badge dev";
+                    } else {
+                        heroBadge.innerText = "🔥 Member";
+                        heroBadge.className = "cim-profile-badge";
+                    }
+                }
+
                 const previewStaffBadge = document.getElementById('preview-staff-badge');
                 const previewDevBadge = document.getElementById('preview-dev-badge');
                 const sidebarRoleBadge = document.getElementById('sidebar-role-badge');
@@ -2379,7 +2403,10 @@ onAuthStateChanged(auth, user => {
                 if (showDevBadge) showDevBadge.style.display = isDev ? 'inline-flex' : 'none';
 
                 if (sidebarRoleBadge) {
-                    if (isStaff) {
+                    if (isAdmin) {
+                        sidebarRoleBadge.innerText = "👑 Admin";
+                        sidebarRoleBadge.className = "settings-role-badge admin";
+                    } else if (isStaff) {
                         sidebarRoleBadge.innerText = "🛡️ Staff";
                         sidebarRoleBadge.className = "settings-role-badge staff";
                     } else if (isDev) {
@@ -3568,21 +3595,35 @@ window.updatePureHtmlPreview = function() {
 let adminCachedUsers = [];
 let pendingAdminPromptAction = null;
 
-window.toggleAdminPanel = function(show) {
+window.toggleAdminPanel = async function(show) {
     const modal = document.getElementById('admin-panel-modal');
     if (!modal) return;
     if (show) {
-        if (!currentUser || !ADMIN_EMAILS.includes(currentUser.email?.toLowerCase())) {
+        if (!currentUser) {
+            window.showToast("Unauthorized: Sign in required.", "error");
+            return;
+        }
+        let userIsAdmin = false;
+        try {
+            const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+            if (userSnap.exists()) {
+                const uData = userSnap.data();
+                userIsAdmin = Boolean(uData.isAdmin === true || uData.role === 'admin');
+            }
+        } catch(e) {}
+        if (!userIsAdmin) {
             window.showToast("Unauthorized: Admin credentials required.", "error");
             return;
         }
         modal.classList.add('open');
         modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
         playSfx('click');
         window.loadAdminUsersList();
     } else {
         modal.classList.remove('open');
         modal.style.display = 'none';
+        document.body.style.overflow = '';
         playSfx('click');
     }
 };

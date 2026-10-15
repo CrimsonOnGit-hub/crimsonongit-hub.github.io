@@ -569,7 +569,7 @@ window.toggleSecretVisibility = function() {
 window.copySecretVal = function() {
     if (!currentProject || !currentProject.clientSecret) return;
     navigator.clipboard.writeText(currentProject.clientSecret).then(() => {
-        window.showToast("✓ Client Secret copied");
+        window.showToast("✓ Network Secret Key copied");
     });
 };
 
@@ -585,7 +585,7 @@ window.regenerateSecret = async function() {
         });
         currentProject.clientSecret = newSecret;
         document.getElementById('oauth-client-secret').value = newSecret;
-        window.showToast("✓ New Client Secret generated!");
+        window.showToast("✓ New Network Secret Key generated!");
     } catch(err) {
         window.showCustomAlert("Failed to regenerate secret: " + err.message);
     }
@@ -614,7 +614,7 @@ window.saveProjectOAuth = async function(e) {
         });
         currentProject.redirectUris = redirectUris;
         currentProject.permissions = perms;
-        window.showToast("✓ OAuth settings saved successfully!");
+        window.showToast("✓ Dauth configuration saved successfully!");
         updateSdkSnippets();
     } catch(err) {
         window.showCustomAlert("Failed to save settings: " + err.message);

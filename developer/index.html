@@ -245,7 +245,7 @@
                     <!-- Sub-tabs Bar -->
                     <div class="dev-tabs-bar">
                         <button type="button" class="dev-tab-btn active" id="tab-btn-users" onclick="window.switchAuthTab('users')">Users</button>
-                        <button type="button" class="dev-tab-btn" id="tab-btn-oauth" onclick="window.switchAuthTab('oauth')">Sign-in Method / OAuth</button>
+                        <button type="button" class="dev-tab-btn" id="tab-btn-oauth" onclick="window.switchAuthTab('oauth')">Sign-in Method / Dauth Configuration</button>
                         <button type="button" class="dev-tab-btn" id="tab-btn-sdk" onclick="window.switchAuthTab('sdk')">SDK & Quickstart</button>
                     </div>
 
@@ -284,7 +284,7 @@
                                 <h3 class="dev-section-card-title" style="margin-bottom: 16px;">🔑 Credentials</h3>
                                 
                                 <div class="dev-form-group">
-                                    <label class="dev-form-label">Client ID (Public Identifier)</label>
+                                    <label class="dev-form-label">App Shard ID (Dauth Requester Key)</label>
                                     <div style="display: flex; gap: 8px;">
                                         <input type="text" id="oauth-client-id" readonly class="dev-form-input" style="font-family: monospace; color: #4ade80;">
                                         <button type="button" class="dev-btn-secondary" onclick="window.copyInputVal('oauth-client-id')">Copy</button>
@@ -293,7 +293,7 @@
 
                                 <div class="dev-form-group">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                        <label class="dev-form-label" style="margin-bottom: 0;">Client Secret (Confidential)</label>
+                                        <label class="dev-form-label" style="margin-bottom: 0;">Network Secret Key (Confidential)</label>
                                         <button type="button" onclick="window.regenerateSecret()" style="background: none; border: none; color: #f87171; font-size: 0.74rem; cursor: pointer; text-decoration: underline;">Regenerate Secret</button>
                                     </div>
                                     <div style="display: flex; gap: 8px;">
@@ -305,23 +305,32 @@
                             </div>
 
                             <div class="dev-section-card">
-                                <h3 class="dev-section-card-title" style="margin-bottom: 14px;">🛡️ Allowed Redirect URIs</h3>
+                                <h3 class="dev-section-card-title" style="margin-bottom: 14px;">🛡️ Whitelisted Entrypoints & Callbacks</h3>
                                 <p style="color: var(--dev-text-muted); font-size: 0.82rem; margin-bottom: 10px; line-height: 1.4;">
-                                    Whitelisted callback URLs. CrimX strictly blocks logins trying to redirect elsewhere. (Enter one per line or comma-separated).
+                                    Whitelisted cryptographic challenge entrypoints and callback endpoints. CrimX Dauth strictly isolates tokens to verified domains. (Enter one per line or comma-separated).
                                 </p>
                                 <textarea id="oauth-redirect-uris" rows="4" class="dev-form-input" style="font-family: monospace; font-size: 0.84rem; line-height: 1.4;" placeholder="http://localhost:3000/callback&#10;https://mygame.com/auth/callback&#10;myapp://callback"></textarea>
                             </div>
 
                             <div class="dev-section-card">
-                                <h3 class="dev-section-card-title" style="margin-bottom: 14px;">📋 Requested Permissions (Scopes)</h3>
-                                <div style="display: flex; flex-direction: column; gap: 10px;">
-                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.86rem; color: #ede8ea; cursor: pointer;">
-                                        <input type="checkbox" id="scope-profile" checked style="accent-color: var(--dev-accent); width: 16px; height: 16px;">
-                                        <span>Access player display name, avatar, and username (profile)</span>
+                                <h3 class="dev-section-card-title" style="margin-bottom: 14px;">📋 Requested Permissions (Dauth Scopes)</h3>
+                                <p style="color: var(--dev-text-muted); font-size: 0.8rem; margin-bottom: 12px; line-height: 1.4;">
+                                    🔒 In the CrimX Dauth architecture, identity data is derived and delivered as isolated, service-bound cryptographic shards rather than raw root user directory objects.
+                                </p>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.86rem; color: #ede8ea; cursor: pointer;">
+                                        <input type="checkbox" id="scope-profile" checked style="accent-color: var(--dev-accent); width: 16px; height: 16px; margin-top: 3px;">
+                                        <div>
+                                            <span style="font-weight: 600;">Player Identity Shard (profile)</span>
+                                            <div style="font-size: 0.76rem; color: var(--dev-text-dim);">Delivers derived public display name, handle (@username), and profile avatar.</div>
+                                        </div>
                                     </label>
-                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.86rem; color: #ede8ea; cursor: pointer;">
-                                        <input type="checkbox" id="scope-email" checked style="accent-color: var(--dev-accent); width: 16px; height: 16px;">
-                                        <span>View verified email address (email)</span>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.86rem; color: #ede8ea; cursor: pointer;">
+                                        <input type="checkbox" id="scope-email" checked style="accent-color: var(--dev-accent); width: 16px; height: 16px; margin-top: 3px;">
+                                        <div>
+                                            <span style="font-weight: 600;">Verified Contact Shard (email)</span>
+                                            <div style="font-size: 0.76rem; color: var(--dev-text-dim);">Provides service-scoped verified email for player notifications and account recovery.</div>
+                                        </div>
                                     </label>
                                 </div>
                             </div>

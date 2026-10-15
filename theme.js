@@ -2,7 +2,8 @@
 (function() {
     // Only apply custom themes on CrimX surfaces
     const path = window.location.pathname.toLowerCase();
-    const isCrimX = path.includes('/crimx') || path.includes('/dashboard') || path.includes('/auth') || path.includes('/link');
+    const host = window.location.hostname.toLowerCase();
+    const isCrimX = host.includes('crimx') || path.includes('/crimx') || path.includes('/dashboard') || path.includes('/auth') || path.includes('/link') || path.includes('/pages');
 
     if (isCrimX) {
         const savedTheme = localStorage.getItem('crimx-theme') || 'crimson';
@@ -23,7 +24,8 @@ window.setCrimXTheme = function(themeName) {
     localStorage.setItem('crimx-theme', themeName);
 
     const path = window.location.pathname.toLowerCase();
-    const isCrimX = path.includes('/crimx') || path.includes('/dashboard') || path.includes('/auth') || path.includes('/link');
+    const host = window.location.hostname.toLowerCase();
+    const isCrimX = host.includes('crimx') || path.includes('/crimx') || path.includes('/dashboard') || path.includes('/auth') || path.includes('/link') || path.includes('/pages');
 
     if (isCrimX) {
         document.documentElement.setAttribute('data-theme', themeName);

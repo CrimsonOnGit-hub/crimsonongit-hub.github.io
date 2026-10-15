@@ -781,17 +781,43 @@
                 document.getElementById('success-message').style.display = 'block';
                 btn.textContent = "✓ Authorized!";
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (window.opener) {
+                        let fullUserData = {};
+                        try {
+                            const uSnap = await getDoc(doc(db, "users", currentUser.uid));
+                            if (uSnap.exists()) {
+                                fullUserData = uSnap.data();
+                            }
+                        } catch(err) {
+                            console.debug('[Dauth Shard] Profile fetch non-critical:', err);
+                        }
+
+                        const resolvedUsername = fullUserData.username || currentUser.displayName || currentUser.email.split('@')[0];
+                        const resolvedDisplayName = fullUserData.displayName || currentUser.displayName || resolvedUsername;
+                        const resolvedAvatar = fullUserData.avatarUrl || fullUserData.pfp || currentUser.photoURL || DEFAULT_PFP;
+                        const resolvedBanner = fullUserData.banner || fullUserData.bannerUrl || '';
+                        const resolvedBio = fullUserData.bio || fullUserData.statusText || '';
+                        const resolvedBadges = fullUserData.badges || ['Verified Player'];
+
                         window.opener.postMessage({
                             type: 'CRIMX_AUTH_SUCCESS',
                             code: authCode,
+                            token: authCode,
+                            shard_id: clientId || 'cf_client_843fbbf7d0caba',
                             user: {
                                 uid: currentUser.uid,
-                                username: currentUser.displayName || currentUser.email.split('@')[0],
-                                displayName: currentUser.displayName || 'CrimX Player',
+                                username: resolvedUsername,
+                                displayName: resolvedDisplayName,
+                                name: resolvedDisplayName,
                                 email: currentUser.email || '',
-                                photoURL: currentUser.photoURL || DEFAULT_PFP
+                                avatarUrl: resolvedAvatar,
+                                photoURL: resolvedAvatar,
+                                pfp: resolvedAvatar,
+                                bannerUrl: resolvedBanner,
+                                statusBio: resolvedBio,
+                                bio: resolvedBio,
+                                badges: resolvedBadges
                             }
                         }, '*');
                         setTimeout(() => window.close(), 400);

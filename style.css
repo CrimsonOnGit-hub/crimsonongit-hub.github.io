@@ -1978,9 +1978,13 @@ body {
 
 .settings-layout {
     display: grid;
-    grid-template-columns: 240px 1fr 330px;
-    gap: 24px;
-    align-items: start;
+    grid-template-columns: 230px 1fr 310px;
+    gap: 20px;
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
 }
 
 @media (max-width: 1100px) {
@@ -2025,8 +2029,9 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 14px;
-    position: sticky;
-    top: 90px;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .settings-user-summary {
@@ -2104,9 +2109,26 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 18px;
-    padding: 30px;
-    min-height: 480px;
+    padding: 24px;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+    overscroll-behavior: contain;
+}
+
+.settings-panel::-webkit-scrollbar,
+.settings-sidebar::-webkit-scrollbar,
+.settings-preview-col::-webkit-scrollbar {
+    width: 6px;
+}
+.settings-panel::-webkit-scrollbar-thumb,
+.settings-sidebar::-webkit-scrollbar-thumb,
+.settings-preview-col::-webkit-scrollbar-thumb {
+    background: rgba(220, 38, 38, 0.4);
+    border-radius: 4px;
 }
 
 .settings-tab-pane {
@@ -2326,8 +2348,9 @@ body {
 
 /* Live Profile Preview Card (Discord / Steam Style) */
 .settings-preview-col {
-    position: sticky;
-    top: 90px;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .profile-card-preview {
@@ -4888,9 +4911,9 @@ body.cim-fullscreen-active {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     z-index: 99999;
-    padding: 24px 20px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 20px;
+    overflow: hidden;
+    overscroll-behavior: contain;
 }
 
 .settings-studio-modal.open {
@@ -4902,19 +4925,20 @@ body.cim-fullscreen-active {
 
 .settings-studio-inner {
     width: 100%;
-    max-width: 1480px;
-    height: 88vh;
-    max-height: 920px;
+    max-width: 1160px;
+    height: 86vh;
+    max-height: 860px;
     background: #0d070c;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 24px;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(220, 38, 38, 0.2);
-    padding: 0;
+    padding: 24px 28px;
     margin: auto;
     position: relative;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 /* ==========================================================================
