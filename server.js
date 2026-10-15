@@ -434,6 +434,10 @@ app.get('/trigger-500', (req, res) => {
 app.use((req, res, next) => {
   const host = (req.headers.host || '').toLowerCase();
   const isCrimX = host.startsWith('crimx.') || host.startsWith('crimx-');
+  const isDevSub = host.startsWith('developer.') || host.startsWith('developer-');
+  if (isDevSub) {
+    return res.sendFile(path.join(__dirname, 'developer', 'index.html'));
+  }
   const reqPath = req.path.toLowerCase();
 
   if (isCrimX) {
@@ -481,7 +485,7 @@ app.get('/projects', (req, res) => {
 });
 
 app.get(['/developer', '/developer/*'], (req, res) => {
-  res.redirect(302, 'https://developer.crimx.crimsonflame.net');
+  res.sendFile(path.join(__dirname, 'developer', 'index.html'));
 });
 
 app.get('/support', (req, res) => {

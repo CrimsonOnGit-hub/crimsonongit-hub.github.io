@@ -1497,7 +1497,7 @@ function initAccountModal() {
                 await signOut(auth);
                 window.location.reload();
             } else {
-                window.location.href = '/auth';
+                window.location.href = '/dashboard';
             }
         });
     }

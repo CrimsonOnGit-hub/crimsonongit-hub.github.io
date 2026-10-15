@@ -94,28 +94,23 @@
             <!-- Top Dashboard Navigation Glass Bar -->
             <header class="dash-header-bar">
                 <div class="dash-header-left">
-                    <a href="https://crimsonflame.net/" class="crimx-back-btn" onclick="exitCrimX(event)">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                        </svg>
-                        <span>Back to Website</span>
+                    <a href="https://crimsonflame.net/" class="dash-nav-back" onclick="exitCrimX(event)">
+                        ← CrimsonFlame
                     </a>
-                    <div class="dash-brand-capsule">
-                        <span class="dash-brand-dot"></span>
-                        <span>CrimX Dashboard</span>
-                    </div>
+                    <div class="dash-brand-title">CrimX Dashboard</div>
                 </div>
                 <div class="dash-header-right">
-                    <div style="display: flex; gap: 8px;">
-                        <button type="button" id="admin-panel-nav-btn" class="btn-secondary" onclick="toggleAdminPanel(true)" style="display: none; padding: 8px 18px; font-size: 0.85rem; font-weight: 700; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); align-items: center; gap: 6px;">
-                            👑 Admin Console
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <a href="/developer" class="dash-nav-link" id="nav-developer-link">Developer</a>
+                        <a href="/pages/" class="dash-nav-link" id="nav-pages-link">Pages Hub</a>
+                        <button type="button" id="admin-panel-nav-btn" class="dash-nav-link admin-link" onclick="toggleAdminPanel(true)" style="display: none;">
+                            👑 Admin
                         </button>
-                        <a href="/pages/" class="btn-secondary" style="padding: 8px 18px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: #f97316; border-color: rgba(249, 115, 22, 0.4);">
-                            📑 Pages Hub
-                        </a>
-                        <button type="button" class="btn-primary btn-aero-primary" onclick="toggleSettingsStudio(true)" style="padding: 8px 20px; font-size: 0.85rem; font-weight: 800;">
-                            ⚙️ Settings Studio
+                        <button type="button" class="dash-settings-btn" onclick="toggleSettingsStudio(true)" title="Account & Profile Settings">
+                            ⚙️ Settings
+                        </button>
+                        <button type="button" class="dash-logout-btn" onclick="window.handleCrimXLogout()" title="Sign Out">
+                            Sign Out
                         </button>
                     </div>
                 </div>
@@ -125,13 +120,13 @@
             <div class="dash-card-profile dash-hero-profile-card" id="cim-sidebar-profile">
                 <div class="dash-profile-banner cim-profile-banner" id="cim-profile-banner">
                     <div class="dash-hero-banner-overlay"></div>
-                    <button type="button" class="dash-hero-edit-btn" onclick="toggleSettingsStudio(true)" title="Edit Profile & Avatar">
+                    <button type="button" class="dash-hero-edit-btn" onclick="toggleSettingsStudio(true)" title="Edit Profile & Avatar" style="background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.22); color: #fff; border-radius: 8px; font-weight: 700; padding: 7px 14px; cursor: pointer;">
                         ✏️ Edit Profile
                     </button>
                 </div>
                 <div class="dash-profile-body dash-hero-profile-body">
                     <div class="dash-hero-avatar-col">
-                        <div class="dash-profile-avatar-wrap cim-profile-avatar-wrap dash-hero-avatar-wrap" id="status-picker-avatar-trigger" style="cursor: pointer;" onclick="toggleStatusPicker(event)" title="Click to change status">
+                        <div class="dash-profile-avatar-wrap cim-profile-avatar-wrap dash-hero-avatar-wrap" id="status-picker-avatar-trigger" style="cursor: pointer; border: 4px solid #14151a; border-radius: 50%; box-shadow: 0 4px 18px rgba(0,0,0,0.7);" title="Click to change status">
                             <img id="cim-profile-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
                             <span class="cim-profile-dot" id="cim-profile-status-dot"></span>
                         </div>
@@ -189,24 +184,23 @@
                         <div id="cim-profile-socials" class="cim-profile-socials"></div>
                     </div>
                     <div class="dash-hero-stats-col">
-                        <div class="dash-hero-stat-card">
+                        <div class="dash-hero-metric-item">
                             <span class="stat-num" id="hero-user-number" style="color: #f97316;">#1</span>
                             <span class="stat-label">User ID</span>
                         </div>
-                        <div class="dash-hero-stat-card">
+                        <span style="color: rgba(255,255,255,0.2);">•</span>
+                        <div class="dash-hero-metric-item">
                             <span class="stat-num" id="hero-friends-stat">0</span>
                             <span class="stat-label">Friends</span>
                         </div>
-                        <div class="dash-hero-stat-card">
+                        <span style="color: rgba(255,255,255,0.2);">•</span>
+                        <div class="dash-hero-metric-item">
                             <span class="stat-num" id="hero-apps-stat">0</span>
                             <span class="stat-label">Apps Linked</span>
                         </div>
-                        <div class="dash-hero-stat-card">
-                            <span class="stat-num" style="color: #22c55e;">✓</span>
-                            <span class="stat-label">CrimX Verified</span>
-                        </div>
                     </div>
                 </div>
+            </div>
             </div>
 
             <!-- 2. WIDE BALANCED 2-COLUMN WORKSPACE GRID (FULL AREA) -->
@@ -230,7 +224,7 @@
                         </div>
 
                         <!-- Add Friend Input Action Group -->
-                        <div class="dash-add-friend-wrapper">
+                        <div class="dash-add-friend-wrapper" style="display: none; margin-bottom: 12px;">
                             <form onsubmit="sendFriendRequestByUsername(event)" class="input-action-group dash-friends-search-row">
                                 <input type="text" id="friend-search-input" placeholder="Add @username..." required autocomplete="off" class="friends-search-input">
                                 <button type="submit" class="btn-primary btn-action-pill">
@@ -266,10 +260,10 @@
                         <div class="doorauth-header">
                             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="doorauth-icon-badge">🚪</div>
+                                    <div class="doorauth-icon-badge">⚡</div>
                                     <div>
                                         <h3 class="doorauth-title">Linked Apps</h3>
-                                        <span style="font-size: 0.74rem; color: var(--text-secondary);">CrimX Connected Apps</span>
+                                        <span style="font-size: 0.74rem; color: var(--text-secondary);">External App Linking</span>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -284,7 +278,7 @@
 
                         <div class="doorauth-body" style="margin-top: 12px;">
                             <div class="doorauth-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
-                                Manage third-party games, services, and developer access linked to your CrimX account.
+                                Apps created in a CrimX Developer project can configure external account linking. Standard sign-in handles "Sign in with CrimX".
                             </div>
 
                             <div id="doorauth-apps-list" class="doorauth-apps-list">
@@ -333,9 +327,7 @@
                                     </svg>
                                     <span id="cim-fullscreen-label">Fullscreen</span>
                                 </button>
-                                <div class="cim-online-badge">
-                                    <span class="cim-pulse-dot"></span> LIVE
-                                </div>
+                                
                             </div>
                         </div>
 
@@ -363,11 +355,14 @@
 
                             <div id="cim-messages-box" class="cim-messages-box">
                                 <div id="cim-no-chat-state" class="cim-no-chat-state">
-                                    <div style="font-size: 3rem; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(220,38,38,0.3));">💬</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 800; color: #fff; font-size: 1.35rem; margin-bottom: 6px; letter-spacing: -0.3px;">CrimX Instant Messager</div>
-                                    <div style="font-size: 0.88rem; line-height: 1.5; max-width: 320px; color: var(--text-secondary); margin: 0 auto;">
-                                        Pick a friend from your list on the left to start instant, real-time messaging!
+                                    <div class="cim-empty-vector">
+                                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
                                     </div>
+                                    <div class="cim-empty-title">Select a friend to start chatting</div>
+                                    <p class="cim-empty-desc">Choose a contact from your friends list on the left, or pick a friend below to start instant messaging.</p>
+                                    <div id="cim-quick-select-chips" class="cim-quick-select-chips"></div>
                                 </div>
                                 <div id="cim-messages-list" style="display: none; flex-direction: column; gap: 10px;"></div>
                             </div>

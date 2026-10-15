@@ -2,13 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Redirecting to Reset Password...</title>
+    <title>CrimX Auth</title>
     <script>
-        // Forward all query parameters to /reset-password.html
-        window.location.replace('/reset-password.html' + window.location.search);
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        const oobCode = params.get('oobCode');
+        if (mode === 'resetPassword' || mode === 'verifyEmail' || oobCode) {
+            window.location.replace('/reset-password.html' + window.location.search);
+        } else {
+            window.location.replace('/dashboard' + window.location.search);
+        }
     </script>
 </head>
 <body style="background: #0a0608; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
-    <p>Redirecting to CrimsonFlame Security Portal...</p>
+    <p>Loading CrimX Authentication...</p>
 </body>
 </html>

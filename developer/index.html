@@ -160,6 +160,10 @@
                     <span class="dev-nav-item-icon">👥</span>
                     <span>Authentication</span>
                 </div>
+                <div class="dev-nav-item" id="nav-apps" onclick="window.switchConsoleNav('apps')">
+                    <span class="dev-nav-item-icon">⚡</span>
+                    <span>Apps (Linking)</span>
+                </div>
                 <div class="dev-nav-item" id="nav-analytics" onclick="window.switchConsoleNav('analytics')">
                     <span class="dev-nav-item-icon">📈</span>
                     <span>Analytics</span>
@@ -245,7 +249,7 @@
                     <!-- Sub-tabs Bar -->
                     <div class="dev-tabs-bar">
                         <button type="button" class="dev-tab-btn active" id="tab-btn-users" onclick="window.switchAuthTab('users')">Users</button>
-                        <button type="button" class="dev-tab-btn" id="tab-btn-oauth" onclick="window.switchAuthTab('oauth')">Sign-in Method / Dauth Configuration</button>
+                        <button type="button" class="dev-tab-btn" id="tab-btn-oauth" onclick="window.switchAuthTab('oauth')">Sign-in with CrimX (OAuth)</button>
                         <button type="button" class="dev-tab-btn" id="tab-btn-sdk" onclick="window.switchAuthTab('sdk')">SDK & Quickstart</button>
                     </div>
 
@@ -284,7 +288,7 @@
                                 <h3 class="dev-section-card-title" style="margin-bottom: 16px;">🔑 Credentials</h3>
                                 
                                 <div class="dev-form-group">
-                                    <label class="dev-form-label">App Shard ID (Dauth Requester Key)</label>
+                                    <label class="dev-form-label">Client ID ("Sign in with CrimX")</label>
                                     <div style="display: flex; gap: 8px;">
                                         <input type="text" id="oauth-client-id" readonly class="dev-form-input" style="font-family: monospace; color: #4ade80;">
                                         <button type="button" class="dev-btn-secondary" onclick="window.copyInputVal('oauth-client-id')">Copy</button>
@@ -307,15 +311,15 @@
                             <div class="dev-section-card">
                                 <h3 class="dev-section-card-title" style="margin-bottom: 14px;">🛡️ Whitelisted Entrypoints & Callbacks</h3>
                                 <p style="color: var(--dev-text-muted); font-size: 0.82rem; margin-bottom: 10px; line-height: 1.4;">
-                                    Whitelisted cryptographic challenge entrypoints and callback endpoints. CrimX Dauth strictly isolates tokens to verified domains. (Enter one per line or comma-separated).
+                                    Whitelisted callback endpoints for "Sign in with CrimX". Enter one per line.
                                 </p>
                                 <textarea id="oauth-redirect-uris" rows="4" class="dev-form-input" style="font-family: monospace; font-size: 0.84rem; line-height: 1.4;" placeholder="http://localhost:3000/callback&#10;https://mygame.com/auth/callback&#10;myapp://callback"></textarea>
                             </div>
 
                             <div class="dev-section-card">
-                                <h3 class="dev-section-card-title" style="margin-bottom: 14px;">📋 Requested Permissions (Dauth Scopes)</h3>
+                                <h3 class="dev-section-card-title" style="margin-bottom: 14px;">📋 Requested Permissions ("Sign in with CrimX" Scopes)</h3>
                                 <p style="color: var(--dev-text-muted); font-size: 0.8rem; margin-bottom: 12px; line-height: 1.4;">
-                                    🔒 In the CrimX Dauth architecture, identity data is derived and delivered as isolated, service-bound cryptographic shards rather than raw root user directory objects.
+                                    🔒 Player identity data is securely verified through your project's CrimX OAuth credentials.
                                 </p>
                                 <div style="display: flex; flex-direction: column; gap: 12px;">
                                     <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.86rem; color: #ede8ea; cursor: pointer;">
@@ -448,6 +452,36 @@
                     </div>
                 </div>
 
+            
+                <!-- ── PANE 3: APPS (ACCOUNT LINKING) ── -->
+                <div id="pane-apps" class="dev-console-pane" style="display: none;">
+                    <div class="dev-view-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                        <div>
+                            <h1 class="dev-view-title">Apps & Account Linking</h1>
+                            <p class="dev-view-desc">
+                                Apps are created in your CrimX Dev project to configure external account linking. Users link these apps to their CrimX account using an access code or Client ID. Player logins are handled under the <strong>Authentication</strong> tab ("Sign in with CrimX").
+                            </p>
+                        </div>
+                        <button type="button" class="dev-btn-primary" onclick="window.openCreateAppModal()" style="white-space: nowrap;">
+                            + Create New App
+                        </button>
+                    </div>
+
+                    <!-- Apps List Card -->
+                    <div class="dev-section-card">
+                        <div class="dev-section-card-header">
+                            <h3 class="dev-section-card-title">📱 Project Apps</h3>
+                            <span id="project-apps-count-badge" style="font-size: 0.8rem; color: var(--dev-text-muted);">0 apps</span>
+                        </div>
+
+                        <div id="project-apps-list" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="dev-empty-state" style="padding: 32px 16px; text-align: center; color: var(--dev-text-muted);">
+                                No apps created in this project yet. Click "+ Create New App" to configure account linking.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
 
@@ -477,6 +511,33 @@
     <!-- Custom Toast -->
     <div id="dev-toast" class="dev-toast">
         <span id="dev-toast-msg">Operation completed</span>
+    </div>
+
+    
+    <!-- Create New App Modal -->
+    <div class="dev-modal-overlay" id="modal-create-app" style="display: none;">
+        <div class="dev-modal-card">
+            <h2 class="dev-modal-title">Create App for Linking</h2>
+            <p class="dev-modal-subtitle">Configure an app inside your CrimX Dev project for player account linking.</p>
+            <form onsubmit="window.submitNewApp(event)">
+                <div class="dev-form-group">
+                    <label class="dev-form-label">App Name *</label>
+                    <input type="text" id="new-app-name" placeholder="e.g. PluhMath, Crimson Game, Mobile Companion" required class="dev-form-input" autocomplete="off">
+                </div>
+                <div class="dev-form-group">
+                    <label class="dev-form-label">App Icon / Emoji</label>
+                    <input type="text" id="new-app-icon" placeholder="⚡" value="⚡" maxlength="4" class="dev-form-input" style="width: 80px; text-align: center; font-size: 1.2rem;">
+                </div>
+                <div class="dev-form-group">
+                    <label class="dev-form-label">Description / Scopes</label>
+                    <input type="text" id="new-app-scopes" placeholder="e.g. Profile Access, Friend List Sync" value="Profile Access" class="dev-form-input">
+                </div>
+                <div class="dev-modal-actions">
+                    <button type="button" class="dev-btn-secondary" onclick="window.closeCreateAppModal()">Cancel</button>
+                    <button type="submit" id="btn-submit-new-app" class="dev-btn-primary">Create App</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script type="module" src="/developer.js"></script>

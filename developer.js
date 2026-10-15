@@ -335,6 +335,7 @@ window.switchConsoleNav = function(section, subtab = null) {
     const sectionNames = {
         overview: 'Project Overview',
         auth: 'Authentication',
+        apps: 'Apps & Linking',
         analytics: 'Analytics',
         settings: 'Project Settings'
     };
@@ -343,6 +344,9 @@ window.switchConsoleNav = function(section, subtab = null) {
 
     if (subtab && section === 'auth') {
         window.switchAuthTab(subtab);
+    }
+    if (section === 'apps') {
+        window.loadProjectApps();
     }
 };
 
@@ -842,3 +846,163 @@ onAuthStateChanged(auth, user => {
         document.getElementById('dev-project-view').style.display = 'none';
     }
 });
+
+
+// =========================================================================
+// APPS (ACCOUNT LINKING) MANAGEMENT
+// =========================================================================
+window.openCreateAppModal = function() {
+    const m = document.getElementById('modal-create-app');
+    if (m) {
+        m.style.display = 'flex';
+        document.getElementById('new-app-name')?.focus();
+    }
+};
+
+window.closeCreateAppModal = function() {
+    const m = document.getElementById('modal-create-app');
+    if (m) m.style.display = 'none';
+};
+
+window.submitNewApp = async function(e) {
+    if (e) e.preventDefault();
+    if (!currentProject) {
+        window.showCustomAlert("Please open a project first.");
+        return;
+    }
+
+    const nameInput = document.getElementById('new-app-name');
+    const iconInput = document.getElementById('new-app-icon');
+    const scopesInput = document.getElementById('new-app-scopes');
+    const submitBtn = document.getElementById('btn-submit-new-app');
+
+    const appName = nameInput ? nameInput.value.trim() : '';
+    if (!appName) return;
+
+    const appIcon = (iconInput && iconInput.value.trim()) || '⚡';
+    const scopes = (scopesInput && scopesInput.value.trim()) || 'Profile Access';
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Creating App...";
+
+    try {
+        const appId = 'app_' + generateSecureRandomHex(6);
+        const linkCode = 'cf_link_' + generateSecureRandomHex(6);
+
+        const newAppObj = {
+            id: appId,
+            name: appName,
+            icon: appIcon,
+            scopes: scopes,
+            linkingCode: linkCode,
+            createdAt: new Date().toISOString()
+        };
+
+        if (!currentProject.apps) currentProject.apps = [];
+        currentProject.apps.push(newAppObj);
+
+        const projectRef = doc(db, "sso_links", currentProject.clientId || currentProject.id);
+        await updateDoc(projectRef, { apps: currentProject.apps });
+
+        // Also write linking code document in sso_links so users can link with this code on CrimX Dashboard
+        await setDoc(doc(db, "sso_links", linkCode), {
+            appName: appName,
+            appIcon: appIcon,
+            clientId: appId,
+            scopes: scopes,
+            projectId: currentProject.clientId || currentProject.id,
+            ownerUid: currentUser.uid,
+            createdAt: new Date().toISOString()
+        });
+
+        // Also shortcut by clean lowercase name
+        const cleanNameCode = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (cleanNameCode.length >= 3) {
+            await setDoc(doc(db, "sso_links", cleanNameCode), {
+                appName: appName,
+                appIcon: appIcon,
+                clientId: appId,
+                scopes: scopes,
+                projectId: currentProject.clientId || currentProject.id,
+                ownerUid: currentUser.uid
+            });
+        }
+
+        window.closeCreateAppModal();
+        if (nameInput) nameInput.value = '';
+        window.showToast(`✓ App "${appName}" created! Link Code: ${linkCode}`);
+        window.loadProjectApps();
+
+    } catch(err) {
+        console.error("Error creating app:", err);
+        window.showCustomAlert("Failed to create app: " + err.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Create App";
+    }
+};
+
+window.loadProjectApps = function() {
+    const list = document.getElementById('project-apps-list');
+    const badge = document.getElementById('project-apps-count-badge');
+    if (!list || !currentProject) return;
+
+    const apps = currentProject.apps || [];
+    if (badge) badge.innerText = `${apps.length} app${apps.length === 1 ? '' : 's'}`;
+
+    if (apps.length === 0) {
+        list.innerHTML = `
+            <div class="dev-empty-state" style="padding: 32px 16px; text-align: center; color: var(--dev-text-muted);">
+                No apps created in this project yet. Click "+ Create New App" to configure account linking.
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = apps.map(app => {
+        return `
+            <div class="dev-section-card" style="margin-bottom: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 1.6rem; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border-radius: 10px;">
+                            ${app.icon || '⚡'}
+                        </div>
+                        <div>
+                            <div style="font-weight: 800; font-size: 1rem; color: #fff;">${escapeHtml(app.name)}</div>
+                            <div style="font-size: 0.78rem; color: var(--dev-text-muted);">Scopes: ${escapeHtml(app.scopes || 'Profile Access')}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button type="button" class="dev-btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;" onclick="window.copyToClipboard('${app.linkingCode}', 'Link Code copied!')">
+                            📋 Copy Link Code (${escapeHtml(app.linkingCode)})
+                        </button>
+                        <button type="button" class="dev-btn-revoke" style="font-size: 0.78rem; padding: 6px 10px;" onclick="window.deleteProjectApp('${app.id}', '${escapeHtml(app.name)}')">
+                            Delete App
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+window.deleteProjectApp = async function(appId, appName) {
+    if (!currentProject || !currentProject.apps) return;
+    if (!confirm(`Are you sure you want to delete app "${appName}"? Linked users will lose connection.`)) return;
+
+    try {
+        currentProject.apps = currentProject.apps.filter(a => a.id !== appId);
+        const projectRef = doc(db, "sso_links", currentProject.clientId || currentProject.id);
+        await updateDoc(projectRef, { apps: currentProject.apps });
+        window.showToast(`✓ App "${appName}" deleted.`);
+        window.loadProjectApps();
+    } catch(err) {
+        window.showCustomAlert("Failed to delete app: " + err.message);
+    }
+};
+
+window.copyToClipboard = function(text, toastMsg = 'Copied to clipboard!') {
+    navigator.clipboard.writeText(text).then(() => {
+        window.showToast(toastMsg);
+    });
+};
