@@ -834,265 +834,259 @@
         </div>
     </div>
 
-    <!-- MODAL: CRIMX PAGE STUDIO EDITOR -->
+    <!-- MODAL: CRIMX PAGE STUDIO EDITOR (GOOGLE SITES ARCHITECTURE) -->
     <div id="modal-page-editor" class="page-editor-studio-modal">
-        <div class="page-editor-studio-inner" style="max-width: 1050px; width: 95%; max-height: 90vh; overflow-y: auto; background: rgba(18, 10, 16, 0.96); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 24px; box-shadow: 0 24px 70px rgba(0,0,0,0.85);">
-            <!-- Editor Header -->
-            <div class="page-editor-header" style="display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
-                <div>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <h2 id="editor-page-title-display" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0;">Repository Editor</h2>
-                        <span id="editor-page-template-badge" class="dash-profile-badge">📦 REPOSITORY</span>
-                        <span id="editor-page-status-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3);">● Live</span>
-                        <span id="editor-page-views-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3);">👁️ 0 views</span>
-                        <span id="editor-page-stars-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(245,158,11,0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3);">⭐ 0 stars</span>
+        <!-- GOOGLE SITES FULL STUDIO WRAPPER (for non-pure-HTML pages) -->
+        <div id="google-sites-studio" class="gs-studio-wrap">
+            <!-- Google Sites Top Bar -->
+            <header class="gs-topbar">
+                <div class="gs-topbar-left">
+                    <div class="gs-brand-icon" title="CrimX Sites">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
                     </div>
-                    <a id="editor-page-url-link" href="#" target="_blank" style="font-family: monospace; font-size: 0.78rem; color: #f97316; text-decoration: none; margin-top: 4px; display: inline-block;">crimx.crimsonflame.net/@user/page</a>
+                    <input type="text" id="gs-doc-title" class="gs-title-input" placeholder="Untitled Page" oninput="window.syncGsPageTitle(this.value)">
+                    <span class="gs-cloud-status" id="gs-cloud-status">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Saved
+                    </span>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn-secondary" onclick="window.openActiveEditorPage()" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700;">
-                        👁️ Open Page ↗
+                <div class="gs-topbar-center">
+                    <button type="button" class="gs-tool-btn" onclick="window.gsUndo()" title="Undo">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
                     </button>
-                    <button type="button" class="btn-secondary" onclick="window.openActiveEditorBuildLog()" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700; color: #f97316;">
-                        🚀 Status
+                    <button type="button" class="gs-tool-btn" onclick="window.gsRedo()" title="Redo">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg>
                     </button>
-                    <button type="button" class="btn-danger" onclick="window.deleteActiveEditorPage()" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700;">
-                        🗑️ Delete
-                    </button>
-                    <button type="button" class="btn-primary" onclick="window.saveActiveEditorPage()" style="padding: 7px 20px; font-size: 0.8rem; font-weight: 700;">
-                        💾 Save & Deploy
-                    </button>
-                    <button type="button" class="btn-secondary" onclick="window.closePageEditor()" style="padding: 7px 14px; font-size: 0.8rem;">
-                        ✕ Close
-                    </button>
+                    <div class="gs-tool-divider"></div>
+                    <!-- Viewport Switcher -->
+                    <button type="button" class="gs-viewport-btn active" id="gs-vp-desktop" onclick="window.setGsViewport('desktop')" title="Desktop View">💻</button>
+                    <button type="button" class="gs-viewport-btn" id="gs-vp-tablet" onclick="window.setGsViewport('tablet')" title="Tablet View">📱</button>
+                    <button type="button" class="gs-viewport-btn" id="gs-vp-mobile" onclick="window.setGsViewport('mobile')" title="Phone View">📲</button>
+                    <div class="gs-tool-divider"></div>
+                    <button type="button" class="gs-tool-btn" onclick="window.openActiveEditorPage()" title="Open Live Page">🔗</button>
+                </div>
+
+                <div class="gs-topbar-right">
+                    <button type="button" class="gs-btn-ghost" onclick="window.openActiveEditorBuildLog()" title="Deployment Status">🚀 Status</button>
+                    <button type="button" class="gs-btn-danger-ghost" onclick="window.deleteActiveEditorPage()" title="Delete Page">🗑️</button>
+                    <button type="button" class="gs-btn-publish" onclick="window.saveActiveEditorPage()">Publish</button>
+                    <button type="button" class="gs-btn-close" onclick="window.closePageEditor()" title="Close Editor">✕</button>
+                </div>
+            </header>
+
+            <!-- Main Workspace -->
+            <div class="gs-workspace">
+                <!-- Canvas Stage -->
+                <main class="gs-canvas-stage">
+                    <div class="gs-canvas-scroll" id="gs-canvas-scroll">
+                        <div class="gs-artboard" id="gs-artboard">
+                            <!-- Hero Banner -->
+                            <div class="gs-banner" id="gs-banner">
+                                <div class="gs-banner-overlay"></div>
+                                <div class="gs-banner-content">
+                                    <h1 id="gs-canvas-title" class="gs-canvas-title" contenteditable="true" spellcheck="false" onblur="window.onGsInlineTitleChange(this.innerText)">
+                                        Page Title
+                                    </h1>
+                                    <p id="gs-canvas-subtitle" class="gs-canvas-subtitle" contenteditable="true" spellcheck="false" onblur="window.onGsInlineSubtitleChange(this.innerText)">
+                                        Add a subtitle or page headline here...
+                                    </p>
+                                </div>
+
+                                <div class="gs-banner-controls">
+                                    <input type="file" id="gs-banner-file-input" accept="image/*" style="display:none;" onchange="window.handleGsBannerUpload(this.files[0])">
+                                    <button type="button" class="gs-banner-action-btn" onclick="document.getElementById('gs-banner-file-input').click()">
+                                        📁 Change Image
+                                    </button>
+                                    <select id="gs-banner-type-select" class="gs-banner-action-select" onchange="window.setGsBannerType(this.value)">
+                                        <option value="banner">Banner</option>
+                                        <option value="large">Large Banner</option>
+                                        <option value="cover">Cover</option>
+                                        <option value="title">Title Only</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Canvas Visual Sections -->
+                            <div id="gs-sections-canvas" class="gs-sections-canvas">
+                                <!-- Populated dynamically by Google Sites Engine -->
+                            </div>
+
+                            <!-- Bottom Add Zone -->
+                            <div class="gs-canvas-add-zone" onclick="window.addGsContentBlock('split')">
+                                <span class="gs-add-zone-icon">+</span>
+                                <span>Click to insert a new section or choose a layout from the sidebar</span>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Right Google Sites Sidebar: INSERT | PAGES | THEMES -->
+                <aside class="gs-sidebar">
+                    <nav class="gs-sidebar-nav">
+                        <button type="button" class="gs-nav-tab active" id="gs-tab-btn-insert" onclick="window.switchGsSidebarTab('insert')">INSERT</button>
+                        <button type="button" class="gs-nav-tab" id="gs-tab-btn-pages" onclick="window.switchGsSidebarTab('pages')">PAGES</button>
+                        <button type="button" class="gs-nav-tab" id="gs-tab-btn-themes" onclick="window.switchGsSidebarTab('themes')">THEMES</button>
+                    </nav>
+
+                    <div class="gs-sidebar-body">
+                        <!-- PANEL 1: INSERT -->
+                        <div class="gs-panel active" id="gs-panel-insert">
+                            <!-- Quick 4-Grid -->
+                            <div class="gs-quick-tools-grid">
+                                <button type="button" class="gs-quick-tool-btn" onclick="window.addGsContentBlock('text')">
+                                    <div class="gs-tool-tile-icon">📝</div>
+                                    <span>Text box</span>
+                                </button>
+                                <button type="button" class="gs-quick-tool-btn" onclick="document.getElementById('gs-direct-img-upload').click()">
+                                    <input type="file" id="gs-direct-img-upload" accept="image/*" style="display:none;" onchange="window.handleGsDirectImageUpload(this.files[0])">
+                                    <div class="gs-tool-tile-icon">🖼️</div>
+                                    <span>Images</span>
+                                </button>
+                                <button type="button" class="gs-quick-tool-btn" onclick="window.addGsContentBlock('buttons')">
+                                    <div class="gs-tool-tile-icon">🔘</div>
+                                    <span>Button</span>
+                                </button>
+                                <button type="button" class="gs-quick-tool-btn" onclick="window.addGsContentBlock('callout')">
+                                    <div class="gs-tool-tile-icon">📢</div>
+                                    <span>Callout</span>
+                                </button>
+                            </div>
+
+                            <div class="gs-panel-section-title">Content Blocks</div>
+                            <div class="gs-content-blocks-grid">
+                                <div class="gs-block-card" onclick="window.addGsContentBlock('split')" title="Split (Image & Text)">
+                                    <div class="gs-block-card-preview">
+                                        <div class="mini-box mini-img"></div>
+                                        <div class="mini-col"><div class="mini-line w-80"></div><div class="mini-line w-100"></div><div class="mini-line w-60"></div></div>
+                                    </div>
+                                    <div class="gs-block-card-label">Split (Image + Text)</div>
+                                </div>
+
+                                <div class="gs-block-card" onclick="window.addGsContentBlock('columns2')" title="2 Columns">
+                                    <div class="gs-block-card-preview">
+                                        <div class="mini-col"><div class="mini-box mini-img"></div><div class="mini-line w-90"></div></div>
+                                        <div class="mini-col"><div class="mini-box mini-img"></div><div class="mini-line w-90"></div></div>
+                                    </div>
+                                    <div class="gs-block-card-label">2 Columns</div>
+                                </div>
+
+                                <div class="gs-block-card" onclick="window.addGsContentBlock('columns3')" title="3 Columns">
+                                    <div class="gs-block-card-preview">
+                                        <div class="mini-col"><div class="mini-box mini-img"></div><div class="mini-line"></div></div>
+                                        <div class="mini-col"><div class="mini-box mini-img"></div><div class="mini-line"></div></div>
+                                        <div class="mini-col"><div class="mini-box mini-img"></div><div class="mini-line"></div></div>
+                                    </div>
+                                    <div class="gs-block-card-label">3 Columns</div>
+                                </div>
+
+                                <div class="gs-block-card" onclick="window.addGsContentBlock('columns4')" title="4 Columns">
+                                    <div class="gs-block-card-preview">
+                                        <div class="mini-col"><div class="mini-box mini-img"></div></div>
+                                        <div class="mini-col"><div class="mini-box mini-img"></div></div>
+                                        <div class="mini-col"><div class="mini-box mini-img"></div></div>
+                                        <div class="mini-col"><div class="mini-box mini-img"></div></div>
+                                    </div>
+                                    <div class="gs-block-card-label">4 Columns</div>
+                                </div>
+                            </div>
+
+                            <div class="gs-panel-section-title">Components</div>
+                            <div class="gs-components-list">
+                                <div class="gs-component-item" onclick="window.addGsContentBlock('accordion')">
+                                    <span class="gs-comp-icon">🔽</span>
+                                    <span>Collapsible Group (FAQ)</span>
+                                </div>
+                                <div class="gs-component-item" onclick="window.addGsContentBlock('buttons')">
+                                    <span class="gs-comp-icon">🔗</span>
+                                    <span>Button Link Dock</span>
+                                </div>
+                                <div class="gs-component-item" onclick="window.addGsContentBlock('image')">
+                                    <span class="gs-comp-icon">🖼️</span>
+                                    <span>Full Media Banner</span>
+                                </div>
+                                <div class="gs-component-item" onclick="window.addGsContentBlock('divider')">
+                                    <span class="gs-comp-icon">➖</span>
+                                    <span>Divider</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL 2: PAGES -->
+                        <div class="gs-panel" id="gs-panel-pages">
+                            <div class="gs-panel-section-title">Site Pages</div>
+                            <div id="gs-pages-tree-list" class="gs-pages-tree"></div>
+                            <button type="button" class="gs-add-page-btn" onclick="window.openNewPageModal()">+ Add Subpage</button>
+                        </div>
+
+                        <!-- PANEL 3: THEMES -->
+                        <div class="gs-panel" id="gs-panel-themes">
+                            <div class="gs-panel-section-title">Themes</div>
+                            <div class="gs-themes-grid">
+                                <div class="gs-theme-card active" id="gs-theme-aristotle" onclick="window.setGsTheme('aristotle')">
+                                    <div class="gs-theme-card-header" style="background: linear-gradient(135deg, #2b0d18, #ef4444);">Aristotle</div>
+                                    <div class="gs-theme-card-body">Clean Crimson • Modern Sans</div>
+                                </div>
+                                <div class="gs-theme-card" id="gs-theme-vision" onclick="window.setGsTheme('vision')">
+                                    <div class="gs-theme-card-header" style="background: linear-gradient(135deg, #062b1b, #10b981);">Vision</div>
+                                    <div class="gs-theme-card-body">Cyber Emerald • High Tech</div>
+                                </div>
+                                <div class="gs-theme-card" id="gs-theme-diplomat" onclick="window.setGsTheme('diplomat')">
+                                    <div class="gs-theme-card-header" style="background: linear-gradient(135deg, #091a3c, #3b82f6);">Diplomat</div>
+                                    <div class="gs-theme-card-body">Midnight Royal • Deep Cobalt</div>
+                                </div>
+                                <div class="gs-theme-card" id="gs-theme-impression" onclick="window.setGsTheme('impression')">
+                                    <div class="gs-theme-card-header" style="background: linear-gradient(135deg, #381a07, #f97316);">Impression</div>
+                                    <div class="gs-theme-card-body">Warm Solar • Sunset Flame</div>
+                                </div>
+                                <div class="gs-theme-card" id="gs-theme-obsidian" onclick="window.setGsTheme('obsidian')">
+                                    <div class="gs-theme-card-header" style="background: linear-gradient(135deg, #111, #444);">Obsidian</div>
+                                    <div class="gs-theme-card-body">Stealth Black • Ultra Sleek</div>
+                                </div>
+                            </div>
+
+                            <div class="gs-panel-section-title" style="margin-top: 18px;">Accent Palette</div>
+                            <div class="gs-palette-row">
+                                <div class="gs-color-dot active" style="background:#ef4444;" onclick="window.setGsAccentColor('#ef4444')"></div>
+                                <div class="gs-color-dot" style="background:#f97316;" onclick="window.setGsAccentColor('#f97316')"></div>
+                                <div class="gs-color-dot" style="background:#10b981;" onclick="window.setGsAccentColor('#10b981')"></div>
+                                <div class="gs-color-dot" style="background:#3b82f6;" onclick="window.setGsAccentColor('#3b82f6')"></div>
+                                <div class="gs-color-dot" style="background:#a855f7;" onclick="window.setGsAccentColor('#a855f7')"></div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- PURE HTML CODE STUDIO (Shown only when template === 'html') -->
+        <div id="editor-pure-html-studio" style="display: none; width: 100%; height: 90vh; background: #0e0a10; border-radius: 20px; border: 1px solid rgba(255,255,255,0.12); padding: 24px; box-sizing: border-box; flex-direction: column; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.3rem;">⚡</span>
+                    <h2 id="html-editor-title-display" style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #fff; margin: 0;">Pure HTML Studio</h2>
+                    <span style="font-size: 0.75rem; background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3); padding: 3px 8px; border-radius: 6px;">Unrestricted Sandbox</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-secondary" onclick="window.openActiveEditorPage()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">Open Page ↗</button>
+                    <button type="button" class="btn-primary" onclick="window.saveActiveEditorPage()" style="padding: 6px 20px; font-size: 0.8rem; font-weight: 700;">Save & Deploy</button>
+                    <button type="button" class="btn-secondary" onclick="window.closePageEditor()" style="padding: 6px 14px; font-size: 0.8rem;">✕ Close</button>
                 </div>
             </div>
-
-            <!-- Editor Body -->
-            <div class="page-editor-body" style="display: flex; flex-direction: column; gap: 18px;">
-                <!-- General Metadata Section -->
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                    <div style="font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">
-                        ⚙️ Page Configuration
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
-                        <div>
-                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Page Title</label>
-                            <input type="text" id="editor-input-title" class="settings-input" placeholder="Page Title" maxlength="64" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
-                        </div>
-                        <div>
-                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Description / Summary</label>
-                            <input type="text" id="editor-input-desc" class="settings-input" placeholder="Brief description..." maxlength="140" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
-                        </div>
-                    </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; min-height: 0;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--page-text-muted);">HTML / CSS / JS Source Code</div>
+                    <textarea id="editor-pure-html-code" class="settings-input" style="flex: 1; font-family: monospace; font-size: 0.85rem; line-height: 1.5; resize: none; background: #000; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px; color: #93c5fd;" placeholder="<!DOCTYPE html>..."></textarea>
                 </div>
-
-                <!-- TEMPLATE 1: REPOSITORY EDITOR PANE -->
-                <div id="editor-pane-repo" style="display: none; flex-direction: column; gap: 20px;">
-                    <!-- File Manager -->
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
-                                📁 Code Files (<span id="repo-file-count">0</span>)
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="file" id="repo-file-upload-input" multiple style="display: none;" onchange="handleRepoFilesUpload(event.target.files)">
-                                <button type="button" class="btn-secondary" onclick="document.getElementById('repo-file-upload-input').click()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
-                                    + Upload File
-                                </button>
-                                <button type="button" class="btn-secondary" onclick="promptCreateNewTextFile()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
-                                    + New Text File
-                                </button>
-                            </div>
-                        </div>
-
-                        <table class="page-editor-files-table" style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; font-size: 0.76rem; color: var(--page-text-muted);">
-                                    <th style="padding: 8px;">File Name</th>
-                                    <th style="padding: 8px;">Size</th>
-                                    <th style="padding: 8px;">Type</th>
-                                    <th style="padding: 8px; text-align: right;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="editor-repo-files-list">
-                                <tr>
-                                    <td colspan="4" style="text-align: center; color: var(--page-text-muted); padding: 24px;">No files added yet. Click "+ Upload File" or "+ New Text File".</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Releases Manager -->
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
-                                🏷️ Releases & Versioning (<span id="repo-release-count">0</span>)
-                            </div>
-                            <button type="button" class="btn-secondary" onclick="toggleNewReleaseForm()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
-                                + Draft Release
-                            </button>
-                        </div>
-
-                        <!-- Draft Release Box -->
-                        <div id="editor-release-draft-box" style="display: none; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
-                            <div style="font-weight: 700; color: #4ade80; margin-bottom: 10px; font-size: 0.88rem;">Publish New Version Release</div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
-                                <div>
-                                    <label style="font-size: 0.74rem; color: var(--page-text-muted);">Version Tag (e.g. v1.0.0)</label>
-                                    <input type="text" id="release-tag-input" placeholder="v1.0.0" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; color: #fff;">
-                                </div>
-                                <div>
-                                    <label style="font-size: 0.74rem; color: var(--page-text-muted);">Release Title</label>
-                                    <input type="text" id="release-title-input" placeholder="Initial Stable Release" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; color: #fff;">
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 10px;">
-                                <label style="font-size: 0.74rem; color: var(--page-text-muted);">Release Notes & Changelog</label>
-                                <textarea id="release-notes-input" placeholder="Describe the changes and new features..." rows="3" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; color: #fff; resize: vertical;"></textarea>
-                            </div>
-                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                                <button type="button" class="btn-secondary" onclick="toggleNewReleaseForm(false)" style="padding: 6px 12px; font-size: 0.8rem;">Cancel</button>
-                                <button type="button" class="btn-primary" onclick="commitNewRelease()" style="padding: 6px 16px; font-size: 0.8rem; font-weight: 700;">Publish Release</button>
-                            </div>
-                        </div>
-
-                        <!-- Published Releases Feed -->
-                        <div id="editor-repo-releases-list" style="display: flex; flex-direction: column; gap: 10px;">
-                            <div style="color: var(--page-text-muted); font-size: 0.82rem; text-align: center; padding: 18px;">No releases published yet. Click "+ Draft Release".</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TEMPLATE 2: PLAYABLE GAME LAUNCHER EDITOR PANE -->
-                <div id="editor-pane-game" style="display: none; flex-direction: column; gap: 20px;">
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">
-                            🎮 Game Setup & Aspect Ratio
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px;">
-                            <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Player Aspect Ratio</label>
-                                <select id="game-aspect-ratio" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
-                                    <option value="16:9">16:9 Widescreen (Landscape)</option>
-                                    <option value="4:3">4:3 Classic Arcade / Retro</option>
-                                    <option value="1:1">1:1 Square</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Cover Splash Picture</label>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <button type="button" class="btn-secondary" onclick="document.getElementById('game-cover-file').click()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">📁 Upload Picture</button>
-                                    <input type="file" id="game-cover-file" accept="image/*" style="display:none;" onchange="handleGameCoverFile(event.target.files[0])">
-                                    <span id="game-cover-name" style="font-size: 0.78rem; color: var(--page-text-muted);">No picture selected</span>
-                                </div>
-                                <input type="hidden" id="game-cover-url">
-                            </div>
-                        </div>
-                        <div>
-                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Controls Mapping (One per line: Key : Action)</label>
-                            <textarea id="game-controls-input" class="settings-input" rows="3" placeholder="Arrow Keys / WASD : Move&#10;Spacebar : Jump / Action&#10;Mouse Click : Fire" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff; resize: vertical; font-family: monospace;"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Game HTML5 / Canvas Code Box & Live Test Sandbox -->
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
-                                🕹️ In-Browser HTML5 / Canvas Game Source Code
-                            </div>
-                            <button type="button" class="btn-secondary" onclick="testGamePreview()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700; color: #f97316;">
-                                ▶ Test Game in Sandbox
-                            </button>
-                        </div>
-                        <textarea id="game-code-editor" class="settings-input" rows="12" placeholder="<!DOCTYPE html>&#10;<html>...<canvas id='c'></canvas>...</html>" style="width: 100%; box-sizing: border-box; background: #080306; border: 1px solid rgba(255,255,255,0.12); padding: 12px; border-radius: 10px; color: #f0f6fc; font-family: monospace; font-size: 0.82rem; resize: vertical; line-height: 1.4;"></textarea>
-                        
-                        <div style="margin-top: 14px;">
-                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); margin-bottom: 6px;">Live Test Sandbox</div>
-                            <iframe id="game-preview-iframe" sandbox="allow-scripts allow-same-origin allow-pointer-lock" style="width: 100%; height: 280px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: #000;"></iframe>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TEMPLATE 3: ME PAGE EDITOR PANE -->
-                <div id="editor-pane-me" style="display: none; flex-direction: column; gap: 16px;">
-                    <!-- Top Page Meta & Theme Preset -->
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
-                                👤 Showcase Profile & Header Style
-                            </div>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted);">Theme Style:</label>
-                                <select id="me-page-theme-input" class="settings-input" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); padding: 6px 10px; border-radius: 8px; color: #fff; font-size: 0.82rem;">
-                                    <option value="crimson">Crimson Flame (Aero Glass Red)</option>
-                                    <option value="midnight">Midnight Cobalt</option>
-                                    <option value="cyber">Cyberpunk Emerald</option>
-                                    <option value="obsidian">Dark Obsidian</option>
-                                    <option value="solar">Solar Amber</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Headline</label>
-                            <input type="text" id="me-page-headline-input" class="settings-input" placeholder="e.g. Lead Programmer & Digital Artist" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
-                        </div>
-                    </div>
-
-                    <!-- Visual Block Builder (Google Sites Style) -->
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                            <div>
-                                <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
-                                    🧩 Visual Sections & Content Blocks
-                                </div>
-                                <div style="font-size: 0.76rem; color: var(--page-text-muted);">
-                                    Build your page visually by adding content blocks, buttons, and media sections.
-                                </div>
-                            </div>
-                            <!-- Insert Palette (Google Sites Toolbar) -->
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('text')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
-                                    + 📝 Text Section
-                                </button>
-                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('buttons')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
-                                    + 🔗 Buttons & Links
-                                </button>
-                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('image')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
-                                    + 🖼️ Image Card
-                                </button>
-                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('callout')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
-                                    + 📢 Announcement
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Visual Blocks Canvas -->
-                        <div id="visual-blocks-canvas" style="display: flex; flex-direction: column; gap: 14px;">
-                            <!-- Populated dynamically with interactive visual blocks -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TEMPLATE 4: PURE HTML EDITOR PANE -->
-                <div id="editor-pane-html" style="display: none; flex-direction: column; gap: 16px;">
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
-                                ⚡ Raw HTML / CSS / JS Sandbox Code
-                            </div>
-                            <button type="button" class="btn-secondary" onclick="updatePureHtmlPreview()" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
-                                🔄 Refresh Sandbox
-                            </button>
-                        </div>
-                        <textarea id="editor-pure-html-code" class="settings-input" rows="14" placeholder="<!DOCTYPE html>&#10;<html>...</html>" style="width: 100%; box-sizing: border-box; background: #080306; border: 1px solid rgba(255,255,255,0.12); padding: 12px; border-radius: 10px; color: #f0f6fc; font-family: monospace; font-size: 0.82rem; resize: vertical; line-height: 1.4;" oninput="updatePureHtmlPreview()"></textarea>
-                        
-                        <div style="margin-top: 14px;">
-                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); margin-bottom: 6px;">Live Sandboxed Output</div>
-                            <iframe id="editor-pure-html-preview" sandbox="allow-scripts allow-popups allow-forms" style="width: 100%; height: 280px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: #000;"></iframe>
-                        </div>
-                    </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--page-text-muted);">Live Sandboxed Preview</div>
+                    <iframe id="editor-pure-html-preview" sandbox="allow-scripts allow-popups allow-forms" style="flex: 1; width: 100%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: #fff;"></iframe>
                 </div>
             </div>
         </div>

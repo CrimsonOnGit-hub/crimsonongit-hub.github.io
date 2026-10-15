@@ -423,24 +423,67 @@ async function renderMePage(username, pageData) {
     // Render Rich Visual Blocks (Google Sites Style)
     const sectionsEl = document.getElementById('me-page-sections');
     if (sectionsEl) {
-        const blocks = Array.isArray(meObj.blocks) ? meObj.blocks : [];
+        const blocks = Array.isArray(pageData.blocks) ? pageData.blocks : (Array.isArray(meObj.blocks) ? meObj.blocks : []);
         if (blocks.length > 0) {
             sectionsEl.innerHTML = blocks.map(blk => {
+                const bgStyle = blk.bgStyle === 'emphasis' 
+                    ? 'background: rgba(249, 115, 22, 0.08); border-left: 4px solid #f97316;' 
+                    : (blk.bgStyle === 'subtle' ? 'background: rgba(255,255,255,0.03);' : 'background: transparent;');
+
                 if (blk.type === 'text') {
                     return `
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px;">
-                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 10px;">${escapeHtml(blk.title || '')}</h3>
-                            <div style="color: var(--page-text-main); font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(blk.content || '')}</div>
+                        <div style="${bgStyle} border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 26px;">
+                            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; color: #fff; margin: 0 0 10px;">${escapeHtml(blk.heading || blk.title || '')}</h2>
+                            <div style="color: var(--page-text-main); font-size: 0.98rem; line-height: 1.65; white-space: pre-wrap;">${escapeHtml(blk.content || '')}</div>
+                        </div>
+                    `;
+                } else if (blk.type === 'split') {
+                    return `
+                        <div style="${bgStyle} border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 26px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; align-items: center;">
+                                <img src="${blk.imageUrl || ''}" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);">
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; color: #fff; margin: 0;">${escapeHtml(blk.heading || '')}</h2>
+                                    <div style="color: var(--page-text-main); font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(blk.content || '')}</div>
+                                    ${blk.buttonLabel ? `
+                                        <div style="margin-top: 6px;">
+                                            <a href="${escapeHtml(blk.buttonUrl || '#')}" target="_blank" class="btn-primary" style="text-decoration: none; padding: 10px 22px; font-size: 0.88rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+                                                🔗 ${escapeHtml(blk.buttonLabel)} ↗
+                                            </a>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (blk.type === 'columns2' || blk.type === 'columns3' || blk.type === 'columns4') {
+                    const cols = Array.isArray(blk.columns) ? blk.columns : [];
+                    return `
+                        <div style="${bgStyle} border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;">
+                                ${cols.map(c => `
+                                    <div style="display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px;">
+                                        <img src="${c.imageUrl || ''}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 8px;">
+                                        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 800; color: #fff; margin: 0;">${escapeHtml(c.title || '')}</h3>
+                                        <div style="color: var(--page-text-muted); font-size: 0.85rem; line-height: 1.5;">${escapeHtml(c.desc || '')}</div>
+                                        ${c.btnLabel ? `
+                                            <a href="${escapeHtml(c.btnUrl || '#')}" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; text-align: center; margin-top: auto;">
+                                                ${escapeHtml(c.btnLabel)} ↗
+                                            </a>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     `;
                 } else if (blk.type === 'buttons') {
                     const btns = Array.isArray(blk.buttons) ? blk.buttons : [];
                     return `
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px;">
-                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0 0 14px;">${escapeHtml(blk.title || 'Links')}</h3>
+                        <div style="${bgStyle} border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 800; color: #fff; margin: 0 0 14px;">${escapeHtml(blk.title || 'Links')}</h3>
                             <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                                 ${btns.map(b => `
-                                    <a href="${escapeHtml(b.url || '#')}" target="_blank" class="btn-primary" style="text-decoration: none; padding: 10px 20px; font-size: 0.88rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                                    <a href="${escapeHtml(b.url || '#')}" target="_blank" class="btn-primary" style="text-decoration: none; padding: 10px 22px; font-size: 0.88rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
                                         🔗 ${escapeHtml(b.label || 'Link')} ↗
                                     </a>
                                 `).join('')}
@@ -449,22 +492,30 @@ async function renderMePage(username, pageData) {
                     `;
                 } else if (blk.type === 'image') {
                     return `
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px;">
-                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0 0 12px;">${escapeHtml(blk.title || '')}</h3>
+                        <div style="${bgStyle} border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px;">
                             <img src="${blk.imageUrl || ''}" style="width: 100%; max-height: 480px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 8px;">
-                            ${blk.caption ? `<div style="font-size: 0.8rem; color: var(--page-text-muted); text-align: center;">${escapeHtml(blk.caption)}</div>` : ''}
+                            ${blk.caption ? `<div style="font-size: 0.82rem; color: var(--page-text-muted); text-align: center;">${escapeHtml(blk.caption)}</div>` : ''}
                         </div>
                     `;
                 } else if (blk.type === 'callout') {
                     return `
-                        <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.4); border-radius: 16px; padding: 20px; box-shadow: 0 8px 30px rgba(249, 115, 22, 0.15);">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.4); border-radius: 16px; padding: 22px; box-shadow: 0 8px 30px rgba(249, 115, 22, 0.15);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                                 <span style="font-size: 1.6rem;">${escapeHtml(blk.icon || '🔥')}</span>
-                                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 800; color: #fff; margin: 0;">${escapeHtml(blk.title || '')}</h3>
+                                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">${escapeHtml(blk.title || '')}</h3>
                             </div>
-                            <div style="color: #fde047; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(blk.message || '')}</div>
+                            <div style="color: #fde047; font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(blk.message || '')}</div>
                         </div>
                     `;
+                } else if (blk.type === 'accordion') {
+                    return `
+                        <details style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 18px; margin-bottom: 8px;">
+                            <summary style="font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 700; color: #fff; cursor: pointer;">${escapeHtml(blk.question || 'Details')}</summary>
+                            <div style="color: var(--page-text-main); font-size: 0.92rem; line-height: 1.6; margin-top: 10px; white-space: pre-wrap;">${escapeHtml(blk.answer || '')}</div>
+                        </details>
+                    `;
+                } else if (blk.type === 'divider') {
+                    return `<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 16px 0;">`;
                 }
                 return '';
             }).join('');
@@ -1234,67 +1285,52 @@ window.editPageById = async function(slug) {
             else badgeDisplay.innerText = '⚡ PURE HTML';
         }
 
-        // Toggle panes
-        const paneRepo = document.getElementById('editor-pane-repo');
-        const paneGame = document.getElementById('editor-pane-game');
-        const paneMe = document.getElementById('editor-pane-me');
-        const paneHtml = document.getElementById('editor-pane-html');
+        // Switch between Google Sites Studio and Pure HTML Studio
+        const gsStudio = document.getElementById('google-sites-studio');
+        const htmlStudio = document.getElementById('editor-pure-html-studio');
 
-        if (paneRepo) paneRepo.style.display = activeEditingPage.template === 'repo' ? 'flex' : 'none';
-        if (paneGame) paneGame.style.display = activeEditingPage.template === 'game' ? 'flex' : 'none';
-        if (paneMe) paneMe.style.display = activeEditingPage.template === 'me' ? 'flex' : 'none';
-        if (paneHtml) paneHtml.style.display = activeEditingPage.template === 'html' ? 'flex' : 'none';
-
-        if (activeEditingPage.template === 'repo') {
-            renderEditorRepoFilesTable();
-            renderEditorRepoReleasesList();
-        } else if (activeEditingPage.template === 'game') {
-            const gData = activeEditingPage.gameData || {};
-            const arInput = document.getElementById('game-aspect-ratio');
-            const coverInput = document.getElementById('game-cover-url');
-            const ctrlInput = document.getElementById('game-controls-input');
-            const codeEditor = document.getElementById('game-code-editor');
-
-            if (arInput) arInput.value = gData.aspectRatio || '16:9';
-            if (coverInput) coverInput.value = gData.coverUrl || '';
-            if (ctrlInput) ctrlInput.value = gData.controls || '';
-            if (codeEditor) codeEditor.value = gData.code || '';
-            window.testGamePreview();
-        } else if (activeEditingPage.template === 'me') {
-            const meObj = activeEditingPage.meData || {};
-            const headInput = document.getElementById('me-page-headline-input');
-            const themeInput = document.getElementById('me-page-theme-input');
-
-            if (headInput) headInput.value = meObj.headline || '';
-            if (themeInput) themeInput.value = meObj.theme || 'crimson';
-
-            // Load visual blocks (or convert existing bio/links to visual blocks)
-            if (Array.isArray(meObj.blocks) && meObj.blocks.length > 0) {
-                activeVisualBlocks = JSON.parse(JSON.stringify(meObj.blocks));
-            } else {
-                activeVisualBlocks = [];
-                if (meObj.bio) {
-                    activeVisualBlocks.push({
-                        id: 'blk_bio',
-                        type: 'text',
-                        title: 'About Me',
-                        content: meObj.bio
-                    });
-                }
-                if (Array.isArray(meObj.links) && meObj.links.length > 0) {
-                    activeVisualBlocks.push({
-                        id: 'blk_links',
-                        type: 'buttons',
-                        title: 'Connect & Projects',
-                        buttons: meObj.links.map(l => ({ label: l.label || 'Link', url: l.url || '#', style: 'primary' }))
-                    });
-                }
-            }
-            renderVisualBlocksCanvas();
-        } else if (activeEditingPage.template === 'html') {
+        if (activeEditingPage.template === 'html') {
+            if (gsStudio) gsStudio.style.display = 'none';
+            if (htmlStudio) htmlStudio.style.display = 'flex';
             const htmlCode = document.getElementById('editor-pure-html-code');
             if (htmlCode) htmlCode.value = activeEditingPage.htmlContent || '';
             window.updatePureHtmlPreview();
+        } else {
+            if (htmlStudio) htmlStudio.style.display = 'none';
+            if (gsStudio) gsStudio.style.display = 'flex';
+
+            // Initialize Google Sites Visual Editor
+            activeGsBanner = {
+                url: activeEditingPage.banner?.url || activeEditingPage.banner || '',
+                type: activeEditingPage.banner?.type || 'banner',
+                title: activeEditingPage.title || activeEditingPage.slug || 'Page Title',
+                subtitle: activeEditingPage.description || activeEditingPage.meData?.headline || ''
+            };
+            activeGsTheme = activeEditingPage.theme || activeEditingPage.meData?.theme || 'aristotle';
+            activeGsAccent = activeEditingPage.accentColor || '#ef4444';
+
+            // Load blocks
+            if (Array.isArray(activeEditingPage.blocks) && activeEditingPage.blocks.length > 0) {
+                activeGsBlocks = JSON.parse(JSON.stringify(activeEditingPage.blocks));
+            } else if (Array.isArray(activeEditingPage.meData?.blocks) && activeEditingPage.meData.blocks.length > 0) {
+                activeGsBlocks = JSON.parse(JSON.stringify(activeEditingPage.meData.blocks));
+            } else {
+                activeGsBlocks = [
+                    {
+                        id: 'blk_init_split',
+                        type: 'split',
+                        bgStyle: 'regular',
+                        heading: activeEditingPage.title || 'Welcome to my CrimX Page',
+                        content: activeEditingPage.description || activeEditingPage.meData?.bio || 'Showcase creations, interactive games, and community updates.',
+                        imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png',
+                        buttonLabel: 'Explore Live',
+                        buttonUrl: '#'
+                    }
+                ];
+            }
+
+            syncGsEditorUI();
+            pushGsHistory();
         }
 
         const modal = document.getElementById('modal-page-editor');
@@ -1348,33 +1384,31 @@ window.saveActiveEditorPage = async function() {
     if (!currentUser || !activeEditingPage) return;
     const pageDocId = `${currentUsername}_${activeEditingPage.slug}`;
 
-    const newTitle = document.getElementById('editor-input-title')?.value.trim() || activeEditingPage.slug;
-    const newDesc = document.getElementById('editor-input-desc')?.value.trim() || '';
+    let newTitle = activeEditingPage.title || activeEditingPage.slug;
+    let newDesc = activeEditingPage.description || '';
 
-    activeEditingPage.title = newTitle;
-    activeEditingPage.description = newDesc;
-    activeEditingPage.updatedAt = serverTimestamp();
-
-    if (activeEditingPage.template === 'game') {
-        activeEditingPage.gameData = {
-            aspectRatio: document.getElementById('game-aspect-ratio')?.value || '16:9',
-            coverUrl: document.getElementById('game-cover-url')?.value.trim() || '',
-            controls: document.getElementById('game-controls-input')?.value.trim() || '',
-            code: document.getElementById('game-code-editor')?.value || ''
-        };
-    } else if (activeEditingPage.template === 'me') {
-        const headline = document.getElementById('me-page-headline-input')?.value.trim() || newTitle;
-        const theme = document.getElementById('me-page-theme-input')?.value || 'crimson';
-        const bio = document.getElementById('me-page-bio-input')?.value.trim() || '';
-        const rawLinks = document.getElementById('me-page-links-input')?.value || '';
-        const parsedLinks = rawLinks.split('\n').filter(l => l.includes('|')).map(l => {
-            const parts = l.split('|');
-            return { label: parts[0].trim(), url: parts.slice(1).join('|').trim() };
-        });
-        activeEditingPage.meData = { headline, theme, bio, links: parsedLinks };
-    } else if (activeEditingPage.template === 'html') {
+    if (activeEditingPage.template === 'html') {
         activeEditingPage.htmlContent = document.getElementById('editor-pure-html-code')?.value || '';
+    } else {
+        newTitle = activeGsBanner.title || document.getElementById('gs-doc-title')?.value.trim() || activeEditingPage.title || activeEditingPage.slug;
+        newDesc = activeGsBanner.subtitle || '';
+
+        activeEditingPage.title = newTitle;
+        activeEditingPage.description = newDesc;
+        activeEditingPage.blocks = activeGsBlocks;
+        activeEditingPage.banner = activeGsBanner;
+        activeEditingPage.theme = activeGsTheme;
+        activeEditingPage.accentColor = activeGsAccent;
+
+        activeEditingPage.meData = {
+            headline: activeGsBanner.subtitle || newTitle,
+            theme: activeGsTheme,
+            bio: activeGsBanner.subtitle || '',
+            blocks: activeGsBlocks
+        };
     }
+
+    activeEditingPage.updatedAt = serverTimestamp();
 
     try {
         await setDoc(doc(db, "user_pages", pageDocId), {
@@ -1385,7 +1419,7 @@ window.saveActiveEditorPage = async function() {
             updatedAt: serverTimestamp()
         }, { merge: true });
 
-        window.showCustomAlert(`Page "${newTitle}" saved & deployed!`);
+        window.showCustomAlert(`Page "${newTitle}" saved & published live!`);
         await loadHubUserPages();
     } catch(err) {
         window.showCustomAlert("Error saving page: " + err.message);
@@ -1835,4 +1869,542 @@ function renderVisualBlocksCanvas() {
             </div>
         `;
     }).join('');
+}
+
+
+// ═════════════════════════════════════════════════════════════════════
+// GOOGLE SITES VISUAL EDITOR & WYSIWYG ENGINE
+// ═════════════════════════════════════════════════════════════════════
+
+let activeGsBlocks = [];
+let activeGsTheme = 'aristotle';
+let activeGsAccent = '#ef4444';
+let activeGsBanner = {
+    url: '',
+    type: 'banner',
+    title: 'Page Title',
+    subtitle: 'Add a subtitle or page headline here...'
+};
+let gsHistoryStack = [];
+let gsHistoryIndex = -1;
+
+function pushGsHistory() {
+    if (gsHistoryIndex < gsHistoryStack.length - 1) {
+        gsHistoryStack = gsHistoryStack.slice(0, gsHistoryIndex + 1);
+    }
+    gsHistoryStack.push(JSON.stringify({
+        blocks: activeGsBlocks,
+        banner: activeGsBanner,
+        theme: activeGsTheme,
+        accent: activeGsAccent
+    }));
+    gsHistoryIndex = gsHistoryStack.length - 1;
+    if (gsHistoryStack.length > 30) {
+        gsHistoryStack.shift();
+        gsHistoryIndex--;
+    }
+}
+
+window.gsUndo = function() {
+    if (gsHistoryIndex > 0) {
+        gsHistoryIndex--;
+        const state = JSON.parse(gsHistoryStack[gsHistoryIndex]);
+        activeGsBlocks = state.blocks;
+        activeGsBanner = state.banner;
+        activeGsTheme = state.theme;
+        activeGsAccent = state.accent;
+        syncGsEditorUI();
+    }
+};
+
+window.gsRedo = function() {
+    if (gsHistoryIndex < gsHistoryStack.length - 1) {
+        gsHistoryIndex++;
+        const state = JSON.parse(gsHistoryStack[gsHistoryIndex]);
+        activeGsBlocks = state.blocks;
+        activeGsBanner = state.banner;
+        activeGsTheme = state.theme;
+        activeGsAccent = state.accent;
+        syncGsEditorUI();
+    }
+};
+
+// Viewport Switcher (Desktop / Tablet / Mobile)
+window.setGsViewport = function(vp) {
+    const artboard = document.getElementById('gs-artboard');
+    if (!artboard) return;
+    artboard.classList.remove('viewport-tablet', 'viewport-mobile');
+    if (vp === 'tablet') artboard.classList.add('viewport-tablet');
+    if (vp === 'mobile') artboard.classList.add('viewport-mobile');
+
+    ['desktop', 'tablet', 'mobile'].forEach(v => {
+        const btn = document.getElementById(`gs-vp-${v}`);
+        if (btn) btn.classList.toggle('active', v === vp);
+    });
+};
+
+// Title & Subtitle Sync
+window.syncGsPageTitle = function(val) {
+    activeGsBanner.title = val;
+    if (activeEditingPage) activeEditingPage.title = val;
+    const titleEl = document.getElementById('gs-canvas-title');
+    if (titleEl && titleEl.innerText !== val) titleEl.innerText = val || 'Page Title';
+};
+
+window.onGsInlineTitleChange = function(val) {
+    const clean = val.trim() || 'Page Title';
+    activeGsBanner.title = clean;
+    if (activeEditingPage) activeEditingPage.title = clean;
+    const docInput = document.getElementById('gs-doc-title');
+    if (docInput) docInput.value = clean;
+    pushGsHistory();
+};
+
+window.onGsInlineSubtitleChange = function(val) {
+    activeGsBanner.subtitle = val.trim();
+    pushGsHistory();
+};
+
+// Banner Controls
+window.handleGsBannerUpload = function(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        activeGsBanner.url = e.target.result;
+        updateGsBannerDisplay();
+        pushGsHistory();
+    };
+    reader.readAsDataURL(file);
+};
+
+window.setGsBannerType = function(type) {
+    activeGsBanner.type = type;
+    updateGsBannerDisplay();
+    pushGsHistory();
+};
+
+function updateGsBannerDisplay() {
+    const banner = document.getElementById('gs-banner');
+    if (!banner) return;
+    banner.classList.remove('type-large', 'type-cover', 'type-title');
+    if (activeGsBanner.type === 'large') banner.classList.add('type-large');
+    else if (activeGsBanner.type === 'cover') banner.classList.add('type-cover');
+    else if (activeGsBanner.type === 'title') banner.classList.add('type-title');
+
+    if (activeGsBanner.url) {
+        banner.style.backgroundImage = `url("${activeGsBanner.url}")`;
+        banner.style.backgroundSize = 'cover';
+        banner.style.backgroundPosition = 'center';
+    } else {
+        banner.style.backgroundImage = 'linear-gradient(135deg, #2b0d18 0%, #dc2626 50%, #15090f 100%)';
+    }
+
+    const typeSelect = document.getElementById('gs-banner-type-select');
+    if (typeSelect) typeSelect.value = activeGsBanner.type || 'banner';
+}
+
+// Sidebar Tab Switcher
+window.switchGsSidebarTab = function(tabName) {
+    ['insert', 'pages', 'themes'].forEach(t => {
+        const btn = document.getElementById(`gs-tab-btn-${t}`);
+        const panel = document.getElementById(`gs-panel-${t}`);
+        if (btn) btn.classList.toggle('active', t === tabName);
+        if (panel) panel.classList.toggle('active', t === tabName);
+    });
+};
+
+// Theme & Accent Management
+window.setGsTheme = function(themeName) {
+    activeGsTheme = themeName;
+    ['aristotle', 'vision', 'diplomat', 'impression', 'obsidian'].forEach(t => {
+        const card = document.getElementById(`gs-theme-${t}`);
+        if (card) card.classList.toggle('active', t === themeName);
+    });
+    pushGsHistory();
+};
+
+window.setGsAccentColor = function(color) {
+    activeGsAccent = color;
+    document.querySelectorAll('.gs-color-dot').forEach(dot => {
+        dot.classList.toggle('active', dot.style.background.includes(color) || dot.getAttribute('onclick')?.includes(color));
+    });
+    pushGsHistory();
+};
+
+// Direct Image Upload (from Sidebar quick tools)
+window.handleGsDirectImageUpload = function(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        activeGsBlocks.push({
+            id: 'blk_' + Date.now(),
+            type: 'image',
+            bgStyle: 'regular',
+            title: 'Uploaded Media',
+            imageUrl: e.target.result,
+            caption: 'Click to edit image caption'
+        });
+        renderGsCanvas();
+        pushGsHistory();
+    };
+    reader.readAsDataURL(file);
+};
+
+// Pages Tree in Sidebar
+window.populateGsPagesTree = function() {
+    const list = document.getElementById('gs-pages-tree-list');
+    if (!list) return;
+    const pages = Array.isArray(userPagesCache) ? userPagesCache : [];
+    
+    let html = `
+        <div class="gs-page-node ${(!activeEditingPage || activeEditingPage.slug === 'me') ? 'active' : ''}" onclick="window.editPageById('me')">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span>👤</span>
+                <span style="font-weight:700;">Home (@${currentUsername})</span>
+            </div>
+            <span style="font-size:0.7rem; opacity:0.6;">Root</span>
+        </div>
+    `;
+
+    pages.filter(p => p.slug !== 'me').forEach(p => {
+        const isCurrent = activeEditingPage && activeEditingPage.slug === p.slug;
+        html += `
+            <div class="gs-page-node ${isCurrent ? 'active' : ''}" onclick="window.editPageById('${p.slug}')">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span>📄</span>
+                    <span>${escapeHtml(p.title || p.slug)}</span>
+                </div>
+                <span style="font-size:0.7rem; font-family:monospace; opacity:0.6;">/${escapeHtml(p.slug)}</span>
+            </div>
+        `;
+    });
+
+    list.innerHTML = html;
+};
+
+// ─── Content Blocks Manager ───
+window.addGsContentBlock = function(type) {
+    const id = 'blk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    
+    if (type === 'text') {
+        activeGsBlocks.push({
+            id,
+            type: 'text',
+            bgStyle: 'regular',
+            heading: 'Section Title',
+            content: 'Write your announcement, instructions, or article content here. Everything can be edited directly!'
+        });
+    } else if (type === 'split') {
+        activeGsBlocks.push({
+            id,
+            type: 'split',
+            bgStyle: 'regular',
+            heading: 'Feature Spotlight',
+            content: 'Describe what makes your project, mod, or profile special. Pair engaging text with a compelling screenshot or artwork.',
+            imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png',
+            buttonLabel: 'Learn More',
+            buttonUrl: 'https://'
+        });
+    } else if (type === 'columns2') {
+        activeGsBlocks.push({
+            id,
+            type: 'columns2',
+            bgStyle: 'regular',
+            columns: [
+                { title: 'First Highlight', desc: 'Detail your first core feature, game, or release.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png', btnLabel: 'Open', btnUrl: '#' },
+                { title: 'Second Highlight', desc: 'Detail your second project, mod, or community resource.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png', btnLabel: 'Explore', btnUrl: '#' }
+            ]
+        });
+    } else if (type === 'columns3') {
+        activeGsBlocks.push({
+            id,
+            type: 'columns3',
+            bgStyle: 'regular',
+            columns: [
+                { title: 'Card One', desc: 'Brief highlight description.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png', btnLabel: 'View', btnUrl: '#' },
+                { title: 'Card Two', desc: 'Brief highlight description.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png', btnLabel: 'View', btnUrl: '#' },
+                { title: 'Card Three', desc: 'Brief highlight description.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png', btnLabel: 'View', btnUrl: '#' }
+            ]
+        });
+    } else if (type === 'columns4') {
+        activeGsBlocks.push({
+            id,
+            type: 'columns4',
+            bgStyle: 'regular',
+            columns: [
+                { title: 'Item 1', desc: 'Item summary.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png' },
+                { title: 'Item 2', desc: 'Item summary.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png' },
+                { title: 'Item 3', desc: 'Item summary.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png' },
+                { title: 'Item 4', desc: 'Item summary.', imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png' }
+            ]
+        });
+    } else if (type === 'buttons') {
+        activeGsBlocks.push({
+            id,
+            type: 'buttons',
+            bgStyle: 'regular',
+            title: 'Important Links & Socials',
+            buttons: [
+                { label: 'Discord Server', url: 'https://discord.gg/' },
+                { label: 'GitHub Repository', url: 'https://github.com/' }
+            ]
+        });
+    } else if (type === 'image') {
+        activeGsBlocks.push({
+            id,
+            type: 'image',
+            bgStyle: 'regular',
+            title: 'Featured Media',
+            imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png',
+            caption: 'Upload any screenshot, mod showcase, or banner directly from your device.'
+        });
+    } else if (type === 'callout') {
+        activeGsBlocks.push({
+            id,
+            type: 'callout',
+            bgStyle: 'emphasis',
+            icon: '🔥',
+            title: 'Important Announcement',
+            message: 'A brand new version is live! Check out the updates and join the discussion.'
+        });
+    } else if (type === 'accordion') {
+        activeGsBlocks.push({
+            id,
+            type: 'accordion',
+            bgStyle: 'regular',
+            question: 'Frequently Asked Question or Guide',
+            answer: 'Provide answers to common community questions, installation instructions, or gameplay tips.'
+        });
+    } else if (type === 'divider') {
+        activeGsBlocks.push({
+            id,
+            type: 'divider',
+            bgStyle: 'regular'
+        });
+    }
+
+    renderGsCanvas();
+    pushGsHistory();
+};
+
+// Section Operations
+window.duplicateGsSection = function(idx) {
+    const clone = JSON.parse(JSON.stringify(activeGsBlocks[idx]));
+    clone.id = 'blk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    activeGsBlocks.splice(idx + 1, 0, clone);
+    renderGsCanvas();
+    pushGsHistory();
+};
+
+window.moveGsSection = function(idx, dir) {
+    const target = idx + dir;
+    if (target < 0 || target >= activeGsBlocks.length) return;
+    const temp = activeGsBlocks[idx];
+    activeGsBlocks[idx] = activeGsBlocks[target];
+    activeGsBlocks[target] = temp;
+    renderGsCanvas();
+    pushGsHistory();
+};
+
+window.deleteGsSection = function(idx) {
+    activeGsBlocks.splice(idx, 1);
+    renderGsCanvas();
+    pushGsHistory();
+};
+
+window.cycleGsSectionBg = function(idx) {
+    const block = activeGsBlocks[idx];
+    if (!block) return;
+    if (!block.bgStyle || block.bgStyle === 'regular') block.bgStyle = 'subtle';
+    else if (block.bgStyle === 'subtle') block.bgStyle = 'emphasis';
+    else block.bgStyle = 'regular';
+    renderGsCanvas();
+    pushGsHistory();
+};
+
+window.handleGsBlockImageUpload = function(blockIdx, colIdx, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const blk = activeGsBlocks[blockIdx];
+        if (!blk) return;
+        if (colIdx === null || colIdx === undefined) {
+            blk.imageUrl = e.target.result;
+        } else if (Array.isArray(blk.columns) && blk.columns[colIdx]) {
+            blk.columns[colIdx].imageUrl = e.target.result;
+        }
+        renderGsCanvas();
+        pushGsHistory();
+    };
+    reader.readAsDataURL(file);
+};
+
+window.addGsSubButton = function(blockIdx) {
+    const blk = activeGsBlocks[blockIdx];
+    if (!blk) return;
+    if (!Array.isArray(blk.buttons)) blk.buttons = [];
+    blk.buttons.push({ label: 'New Action', url: 'https://' });
+    renderGsCanvas();
+    pushGsHistory();
+};
+
+window.removeGsSubButton = function(blockIdx, btnIdx) {
+    const blk = activeGsBlocks[blockIdx];
+    if (blk && Array.isArray(blk.buttons)) {
+        blk.buttons.splice(btnIdx, 1);
+        renderGsCanvas();
+        pushGsHistory();
+    }
+};
+
+// ─── Google Sites Canvas WYSIWYG Renderer ───
+function renderGsCanvas() {
+    const container = document.getElementById('gs-sections-canvas');
+    if (!container) return;
+
+    if (activeGsBlocks.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding: 48px 20px; color: #94a3b8;">
+                <div style="font-size: 2.2rem; margin-bottom: 10px;">🎨</div>
+                <div style="font-family:'Outfit',sans-serif; font-size:1.15rem; font-weight:800; color:#fff; margin-bottom:6px;">Your Canvas is Ready</div>
+                <div style="font-size:0.85rem; max-width:440px; margin:0 auto 18px;">Click any Layout from the right sidebar to add Split views, Multi-column cards, Text, or Button docks.</div>
+                <button type="button" class="gs-btn-publish" onclick="window.addGsContentBlock('split')">+ Add First Section</button>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = activeGsBlocks.map((blk, idx) => {
+        let contentHtml = '';
+
+        if (blk.type === 'text') {
+            contentHtml = `
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <input type="text" value="${escapeHtml(blk.heading || '')}" oninput="activeGsBlocks[${idx}].heading = this.value" placeholder="Section Heading" style="background:transparent; border:none; font-family:'Outfit',sans-serif; font-size:1.4rem; font-weight:800; color:#fff; width:100%; outline:none;">
+                    <textarea rows="3" oninput="activeGsBlocks[${idx}].content = this.value" placeholder="Type normal body text here..." style="background:transparent; border:none; color:#cbd5e1; font-size:0.95rem; line-height:1.6; resize:vertical; width:100%; outline:none; font-family:inherit;">${escapeHtml(blk.content || '')}</textarea>
+                </div>
+            `;
+        } else if (blk.type === 'split') {
+            contentHtml = `
+                <div style="display:grid; grid-template-columns: minmax(180px, 280px) 1fr; gap:24px; align-items:center;">
+                    <div style="position:relative; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);">
+                        <img src="${blk.imageUrl || 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png'}" style="width:100%; height:180px; object-fit:cover; display:block;">
+                        <input type="file" id="file-split-${idx}" accept="image/*" style="display:none;" onchange="window.handleGsBlockImageUpload(${idx}, null, this.files[0])">
+                        <button type="button" onclick="document.getElementById('file-split-${idx}').click()" style="position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.8); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:6px; padding:4px 8px; font-size:0.72rem; cursor:pointer;">📁 Upload Photo</button>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <input type="text" value="${escapeHtml(blk.heading || '')}" oninput="activeGsBlocks[${idx}].heading = this.value" placeholder="Feature Title" style="background:transparent; border:none; font-family:'Outfit',sans-serif; font-size:1.35rem; font-weight:800; color:#fff; outline:none; width:100%;">
+                        <textarea rows="3" oninput="activeGsBlocks[${idx}].content = this.value" placeholder="Write description..." style="background:transparent; border:none; color:#cbd5e1; font-size:0.92rem; line-height:1.6; resize:vertical; outline:none; width:100%; font-family:inherit;">${escapeHtml(blk.content || '')}</textarea>
+                        <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+                            <input type="text" value="${escapeHtml(blk.buttonLabel || 'Button')}" oninput="activeGsBlocks[${idx}].buttonLabel = this.value" placeholder="Button Text" style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:5px 10px; color:#fff; font-size:0.8rem; width:120px;">
+                            <input type="text" value="${escapeHtml(blk.buttonUrl || '')}" oninput="activeGsBlocks[${idx}].buttonUrl = this.value" placeholder="https://..." style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:5px 10px; color:#93c5fd; font-size:0.8rem; font-family:monospace; flex:1;">
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (blk.type === 'columns2' || blk.type === 'columns3' || blk.type === 'columns4') {
+            const cols = Array.isArray(blk.columns) ? blk.columns : [];
+            const colCount = blk.type === 'columns2' ? 2 : (blk.type === 'columns3' ? 3 : 4);
+            contentHtml = `
+                <div style="display:grid; grid-template-columns: repeat(${colCount}, 1fr); gap:16px;">
+                    ${cols.map((col, cIdx) => `
+                        <div style="display:flex; flex-direction:column; gap:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:12px;">
+                            <div style="position:relative; border-radius:8px; overflow:hidden;">
+                                <img src="${col.imageUrl || 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png'}" style="width:100%; height:110px; object-fit:cover; display:block;">
+                                <input type="file" id="file-col-${idx}-${cIdx}" accept="image/*" style="display:none;" onchange="window.handleGsBlockImageUpload(${idx}, ${cIdx}, this.files[0])">
+                                <button type="button" onclick="document.getElementById('file-col-${idx}-${cIdx}').click()" style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.85); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:5px; padding:3px 6px; font-size:0.68rem; cursor:pointer;">📁 Upload</button>
+                            </div>
+                            <input type="text" value="${escapeHtml(col.title || '')}" oninput="activeGsBlocks[${idx}].columns[${cIdx}].title = this.value" placeholder="Card Title" style="background:transparent; border:none; font-family:'Outfit',sans-serif; font-size:0.98rem; font-weight:700; color:#fff; outline:none; width:100%;">
+                            <textarea rows="2" oninput="activeGsBlocks[${idx}].columns[${cIdx}].desc = this.value" placeholder="Brief caption..." style="background:transparent; border:none; color:#94a3b8; font-size:0.8rem; resize:none; outline:none; width:100%; font-family:inherit;">${escapeHtml(col.desc || '')}</textarea>
+                            ${col.btnLabel !== undefined ? `
+                                <div style="display:flex; gap:4px; align-items:center;">
+                                    <input type="text" value="${escapeHtml(col.btnLabel || '')}" oninput="activeGsBlocks[${idx}].columns[${cIdx}].btnLabel = this.value" placeholder="Label" style="width:65px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:3px 6px; color:#fff; font-size:0.75rem;">
+                                    <input type="text" value="${escapeHtml(col.btnUrl || '')}" oninput="activeGsBlocks[${idx}].columns[${cIdx}].btnUrl = this.value" placeholder="URL" style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:3px 6px; color:#93c5fd; font-size:0.75rem;">
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else if (blk.type === 'buttons') {
+            const btns = Array.isArray(blk.buttons) ? blk.buttons : [];
+            contentHtml = `
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <input type="text" value="${escapeHtml(blk.title || 'Action Links')}" oninput="activeGsBlocks[${idx}].title = this.value" style="background:transparent; border:none; font-family:'Outfit',sans-serif; font-size:1.15rem; font-weight:800; color:#fff; outline:none;">
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        ${btns.map((b, bIdx) => `
+                            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:4px 8px;">
+                                <input type="text" value="${escapeHtml(b.label || '')}" oninput="activeGsBlocks[${idx}].buttons[${bIdx}].label = this.value" placeholder="Label" style="width:110px; background:transparent; border:none; color:#fff; font-weight:700; font-size:0.82rem; outline:none;">
+                                <input type="text" value="${escapeHtml(b.url || '')}" oninput="activeGsBlocks[${idx}].buttons[${bIdx}].url = this.value" placeholder="https://..." style="width:160px; background:transparent; border:none; color:#93c5fd; font-family:monospace; font-size:0.8rem; outline:none;">
+                                <button type="button" onclick="window.removeGsSubButton(${idx}, ${bIdx})" style="background:none; border:none; color:#f87171; cursor:pointer;">✕</button>
+                            </div>
+                        `).join('')}
+                        <button type="button" class="btn-secondary" onclick="window.addGsSubButton(${idx})" style="padding:4px 10px; font-size:0.78rem;">+ Add Button</button>
+                    </div>
+                </div>
+            `;
+        } else if (blk.type === 'image') {
+            contentHtml = `
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="position:relative; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);">
+                        <img src="${blk.imageUrl || 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png'}" style="width:100%; max-height:420px; object-fit:cover; display:block;">
+                        <input type="file" id="file-media-${idx}" accept="image/*" style="display:none;" onchange="window.handleGsBlockImageUpload(${idx}, null, this.files[0])">
+                        <button type="button" onclick="document.getElementById('file-media-${idx}').click()" style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.85); border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:8px; padding:6px 12px; font-size:0.78rem; font-weight:700; cursor:pointer;">📁 Upload Image</button>
+                    </div>
+                    <input type="text" value="${escapeHtml(blk.caption || '')}" oninput="activeGsBlocks[${idx}].caption = this.value" placeholder="Add image caption..." style="background:transparent; border:none; color:#94a3b8; font-size:0.82rem; text-align:center; outline:none; width:100%;">
+                </div>
+            `;
+        } else if (blk.type === 'callout') {
+            contentHtml = `
+                <div style="display:flex; gap:12px; align-items:flex-start; background:rgba(249, 115, 22, 0.08); border:1px solid rgba(249, 115, 22, 0.35); border-radius:12px; padding:16px;">
+                    <input type="text" value="${escapeHtml(blk.icon || '🔥')}" oninput="activeGsBlocks[${idx}].icon = this.value" style="width:36px; text-align:center; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:4px; font-size:1.1rem; color:#fff;">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <input type="text" value="${escapeHtml(blk.title || '')}" oninput="activeGsBlocks[${idx}].title = this.value" placeholder="Notice Headline" style="background:transparent; border:none; font-family:'Outfit',sans-serif; font-size:1.1rem; font-weight:800; color:#fff; outline:none;">
+                        <textarea rows="2" oninput="activeGsBlocks[${idx}].message = this.value" placeholder="Message details..." style="background:transparent; border:none; color:#fde047; font-size:0.9rem; resize:vertical; outline:none; font-family:inherit;">${escapeHtml(blk.message || '')}</textarea>
+                    </div>
+                </div>
+            `;
+        } else if (blk.type === 'accordion') {
+            contentHtml = `
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:0.9rem; color:#f97316;">▼</span>
+                        <input type="text" value="${escapeHtml(blk.question || '')}" oninput="activeGsBlocks[${idx}].question = this.value" placeholder="Question / Expandable Title" style="background:transparent; border:none; font-family:'Outfit',sans-serif; font-size:1.05rem; font-weight:700; color:#fff; outline:none; flex:1;">
+                    </div>
+                    <textarea rows="2" oninput="activeGsBlocks[${idx}].answer = this.value" placeholder="Expanded details..." style="background:transparent; border:none; color:#cbd5e1; font-size:0.88rem; line-height:1.5; outline:none; resize:vertical; padding-left:22px; font-family:inherit;">${escapeHtml(blk.answer || '')}</textarea>
+                </div>
+            `;
+        } else if (blk.type === 'divider') {
+            contentHtml = `<hr style="border:none; border-top:1px solid rgba(255,255,255,0.12); margin:8px 0;">`;
+        }
+
+        return `
+            <section class="gs-section style-${blk.bgStyle || 'regular'}">
+                <!-- Floating Left Google Sites Action Bar -->
+                <div class="gs-section-controls">
+                    <button type="button" class="gs-sec-btn" onclick="window.cycleGsSectionBg(${idx})" title="Section Background (Regular / Subtle / Emphasis)">🎨</button>
+                    <button type="button" class="gs-sec-btn" onclick="window.duplicateGsSection(${idx})" title="Duplicate Section">⧉</button>
+                    <button type="button" class="gs-sec-btn" onclick="window.moveGsSection(${idx}, -1)" title="Move Up" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}>▲</button>
+                    <button type="button" class="gs-sec-btn" onclick="window.moveGsSection(${idx}, 1)" title="Move Down" ${idx === activeGsBlocks.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>▼</button>
+                    <button type="button" class="gs-sec-btn danger" onclick="window.deleteGsSection(${idx})" title="Delete Section">🗑️</button>
+                </div>
+                ${contentHtml}
+            </section>
+        `;
+    }).join('');
+}
+
+function syncGsEditorUI() {
+    const docInput = document.getElementById('gs-doc-title');
+    if (docInput) docInput.value = activeGsBanner.title || (activeEditingPage && activeEditingPage.title) || '';
+    
+    const titleEl = document.getElementById('gs-canvas-title');
+    if (titleEl) titleEl.innerText = activeGsBanner.title || 'Page Title';
+
+    const subEl = document.getElementById('gs-canvas-subtitle');
+    if (subEl) subEl.innerText = activeGsBanner.subtitle || '';
+
+    updateGsBannerDisplay();
+    renderGsCanvas();
+    window.populateGsPagesTree();
 }
