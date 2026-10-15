@@ -1,3 +1,10 @@
+if (typeof window.showCustomAlert !== 'function') {
+    window.showCustomAlert = function(msg, onOk) {
+        if (window.showToast) window.showToast(msg, 'info');
+        else console.log('[Alert]:', msg);
+        if (typeof onOk === 'function') onOk();
+    };
+}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, setDoc, deleteDoc, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -402,7 +409,7 @@ async function renderMePage(username, pageData) {
     const linksContainer = document.getElementById('me-page-links-container');
     if (linksContainer) {
         const links = Array.isArray(meObj.links) ? meObj.links : [];
-        if (links.length > 0) {
+        if (links.length > 0 && (!meObj.blocks || meObj.blocks.length === 0)) {
             linksContainer.innerHTML = links.map(l => `
                 <a href="${escapeHtml(l.url || '#')}" target="_blank" class="dev-btn-secondary" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     🔗 ${escapeHtml(l.label || 'Link')} ↗
@@ -410,6 +417,57 @@ async function renderMePage(username, pageData) {
             `).join('');
         } else {
             linksContainer.innerHTML = '';
+        }
+    }
+
+    // Render Rich Visual Blocks (Google Sites Style)
+    const sectionsEl = document.getElementById('me-page-sections');
+    if (sectionsEl) {
+        const blocks = Array.isArray(meObj.blocks) ? meObj.blocks : [];
+        if (blocks.length > 0) {
+            sectionsEl.innerHTML = blocks.map(blk => {
+                if (blk.type === 'text') {
+                    return `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 10px;">${escapeHtml(blk.title || '')}</h3>
+                            <div style="color: var(--page-text-main); font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(blk.content || '')}</div>
+                        </div>
+                    `;
+                } else if (blk.type === 'buttons') {
+                    const btns = Array.isArray(blk.buttons) ? blk.buttons : [];
+                    return `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0 0 14px;">${escapeHtml(blk.title || 'Links')}</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                ${btns.map(b => `
+                                    <a href="${escapeHtml(b.url || '#')}" target="_blank" class="btn-primary" style="text-decoration: none; padding: 10px 20px; font-size: 0.88rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                                        🔗 ${escapeHtml(b.label || 'Link')} ↗
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else if (blk.type === 'image') {
+                    return `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0 0 12px;">${escapeHtml(blk.title || '')}</h3>
+                            <img src="${blk.imageUrl || ''}" style="width: 100%; max-height: 480px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 8px;">
+                            ${blk.caption ? `<div style="font-size: 0.8rem; color: var(--page-text-muted); text-align: center;">${escapeHtml(blk.caption)}</div>` : ''}
+                        </div>
+                    `;
+                } else if (blk.type === 'callout') {
+                    return `
+                        <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.4); border-radius: 16px; padding: 20px; box-shadow: 0 8px 30px rgba(249, 115, 22, 0.15);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-size: 1.6rem;">${escapeHtml(blk.icon || '🔥')}</span>
+                                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 800; color: #fff; margin: 0;">${escapeHtml(blk.title || '')}</h3>
+                            </div>
+                            <div style="color: #fde047; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(blk.message || '')}</div>
+                        </div>
+                    `;
+                }
+                return '';
+            }).join('');
         }
     }
 }
@@ -1206,15 +1264,33 @@ window.editPageById = async function(slug) {
             const meObj = activeEditingPage.meData || {};
             const headInput = document.getElementById('me-page-headline-input');
             const themeInput = document.getElementById('me-page-theme-input');
-            const bioInput = document.getElementById('me-page-bio-input');
-            const linksInput = document.getElementById('me-page-links-input');
 
             if (headInput) headInput.value = meObj.headline || '';
             if (themeInput) themeInput.value = meObj.theme || 'crimson';
-            if (bioInput) bioInput.value = meObj.bio || '';
-            if (linksInput) {
-                linksInput.value = Array.isArray(meObj.links) ? meObj.links.map(l => `${l.label || 'Link'} | ${l.url || ''}`).join('\n') : '';
+
+            // Load visual blocks (or convert existing bio/links to visual blocks)
+            if (Array.isArray(meObj.blocks) && meObj.blocks.length > 0) {
+                activeVisualBlocks = JSON.parse(JSON.stringify(meObj.blocks));
+            } else {
+                activeVisualBlocks = [];
+                if (meObj.bio) {
+                    activeVisualBlocks.push({
+                        id: 'blk_bio',
+                        type: 'text',
+                        title: 'About Me',
+                        content: meObj.bio
+                    });
+                }
+                if (Array.isArray(meObj.links) && meObj.links.length > 0) {
+                    activeVisualBlocks.push({
+                        id: 'blk_links',
+                        type: 'buttons',
+                        title: 'Connect & Projects',
+                        buttons: meObj.links.map(l => ({ label: l.label || 'Link', url: l.url || '#', style: 'primary' }))
+                    });
+                }
             }
+            renderVisualBlocksCanvas();
         } else if (activeEditingPage.template === 'html') {
             const htmlCode = document.getElementById('editor-pure-html-code');
             if (htmlCode) htmlCode.value = activeEditingPage.htmlContent || '';
@@ -1246,7 +1322,25 @@ window.openActiveEditorBuildLog = function() {
 };
 
 window.openLivePage = function(slug) {
-    const url = `/pages/index.html?u=${encodeURIComponent(currentUsername)}&p=${encodeURIComponent(slug)}`;
+    if (!currentUsername) return;
+    const targetSlug = slug || (activeEditingPage && activeEditingPage.slug) || 'me';
+    const url = (targetSlug === 'me' || !targetSlug) 
+        ? `/@${currentUsername}` 
+        : `/@${currentUsername}/${encodeURIComponent(targetSlug)}`;
+    window.open(url, '_blank');
+};
+
+window.openActiveEditorPage = function() {
+    if (!activeEditingPage || !currentUsername) return;
+    window.openLivePage(activeEditingPage.slug);
+};
+
+window.openActiveEditorBuildLog = function() {
+    if (!activeEditingPage || !currentUsername) return;
+    const targetSlug = activeEditingPage.slug || 'me';
+    const url = (targetSlug === 'me') 
+        ? `/@${currentUsername}?status=true` 
+        : `/@${currentUsername}/${encodeURIComponent(targetSlug)}?status=true`;
     window.open(url, '_blank');
 };
 
@@ -1500,10 +1594,7 @@ window.updatePureHtmlPreview = function() {
     const code = document.getElementById('editor-pure-html-code')?.value || '';
     const iframe = document.getElementById('editor-pure-html-preview');
     if (!iframe) return;
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    doc.open();
-    doc.write(code);
-    doc.close();
+    iframe.srcdoc = code;
 };
 
 // ─── STAR RATING FOR ACTIVE PAGE ───
@@ -1570,3 +1661,178 @@ window.handleGameCoverFile = function(file) {
 };
 
 window.addEventListener('DOMContentLoaded', initPages);
+
+// ─── VISUAL BLOCK EDITOR ENGINE (GOOGLE SITES STYLE) ───
+let activeVisualBlocks = [];
+
+window.addVisualBlock = function(type) {
+    const id = 'blk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    if (type === 'text') {
+        activeVisualBlocks.push({
+            id,
+            type: 'text',
+            title: 'Section Title',
+            content: 'Share project updates, guidelines, or announcements here.'
+        });
+    } else if (type === 'buttons') {
+        activeVisualBlocks.push({
+            id,
+            type: 'buttons',
+            title: 'Important Links',
+            buttons: [
+                { label: 'Discord Server', url: 'https://discord.gg/', style: 'primary' },
+                { label: 'GitHub Repository', url: 'https://github.com/', style: 'secondary' }
+            ]
+        });
+    } else if (type === 'image') {
+        activeVisualBlocks.push({
+            id,
+            type: 'image',
+            title: 'Featured Artwork or Banner',
+            imageUrl: 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png',
+            caption: 'Screenshot / Project Media'
+        });
+    } else if (type === 'callout') {
+        activeVisualBlocks.push({
+            id,
+            type: 'callout',
+            icon: '🔥',
+            title: 'Special Announcement',
+            message: 'A brand new release has launched! Check out the updates below.'
+        });
+    }
+    renderVisualBlocksCanvas();
+};
+
+window.removeVisualBlock = function(idx) {
+    activeVisualBlocks.splice(idx, 1);
+    renderVisualBlocksCanvas();
+};
+
+window.moveVisualBlock = function(idx, dir) {
+    const targetIdx = idx + dir;
+    if (targetIdx < 0 || targetIdx >= activeVisualBlocks.length) return;
+    const temp = activeVisualBlocks[idx];
+    activeVisualBlocks[idx] = activeVisualBlocks[targetIdx];
+    activeVisualBlocks[targetIdx] = temp;
+    renderVisualBlocksCanvas();
+};
+
+window.addLinkButtonToBlock = function(blockIdx) {
+    const block = activeVisualBlocks[blockIdx];
+    if (!block) return;
+    if (!Array.isArray(block.buttons)) block.buttons = [];
+    block.buttons.push({ label: 'New Link', url: 'https://', style: 'primary' });
+    renderVisualBlocksCanvas();
+};
+
+window.removeLinkButtonFromBlock = function(blockIdx, btnIdx) {
+    const block = activeVisualBlocks[blockIdx];
+    if (block && Array.isArray(block.buttons)) {
+        block.buttons.splice(btnIdx, 1);
+        renderVisualBlocksCanvas();
+    }
+};
+
+window.handleBlockImageUpload = function(blockIdx, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        if (activeVisualBlocks[blockIdx]) {
+            activeVisualBlocks[blockIdx].imageUrl = e.target.result;
+            renderVisualBlocksCanvas();
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
+function renderVisualBlocksCanvas() {
+    const container = document.getElementById('visual-blocks-canvas');
+    if (!container) return;
+
+    if (activeVisualBlocks.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 36px 16px; border: 2px dashed rgba(255,255,255,0.12); border-radius: 12px; background: rgba(0,0,0,0.2);">
+                <div style="font-size: 2rem; margin-bottom: 8px;">🎨</div>
+                <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 4px;">Canvas is empty</div>
+                <div style="font-size: 0.78rem; color: var(--page-text-muted); margin-bottom: 14px;">Click any button above to insert rich sections, buttons, images, or announcements!</div>
+                <button type="button" class="btn-primary" onclick="window.addVisualBlock('text')" style="padding: 7px 16px; font-size: 0.8rem; font-weight: 700;">+ Add First Section</button>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = activeVisualBlocks.map((blk, idx) => {
+        let innerForm = '';
+        if (blk.type === 'text') {
+            innerForm = `
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="text" value="${escapeHtml(blk.title || '')}" oninput="activeVisualBlocks[${idx}].title = this.value" placeholder="Section Heading" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 12px; color: #fff; font-weight: 700; font-size: 0.92rem;">
+                    <textarea rows="3" oninput="activeVisualBlocks[${idx}].content = this.value" placeholder="Write rich section description..." style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 12px; color: #cbd5e1; font-size: 0.85rem; line-height: 1.5; resize: vertical;">${escapeHtml(blk.content || '')}</textarea>
+                </div>
+            `;
+        } else if (blk.type === 'buttons') {
+            const btns = Array.isArray(blk.buttons) ? blk.buttons : [];
+            innerForm = `
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" value="${escapeHtml(blk.title || '')}" oninput="activeVisualBlocks[${idx}].title = this.value" placeholder="Link Section Title" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 12px; color: #fff; font-weight: 700; font-size: 0.92rem;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${btns.map((b, bIdx) => `
+                            <div style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                                <input type="text" value="${escapeHtml(b.label || '')}" oninput="activeVisualBlocks[${idx}].buttons[${bIdx}].label = this.value" placeholder="Button Label" style="width: 150px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; color: #fff; font-size: 0.82rem;">
+                                <input type="text" value="${escapeHtml(b.url || '')}" oninput="activeVisualBlocks[${idx}].buttons[${bIdx}].url = this.value" placeholder="https://..." style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; color: #93c5fd; font-family: monospace; font-size: 0.82rem;">
+                                <button type="button" onclick="window.removeLinkButtonFromBlock(${idx}, ${bIdx})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; padding: 4px;" title="Delete Button">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div>
+                        <button type="button" class="btn-secondary" onclick="window.addLinkButtonToBlock(${idx})" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700;">+ Add Button</button>
+                    </div>
+                </div>
+            `;
+        } else if (blk.type === 'image') {
+            innerForm = `
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" value="${escapeHtml(blk.title || '')}" oninput="activeVisualBlocks[${idx}].title = this.value" placeholder="Media Title" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 12px; color: #fff; font-weight: 700; font-size: 0.92rem;">
+                    <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                        <img src="${blk.imageUrl || 'https://i.ibb.co/TBkJR2Jn/unnamed-removebg-preview.png'}" style="width: 140px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
+                        <div>
+                            <input type="file" id="blk-file-${idx}" accept="image/*" style="display: none;" onchange="window.handleBlockImageUpload(${idx}, this.files[0])">
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('blk-file-${idx}').click()" style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700;">
+                                📁 Upload Image
+                            </button>
+                            <div style="font-size: 0.72rem; color: var(--page-text-muted); margin-top: 4px;">PNG, JPG, or GIF directly from your device.</div>
+                        </div>
+                    </div>
+                    <input type="text" value="${escapeHtml(blk.caption || '')}" oninput="activeVisualBlocks[${idx}].caption = this.value" placeholder="Image Caption (Optional)" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 12px; color: #cbd5e1; font-size: 0.82rem;">
+                </div>
+            `;
+        } else if (blk.type === 'callout') {
+            innerForm = `
+                <div style="display: flex; flex-direction: column; gap: 8px; background: rgba(249, 115, 22, 0.08); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 10px; padding: 12px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" value="${escapeHtml(blk.icon || '🔥')}" oninput="activeVisualBlocks[${idx}].icon = this.value" style="width: 44px; text-align: center; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px; font-size: 1.1rem;">
+                        <input type="text" value="${escapeHtml(blk.title || '')}" oninput="activeVisualBlocks[${idx}].title = this.value" placeholder="Announcement Title" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 12px; color: #fff; font-weight: 700; font-size: 0.9rem;">
+                    </div>
+                    <textarea rows="2" oninput="activeVisualBlocks[${idx}].message = this.value" placeholder="Announcement message..." style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 6px 10px; color: #fde047; font-size: 0.84rem; resize: vertical;">${escapeHtml(blk.message || '')}</textarea>
+                </div>
+            `;
+        }
+
+        return `
+            <div style="background: rgba(14, 10, 16, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: #f97316; letter-spacing: 0.5px;">
+                        ${blk.type === 'text' ? '📝 Text Section' : (blk.type === 'buttons' ? '🔗 Buttons' : (blk.type === 'image' ? '🖼️ Media' : '📢 Callout'))}
+                    </span>
+                    <div style="display: flex; gap: 4px;">
+                        <button type="button" class="btn-secondary" onclick="window.moveVisualBlock(${idx}, -1)" style="padding: 3px 8px; font-size: 0.75rem;" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                        <button type="button" class="btn-secondary" onclick="window.moveVisualBlock(${idx}, 1)" style="padding: 3px 8px; font-size: 0.75rem;" ${idx === activeVisualBlocks.length - 1 ? 'disabled' : ''}>▼</button>
+                        <button type="button" onclick="window.removeVisualBlock(${idx})" style="background: none; border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; color: #f87171; padding: 3px 8px; font-size: 0.75rem; cursor: pointer;">🗑️</button>
+                    </div>
+                </div>
+                ${innerForm}
+            </div>
+        `;
+    }).join('');
+}

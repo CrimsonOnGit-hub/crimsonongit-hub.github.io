@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
+    <script src="/dialog.js"></script>
+    <script src="/theme.js"></script>
     <style>
         :root {
             --page-bg: #0d0e12;
@@ -1015,32 +1017,60 @@
 
                 <!-- TEMPLATE 3: ME PAGE EDITOR PANE -->
                 <div id="editor-pane-me" style="display: none; flex-direction: column; gap: 16px;">
+                    <!-- Top Page Meta & Theme Preset -->
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
-                        <div style="font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">
-                            👤 Showcase Profile Page Settings
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px;">
-                            <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Profile Headline</label>
-                                <input type="text" id="me-page-headline-input" class="settings-input" placeholder="e.g. Lead Programmer & Modder" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
+                                👤 Showcase Profile & Header Style
                             </div>
-                            <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Theme Preset</label>
-                                <select id="me-page-theme-input" class="settings-input" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted);">Theme Style:</label>
+                                <select id="me-page-theme-input" class="settings-input" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); padding: 6px 10px; border-radius: 8px; color: #fff; font-size: 0.82rem;">
                                     <option value="crimson">Crimson Flame (Aero Glass Red)</option>
                                     <option value="midnight">Midnight Cobalt</option>
                                     <option value="cyber">Cyberpunk Emerald</option>
                                     <option value="obsidian">Dark Obsidian</option>
+                                    <option value="solar">Solar Amber</option>
                                 </select>
                             </div>
                         </div>
-                        <div style="margin-bottom: 14px;">
-                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Public Bio</label>
-                            <textarea id="me-page-bio-input" class="settings-input" rows="3" placeholder="Tell everyone who you are and what you create..." style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff; resize: vertical;"></textarea>
-                        </div>
                         <div>
-                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Social & Project Links (One per line: Label | URL)</label>
-                            <textarea id="me-page-links-input" class="settings-input" rows="4" placeholder="Discord | https://discord.gg/...&#10;GitHub | https://github.com/...&#10;My Game | https://crimx.crimsonflame.net/@user/game" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff; resize: vertical; font-family: monospace;"></textarea>
+                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--page-text-muted); display: block; margin-bottom: 4px;">Headline</label>
+                            <input type="text" id="me-page-headline-input" class="settings-input" placeholder="e.g. Lead Programmer & Digital Artist" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: #fff;">
+                        </div>
+                    </div>
+
+                    <!-- Visual Block Builder (Google Sites Style) -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <div style="font-size: 0.95rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">
+                                    🧩 Visual Sections & Content Blocks
+                                </div>
+                                <div style="font-size: 0.76rem; color: var(--page-text-muted);">
+                                    Build your page visually by adding content blocks, buttons, and media sections.
+                                </div>
+                            </div>
+                            <!-- Insert Palette (Google Sites Toolbar) -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('text')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
+                                    + 📝 Text Section
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('buttons')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
+                                    + 🔗 Buttons & Links
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('image')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
+                                    + 🖼️ Image Card
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="window.addVisualBlock('callout')" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700;">
+                                    + 📢 Announcement
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Visual Blocks Canvas -->
+                        <div id="visual-blocks-canvas" style="display: flex; flex-direction: column; gap: 14px;">
+                            <!-- Populated dynamically with interactive visual blocks -->
                         </div>
                     </div>
                 </div>
